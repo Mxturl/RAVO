@@ -1,0 +1,44 @@
+{
+  "name": "ravo",
+  "interface": {
+    "displayName": "RAVO"
+  },
+  "plugins": [
+    {
+      "name": "ravo-core",
+      "source": {
+        "source": "local",
+        "path": "./plugins/ravo-core"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    },
+    {
+      "name": "ravo-analysis",
+      "source": {
+        "source": "local",
+        "path": "./plugins/ravo-analysis"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    },
+    {
+      "name": "ravo-acceptance",
+      "source": {
+        "source": "local",
+        "path": "./plugins/ravo-acceptance"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

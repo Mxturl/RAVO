@@ -1,0 +1,21 @@
+{
+  "name": "ravo-acceptance",
+  "version": "0.1.0",
+  "description": "Evidence-matched acceptance status checks and release acceptance skills for RAVO lifecycle governance.",
+  "author": {
+    "name": "RAVO contributors"
+  },
+  "skills": "./skills/",
+  "license": "MIT",
+  "keywords": ["ravo", "acceptance", "release", "evidence"],
+  "interface": {
+    "displayName": "RAVO Acceptance",
+    "shortDescription": "Verify status against evidence.",
+    "longDescription": "RAVO Acceptance checks delivery and release status language against current evidence, reusing the release-acceptance pattern while connecting to RAVO analysis artifacts when present.",
+    "developerName": "RAVO contributors",
+    "category": "Developer Tools",
+    "capabilities": ["Skills", "Hooks", "Evidence checks"],
+    "brandColor": "#16A34A",
+    "defaultPrompt": "Check whether this work is ready for acceptance."
+  }
+}

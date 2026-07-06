@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ravo.dev/schemas/acceptance-artifact.schema.json",
+  "title": "RAVO Acceptance Artifact",
+  "type": "object",
+  "required": ["schemaVersion", "id", "status", "evidenceLevel", "createdAt"],
+  "properties": {
+    "schemaVersion": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string"
+    },
+    "status": {
+      "enum": ["in_progress", "code_complete", "pending_acceptance", "accepted", "release_ready", "not_ready"]
+    },
+    "evidenceLevel": {
+      "enum": ["none", "notes", "script", "api", "smoke", "real_e2e"]
+    },
+    "summary": {
+      "type": "string"
+    },
+    "analysisArtifact": {
+      "type": "string"
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "knownGaps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": true
+}

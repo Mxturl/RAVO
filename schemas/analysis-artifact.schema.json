@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ravo.dev/schemas/analysis-artifact.schema.json",
+  "title": "RAVO Analysis Artifact",
+  "type": "object",
+  "required": ["schemaVersion", "id", "type", "title", "createdAt", "derivedConclusion"],
+  "properties": {
+    "schemaVersion": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string"
+    },
+    "type": {
+      "enum": ["requirement", "root-cause", "solution"]
+    },
+    "title": {
+      "type": "string"
+    },
+    "goal": {
+      "type": "string"
+    },
+    "constraints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "facts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "rootCause": {
+      "type": "object",
+      "properties": {
+        "symptom": {
+          "type": "string"
+        },
+        "proximateCause": {
+          "type": "string"
+        },
+        "mechanismRootCause": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "derivedConclusion": {
+      "type": "string"
+    },
+    "risks": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "nextActions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": true
+}
