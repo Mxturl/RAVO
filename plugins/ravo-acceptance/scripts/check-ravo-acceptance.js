@@ -23,6 +23,12 @@ function latestJson(dir) {
   }
 }
 
+function discoverLatest(cwd, manifest, moduleName, dirName) {
+  return manifest?.modules?.[moduleName]?.latestArtifact
+    ? path.join(cwd, manifest.modules[moduleName].latestArtifact)
+    : latestJson(path.join(cwd, "knowledge", ".ravo", dirName));
+}
+
 function addCheck(checks, id, status, required, summary) {
   checks.push({ id, status, required, summary });
 }
@@ -43,6 +49,24 @@ function buildResult(cwd = process.cwd()) {
     : latestJson(analysisDir);
   const analysisExists = Boolean(latestAnalysis && fs.existsSync(latestAnalysis));
   addCheck(checks, "analysisDiscovery", analysisExists ? "pass" : "skip", false, analysisExists ? "Latest analysis artifact discovered." : "No upstream analysis artifact found; standalone acceptance mode.");
+
+  const latestWorkstream = discoverLatest(cwd, manifest, "workstream", "workstream");
+  const workstream = readJson(latestWorkstream);
+  if (workstream) {
+    const workstreamReady = !["blocked"].includes(workstream.status) && (workstream.status !== "active" || Boolean(workstream.nextStep));
+    addCheck(checks, "workstreamEvidence", workstreamReady ? "pass" : "fail", true, workstreamReady ? "Workstream evidence is usable." : "Workstream is blocked or missing nextStep.");
+  } else {
+    addCheck(checks, "workstreamEvidence", "skip", false, "No workstream artifact found; standalone acceptance mode.");
+  }
+
+  const latestSmoke = discoverLatest(cwd, manifest, "quick-validation", "quick-validation");
+  const smoke = readJson(latestSmoke);
+  if (smoke) {
+    const smokeReady = ["pass", "warn"].includes(smoke.status) && !(smoke.risks || []).includes("real-device-pending");
+    addCheck(checks, "quickValidationEvidence", smokeReady ? "pass" : "fail", true, smokeReady ? "Quick validation evidence is usable." : "Quick validation evidence blocks readiness.");
+  } else {
+    addCheck(checks, "quickValidationEvidence", "skip", false, "No quick-validation artifact found; standalone acceptance mode.");
+  }
 
   const acceptanceDir = path.join(ravoRoot, "acceptance");
   const latestAcceptance = manifest?.modules?.acceptance?.latestArtifact
@@ -66,6 +90,8 @@ function buildResult(cwd = process.cwd()) {
     },
     manifestPath,
     latestAnalysis: analysisExists ? latestAnalysis : "",
+    latestWorkstream: workstream ? latestWorkstream : "",
+    latestSmoke: smoke ? latestSmoke : "",
     latestAcceptance: acceptance ? latestAcceptance : "",
     checks
   };

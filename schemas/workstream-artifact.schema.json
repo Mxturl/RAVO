@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ravo.dev/schemas/workstream-artifact.schema.json",
+  "title": "RAVO Workstream Artifact",
+  "type": "object",
+  "required": ["schemaVersion", "id", "status", "goal", "createdAt", "updatedAt"],
+  "properties": {
+    "schemaVersion": { "type": "string" },
+    "id": { "type": "string" },
+    "status": { "enum": ["planned", "active", "blocked", "ready_for_acceptance", "closed"] },
+    "goal": { "type": "string" },
+    "specRef": { "type": "string" },
+    "milestones": { "type": "array", "items": { "type": "string" } },
+    "currentMilestone": { "type": "string" },
+    "nextStep": { "type": "string" },
+    "blockers": { "type": "array", "items": { "type": "string" } },
+    "recovery": { "type": "string" },
+    "decisions": { "type": "array", "items": { "type": "string" } },
+    "evidenceRefs": { "type": "array", "items": { "type": "string" } }
+  },
+  "additionalProperties": true
+}

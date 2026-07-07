@@ -3,7 +3,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 
-const SCHEMA_VERSION = "0.1.2";
+const SCHEMA_VERSION = "0.2.0";
 
 function argValue(name, fallback = "") {
   const index = process.argv.indexOf(name);
@@ -31,7 +31,7 @@ function ravoRoot(workspace) {
 
 function ensureManifest(workspace, moduleName = "core") {
   const root = ravoRoot(workspace);
-  for (const dir of ["analysis", "acceptance", "workstream", "knowledge"]) {
+  for (const dir of ["analysis", "workstream", "quick-validation", "acceptance", "continuation", "knowledge"]) {
     fs.mkdirSync(path.join(root, dir), { recursive: true });
   }
 

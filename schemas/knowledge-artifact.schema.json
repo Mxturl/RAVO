@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ravo.dev/schemas/knowledge-artifact.schema.json",
+  "title": "RAVO Knowledge Artifact",
+  "type": "object",
+  "required": ["schemaVersion", "id", "kind", "scope", "content", "createdAt"],
+  "properties": {
+    "schemaVersion": { "type": "string" },
+    "id": { "type": "string" },
+    "kind": { "enum": ["fact", "decision", "lesson", "principle", "evidence"] },
+    "scope": { "enum": ["workspace", "user"] },
+    "source": { "type": "string" },
+    "content": { "type": "string" },
+    "applicability": { "type": "array", "items": { "type": "string" } },
+    "confidence": { "type": "number" },
+    "redactionStatus": { "type": "string" },
+    "lastUsedAt": { "type": "string" }
+  },
+  "additionalProperties": true
+}

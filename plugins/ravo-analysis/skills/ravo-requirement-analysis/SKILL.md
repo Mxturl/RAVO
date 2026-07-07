@@ -29,9 +29,18 @@ node "$RAVO_ANALYSIS_PLUGIN_ROOT/scripts/write-analysis-artifact.js" --type requ
 Set `RAVO_ANALYSIS_PLUGIN_ROOT` to the directory two levels above this `SKILL.md` file. Do not assume `plugins/ravo-analysis` exists in the user's workspace after installation.
 Automatic hook-triggered placeholder artifacts stay `draft`; reusable artifacts should be written as `complete`.
 
+When the user needs a long-running Goal prompt but no decision-complete spec exists, create the spec first:
+
+```bash
+node "$RAVO_ANALYSIS_PLUGIN_ROOT/scripts/write-decision-spec.js" --title "<short title>" --goal "<product goal>" --consumer "<real consumer>" --in-scope "<included behavior>" --out-of-scope "<excluded behavior>" --contract "<module or feature contract>" --validation "<checkable validation>" --fallback "<failure or fallback behavior>" --assumption "<explicit assumption>"
+```
+
+After writing the spec, return the spec path and let `ravo-core` generate the concise Goal prompt from that spec. Do not inflate the Goal prompt with the full requirements body.
+
 ## Rules
 
 - A conclusion without derivation is invalid.
+- Preserve original user intent separately from recommended changes when generating specs.
 - Do not skip the artifact for non-trivial analysis when `knowledge/` is available.
 - Do not turn user preference into automatic arbitration when the final consumer is someone else.
 - Every major option must distinguish facts, inferences, and assumptions.

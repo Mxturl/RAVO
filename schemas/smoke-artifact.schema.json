@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ravo.dev/schemas/smoke-artifact.schema.json",
+  "title": "RAVO Smoke Artifact",
+  "type": "object",
+  "required": ["schemaVersion", "id", "scope", "status", "createdAt"],
+  "properties": {
+    "schemaVersion": { "type": "string" },
+    "id": { "type": "string" },
+    "scope": { "type": "string" },
+    "status": { "enum": ["pass", "warn", "fail", "not_run"] },
+    "checks": { "type": "array", "items": { "type": "string" } },
+    "evidenceRefs": { "type": "array", "items": { "type": "string" } },
+    "risks": { "type": "array", "items": { "type": "string" } }
+  },
+  "additionalProperties": true
+}

@@ -30,6 +30,8 @@ const analysisHook = path.join(repo, "plugins/ravo-analysis/hooks/ravo-analysis-
 const acceptanceHook = path.join(repo, "plugins/ravo-acceptance/hooks/ravo-acceptance-gate.js");
 const acceptanceSessionHook = path.join(repo, "plugins/ravo-acceptance/hooks/ravo-acceptance-session.js");
 const acceptanceStopHook = path.join(repo, "plugins/ravo-acceptance/hooks/ravo-acceptance-stop.js");
+const workstreamHook = path.join(repo, "plugins/ravo-workstream/hooks/ravo-workstream-gate.js");
+const knowledgeHook = path.join(repo, "plugins/ravo-knowledge/hooks/ravo-knowledge-gate.js");
 const workspace = fs.mkdtempSync(path.join(os.tmpdir(), "ravo-prompt-"));
 
 const session = spawnSync(process.execPath, [acceptanceSessionHook, "SessionStart"], {
@@ -73,6 +75,17 @@ assert.deepEqual(trivial, {});
 
 const conceptExplanation = runHook(analysisHook, "什么是 worktree？");
 assert.deepEqual(conceptExplanation, {}, "simple concept explanations should not trigger RAVO analysis");
+
+const workstreamPrompt = runHook(workstreamHook, "这是一个长时间目标，需要按里程碑持续推进并同步 next step。", workspace);
+assert.equal(workstreamPrompt.systemMessage, "RAVO_WORKSTREAM:ADVISORY");
+assert.match(workstreamPrompt.hookSpecificOutput.additionalContext, /nextStep/);
+
+const workstreamReleaseBypass = runHook(workstreamHook, "这个版本能发版了吗？", workspace);
+assert.deepEqual(workstreamReleaseBypass, {}, "workstream must not interfere with release readiness prompts");
+
+const knowledgePrompt = runHook(knowledgeHook, "之前类似项目踩过什么坑，这次能复用哪些经验？", workspace);
+assert.equal(knowledgePrompt.systemMessage, "RAVO_KNOWLEDGE:ADVISORY");
+assert.match(knowledgePrompt.hookSpecificOutput.additionalContext, /Retrieve workspace knowledge/);
 
 const acceptance = runHook(acceptanceHook, "我刚完成了积分扣减功能，代码已经写完但还没做真实小程序端到端验证。这个功能可以验收了吗?", workspace);
 assert.equal(acceptance.systemMessage, "RAVO_ACCEPTANCE_GATE:ADVISORY");
@@ -142,6 +155,27 @@ const agentsIdempotent = spawnSync(process.execPath, [agentsScript, "--file", ex
 assert.equal(agentsIdempotent.status, 0, agentsIdempotent.stderr);
 assert.match(agentsIdempotent.stdout, /No changes/);
 
+const goalScript = path.join(repo, "plugins/ravo-core/scripts/ravo-goal-prompt.js");
+const goalMissingWorkspace = fs.mkdtempSync(path.join(os.tmpdir(), "ravo-goal-missing-"));
+const missingGoal = spawnSync(process.execPath, [goalScript, "--workspace", goalMissingWorkspace], {
+  encoding: "utf8",
+  stdio: ["ignore", "pipe", "pipe"]
+});
+assert.equal(missingGoal.status, 0, missingGoal.stderr);
+assert.equal(JSON.parse(missingGoal.stdout).status, "missing_spec");
+
+const goalReadyWorkspace = fs.mkdtempSync(path.join(os.tmpdir(), "ravo-goal-ready-"));
+fs.mkdirSync(path.join(goalReadyWorkspace, "docs"), { recursive: true });
+fs.copyFileSync(path.join(repo, "docs/ravo-v0.2-decision-complete-spec.md"), path.join(goalReadyWorkspace, "docs/ravo-v0.2-decision-complete-spec.md"));
+const readyGoal = spawnSync(process.execPath, [goalScript, "--workspace", goalReadyWorkspace], {
+  encoding: "utf8",
+  stdio: ["ignore", "pipe", "pipe"]
+});
+assert.equal(readyGoal.status, 0, readyGoal.stderr);
+const readyGoalOutput = JSON.parse(readyGoal.stdout);
+assert.equal(readyGoalOutput.status, "ok");
+assert.match(readyGoalOutput.goalPrompt, /以规格书为唯一需求来源/);
+
 const readyWorkspace = fs.mkdtempSync(path.join(os.tmpdir(), "ravo-ready-"));
 const writerScript = path.join(repo, "plugins/ravo-acceptance/scripts/write-acceptance-artifact.js");
 const readyArtifact = spawnSync(process.execPath, [
@@ -168,6 +202,9 @@ console.log(JSON.stringify({
     "root-cause prompt with release wording -> acceptance fallback bypass",
     "trivial prompt -> no advisory",
     "simple concept explanation -> no analysis advisory",
+    "long-running prompt -> workstream advisory",
+    "release prompt -> workstream bypass",
+    "knowledge reuse prompt -> knowledge advisory",
     "session start -> proactive acceptance context",
     "acceptance prompt without evidence -> advisory",
     "release-readiness variants without evidence -> advisory",
@@ -177,6 +214,8 @@ console.log(JSON.stringify({
     "next normal prompt -> consumes Stop continuation advisory once",
     "AGENTS preview -> delegated when/how boundary",
     "AGENTS apply -> preserves existing rules and is idempotent",
+    "Goal prompt missing spec -> missing_spec",
+    "Goal prompt existing spec -> concise Goal prompt",
     "ready workspace prompt -> no fallback interference"
   ]
 }, null, 2));

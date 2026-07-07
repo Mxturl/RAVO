@@ -1,0 +1,21 @@
+{
+  "name": "ravo-quick-validation",
+  "version": "0.2.0",
+  "description": "Smoke evidence manifests and fast validation artifacts for RAVO.",
+  "author": {
+    "name": "RAVO contributors"
+  },
+  "skills": "./skills/",
+  "license": "MIT",
+  "keywords": ["ravo", "smoke", "validation", "evidence"],
+  "interface": {
+    "displayName": "RAVO Quick Validation",
+    "shortDescription": "Record fast smoke evidence.",
+    "longDescription": "RAVO Quick Validation records script, branch, phase, or smoke evidence before final acceptance without replacing real E2E validation.",
+    "developerName": "RAVO contributors",
+    "category": "Developer Tools",
+    "capabilities": ["Skills", "Workspace artifacts"],
+    "brandColor": "#0891B2",
+    "defaultPrompt": "Write a RAVO smoke manifest."
+  }
+}

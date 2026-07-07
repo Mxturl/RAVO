@@ -1,6 +1,6 @@
 {
   "name": "ravo-analysis",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Requirement analysis and root-cause analysis skills for RAVO lifecycle governance.",
   "author": {
     "name": "RAVO contributors"

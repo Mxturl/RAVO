@@ -37,6 +37,7 @@ O = Organize    知识沉淀与复用
 - 在下结论前，先主动挑战一次首选方案，而不是只做顺向论证。
 - 在需求重要或不清晰时，先做第一性原理分析，再进入实现。
 - 将可复用分析结果写入 `knowledge/.ravo/analysis`。
+- 当长时间 Goal Prompt 缺少完整规格书时，先生成 decision-complete spec，再生成短 Goal Prompt。
 
 ### 根因分析
 
@@ -50,6 +51,17 @@ O = Organize    知识沉淀与复用
 - 将验收证据写入 `knowledge/.ravo/acceptance`。
 - prompt-time readiness hook 只是兜底 advisory；主机制应该是 Agent 在给交付结论前主动运行验收检查。
 
+### 任务编排与快速验证
+
+- 用 milestone、next step、blocker、decision 和 evidence artifacts 跟踪长任务。
+- 将快速 smoke 证据写入 `knowledge/.ravo/quick-validation`。
+- smoke 证据不替代最终验收。
+
+### 知识复用
+
+- 写入、检索并应用 workspace-local 的事实、决策、经验、原则和证据。
+- transferable lessons 必须用户 opt-in，并经过脱敏、scope 标注和泄漏检查。
+
 ### 共享 Artifact 协议
 
 RAVO 模块通过 workspace 文件连接，不做中心化 dispatcher：
@@ -58,8 +70,9 @@ RAVO 模块通过 workspace 文件连接，不做中心化 dispatcher：
 knowledge/.ravo/
 ├── manifest.json
 ├── analysis/
-├── acceptance/
 ├── workstream/
+├── quick-validation/
+├── acceptance/
 └── knowledge/
 ```
 
@@ -75,7 +88,10 @@ knowledge/.ravo/
 codex plugin marketplace add "$(pwd)"
 codex plugin add ravo-core@ravo
 codex plugin add ravo-analysis@ravo
+codex plugin add ravo-workstream@ravo
+codex plugin add ravo-quick-validation@ravo
 codex plugin add ravo-acceptance@ravo
+codex plugin add ravo-knowledge@ravo
 ```
 
 安装后新开一个 Codex thread，让 skills 和 hooks 生效。
@@ -99,7 +115,7 @@ Codex 可能会要求用户授权新安装的 plugin hooks。授权按 hook even
 
 ### 升级 RAVO
 
-RAVO 的设计本身支持相对平滑的升级：plugin id 保持稳定（`ravo-core`、`ravo-analysis`、`ravo-acceptance`），共享协议通过 `knowledge/.ravo/manifest.json` 做版本化管理，各模块也可以独立升级。
+RAVO 的设计本身支持相对平滑的升级：plugin id 保持稳定（`ravo-core`、`ravo-analysis`、`ravo-workstream`、`ravo-quick-validation`、`ravo-acceptance`、`ravo-knowledge`），共享协议通过 `knowledge/.ravo/manifest.json` 做版本化管理，各模块也可以独立升级。
 
 常见升级流程：
 
@@ -107,7 +123,10 @@ RAVO 的设计本身支持相对平滑的升级：plugin id 保持稳定（`ravo
 git pull
 codex plugin add ravo-core@ravo
 codex plugin add ravo-analysis@ravo
+codex plugin add ravo-workstream@ravo
+codex plugin add ravo-quick-validation@ravo
 codex plugin add ravo-acceptance@ravo
+codex plugin add ravo-knowledge@ravo
 ```
 
 如果你用的不是当前本地仓库，而是 Git marketplace，需要先刷新 marketplace snapshot：
@@ -133,7 +152,7 @@ RAVO 不会静默修改 Codex 全局 `AGENTS.md`。
 - `AGENTS.md` 决定 **何时委派**：全局优先级、安全边界、交互风格、数据边界和 fallback 行为。
 - RAVO 决定 **如何执行**：分析结构、验收证据、scripts、schemas、hooks 和 artifacts。
 
-不要宣称 RAVO 已接管尚未实现的模块。v0.1 完整覆盖的是 `analysis` 和 `acceptance`；`workstream` 与 `knowledge` 只是协议兼容点，不是完整模块。
+RAVO v0.2 将 `analysis`、`workstream`、`quick-validation`、`acceptance` 和 `knowledge` 作为可独立安装模块覆盖。小而明确的任务不要求安装全部模块。
 
 ### 手动模式
 

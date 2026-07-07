@@ -57,7 +57,7 @@ function writePendingContinuation(cwd, message, reason) {
   const id = `${now.replace(/[:.]/g, "-")}-acceptance-stop-telemetry`;
   const artifactPath = path.join(dir, `${id}.json`);
   const artifact = {
-    schemaVersion: "0.1.2",
+    schemaVersion: "0.2.0",
     id,
     type: "acceptance-stop-telemetry",
     status: "pending",
@@ -70,7 +70,7 @@ function writePendingContinuation(cwd, message, reason) {
   writeJson(artifactPath, artifact);
 
   const manifestPath = path.join(root, "manifest.json");
-  const manifest = readJson(manifestPath) || { schemaVersion: "0.1.2", workspace: ".", modules: {} };
+  const manifest = readJson(manifestPath) || { schemaVersion: "0.2.0", workspace: ".", modules: {} };
   manifest.modules = manifest.modules || {};
   manifest.modules.continuation = {
     ...(manifest.modules.continuation || {}),

@@ -37,6 +37,7 @@ O = Organize    durable knowledge capture and reuse
 - Challenge the preferred option once before concluding, instead of only defending it.
 - Use first-principles reasoning before implementation when the request is ambiguous or important.
 - Write reusable analysis artifacts under `knowledge/.ravo/analysis`.
+- Generate decision-complete specs before long-running Goal prompts when the current requirements are not yet complete.
 
 ### Root-Cause Analysis
 
@@ -50,6 +51,17 @@ O = Organize    durable knowledge capture and reuse
 - Write acceptance artifacts under `knowledge/.ravo/acceptance`.
 - Treat prompt-time readiness hooks as fallback advisory only; the agent should run acceptance checks proactively before delivery conclusions.
 
+### Workstream and Quick Validation
+
+- Track long-running work with milestone, next step, blocker, decision, and evidence artifacts.
+- Record fast smoke evidence under `knowledge/.ravo/quick-validation`.
+- Keep smoke evidence separate from final acceptance.
+
+### Knowledge Reuse
+
+- Write, retrieve, and apply workspace-local facts, decisions, lessons, principles, and evidence.
+- Support opt-in transferable lessons only after redaction, scope labeling, and leakage checks.
+
 ### Shared Artifact Protocol
 
 RAVO modules connect through workspace files, not a central dispatcher:
@@ -58,8 +70,9 @@ RAVO modules connect through workspace files, not a central dispatcher:
 knowledge/.ravo/
 ├── manifest.json
 ├── analysis/
-├── acceptance/
 ├── workstream/
+├── quick-validation/
+├── acceptance/
 └── knowledge/
 ```
 
@@ -75,7 +88,10 @@ From the repository root:
 codex plugin marketplace add "$(pwd)"
 codex plugin add ravo-core@ravo
 codex plugin add ravo-analysis@ravo
+codex plugin add ravo-workstream@ravo
+codex plugin add ravo-quick-validation@ravo
 codex plugin add ravo-acceptance@ravo
+codex plugin add ravo-knowledge@ravo
 ```
 
 Start a new Codex thread after installing so skills and hooks are picked up.
@@ -99,7 +115,7 @@ The host may not always show a prominent approval prompt. After installation, th
 
 ### Upgrading RAVO
 
-RAVO is designed to be upgrade-friendly: plugin ids stay stable (`ravo-core`, `ravo-analysis`, `ravo-acceptance`), the shared workspace protocol is versioned through `knowledge/.ravo/manifest.json`, and each module can be upgraded independently.
+RAVO is designed to be upgrade-friendly: plugin ids stay stable (`ravo-core`, `ravo-analysis`, `ravo-workstream`, `ravo-quick-validation`, `ravo-acceptance`, `ravo-knowledge`), the shared workspace protocol is versioned through `knowledge/.ravo/manifest.json`, and each module can be upgraded independently.
 
 Typical upgrade flow:
 
@@ -107,7 +123,10 @@ Typical upgrade flow:
 git pull
 codex plugin add ravo-core@ravo
 codex plugin add ravo-analysis@ravo
+codex plugin add ravo-workstream@ravo
+codex plugin add ravo-quick-validation@ravo
 codex plugin add ravo-acceptance@ravo
+codex plugin add ravo-knowledge@ravo
 ```
 
 If your marketplace source is a Git marketplace rather than the current local repo checkout, refresh it first:
@@ -133,7 +152,7 @@ The intended boundary is:
 - `AGENTS.md` decides **when** to delegate: global priority, safety, interaction style, data boundaries, and fallback behavior.
 - RAVO decides **how** to execute once delegated: analysis structure, acceptance evidence, scripts, schemas, hooks, and artifacts.
 
-Do not claim that RAVO owns modules it has not implemented. In v0.1, RAVO fully covers `analysis` and `acceptance`; `workstream` and `knowledge` are protocol-compatible placeholders, not complete modules.
+RAVO v0.2 covers `analysis`, `workstream`, `quick-validation`, `acceptance`, and `knowledge` as independently installable modules. Small, clearly bounded tasks do not require every module.
 
 ### Manual Mode
 
