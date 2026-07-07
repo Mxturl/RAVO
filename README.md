@@ -80,6 +80,8 @@ codex plugin add ravo-acceptance@ravo
 
 Start a new Codex thread after installing so skills and hooks are picked up.
 
+If an existing Codex Agent is installing RAVO for a user, it should treat `AGENTS.md` integration as a selective upgrade step after plugin installation. The agent must inspect the user's Codex global `AGENTS.md`, propose how RAVO should fit into the existing rules, show a diff, and wait for explicit approval before writing.
+
 > [!IMPORTANT]
 > **Hook trust is part of the product, not an optional detail.**
 > Without trusted `SessionStart` / `SubagentStart` / `UserPromptSubmit` hooks, RAVO loses most of its natural-governance behavior. In that degraded state, requirement analysis may not trigger reliably, and proactive acceptance falls back to weaker prompt-time behavior.
@@ -126,6 +128,13 @@ RAVO never silently edits Codex global `AGENTS.md`.
 
 Different users keep different `AGENTS.md` structures. Treat the RAVO snippet as a recommended policy block, not as text that must be mechanically inserted unchanged.
 
+The intended boundary is:
+
+- `AGENTS.md` decides **when** to delegate: global priority, safety, interaction style, data boundaries, and fallback behavior.
+- RAVO decides **how** to execute once delegated: analysis structure, acceptance evidence, scripts, schemas, hooks, and artifacts.
+
+Do not claim that RAVO owns modules it has not implemented. In v0.1, RAVO fully covers `analysis` and `acceptance`; `workstream` and `knowledge` are protocol-compatible placeholders, not complete modules.
+
 ### Manual Mode
 
 Use this when the user installs RAVO directly and wants to review the suggested policy text for Codex global `AGENTS.md`.
@@ -145,13 +154,15 @@ Use this when a user's Agent installs RAVO or maintains their Codex environment.
 The installing Agent should:
 
 - Inspect Codex global `AGENTS.md` before proposing changes.
-- Decide whether RAVO needs a new marked block, a smaller merge into an existing section, or no change because equivalent rules already exist.
+- Decide whether RAVO needs a new marked block, a smaller merge into existing sections, or no change because equivalent rules already exist.
+- Preserve user-specific rules that are not RAVO concerns, such as language preference, SSH policy, safety boundaries, or project conventions.
+- Add or merge only the missing RAVO boundary rules: `AGENTS.md` owns when to delegate, RAVO owns how to execute, simple factual questions are exempt from forced first-principles structure, and RAVO-unavailable fallback must be explicit.
 - Show the user the proposed diff and explain the incremental behavior change.
 - Ask for explicit approval before writing.
 - Create a backup before any write.
 - Never silently modify the user's rules file.
 
-If the existing `AGENTS.md` is already opinionated, prefer a minimal merge over inserting duplicate RAVO wording.
+If the existing `AGENTS.md` is already opinionated, prefer a minimal merge over inserting duplicate RAVO wording. The goal is a selective upgrade, not a second policy manual.
 
 ## FAQ
 
@@ -182,6 +193,12 @@ No. RAVO follows Occam's Razor: modules stay independently installable and conne
 <summary><strong>Can RAVO modify AGENTS.md automatically?</strong></summary>
 
 No. RAVO can preview and apply a suggested block to Codex global `AGENTS.md`, but the user or installing Agent must review the existing file, inspect the diff, and approve the write.
+
+When an Agent performs the installation, it should choose the smallest safe integration:
+
+- no change when equivalent rules already exist,
+- a small merge into the existing working-rules section when that is clearer,
+- a marked `RAVO` block only when the file has no suitable structure.
 
 </details>
 

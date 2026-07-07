@@ -3,7 +3,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 
-const SCHEMA_VERSION = "0.1.1";
+const SCHEMA_VERSION = "0.1.2";
 
 function argValue(name, fallback = "") {
   const index = process.argv.indexOf(name);

@@ -7,9 +7,10 @@ const path = require("node:path");
 const BEGIN = "<!-- RAVO:BEGIN -->";
 const END = "<!-- RAVO:END -->";
 const SNIPPET = `${BEGIN}
-- Use RAVO for medium/high-complexity AI-agent lifecycle work: analysis, acceptance, workstream handoff, and knowledge reuse.
-- Prefer ravo-analysis for important requirement, solution, architecture, and root-cause analysis; conclusions must derive from goal, constraints, facts, and mechanism-level cause.
-- Proactively run ravo-acceptance before asking the user to accept work or before claiming pending acceptance, accepted, release ready, or live. User-prompt acceptance hooks are fallback only; status language must match evidence.
+- AGENTS.md decides when to delegate; a delegated RAVO skill/plugin decides how to execute within that scope.
+- For medium/high-complexity requirement, solution, architecture, agent-workflow, semantic-model, root-cause, planning, and tradeoff tasks, prefer ravo-analysis when available. If unavailable, perform a lightweight inline equivalent: goal, constraints, facts, assumptions, options, challenge, conclusion, and validation.
+- Do not force first-principles structure for simple concept explanations, term definitions, direct factual Q&A, or basic how-to questions unless the user explicitly asks for deeper analysis.
+- For delivery, acceptance, release, go-live, readiness, done, or completed conclusions, prefer ravo-acceptance when available. If unavailable, explicitly list evidence and gaps before any status claim. Prompt-time hooks are fallback only; status language must match evidence.
 - RAVO modules connect through knowledge/.ravo/manifest.json and artifacts. Do not require all modules for small, clearly bounded tasks.
 ${END}`;
 

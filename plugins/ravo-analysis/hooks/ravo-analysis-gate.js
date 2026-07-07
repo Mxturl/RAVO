@@ -54,7 +54,7 @@ function matchesAny(text, patterns) {
 function classify(prompt) {
   const text = String(prompt || "");
   const lower = text.toLowerCase();
-  const noCodeYet = /(先别开发|先不要开发|先不要改代码|不要急着写代码|before implementation|do not implement yet)/i.test(text);
+  const noCodeYet = /(先别开发|先不要开发|先不要实现|先不要改代码|不要急着写代码|before implementation|do not implement yet)/i.test(text);
 
   const rootCause = matchesAny(text, [
     /根因|机制根因|五个\s*why|5\s*why|为什么.*为什么|防复发|复发风险/,

@@ -36,13 +36,14 @@ for (const plugin of plugins) {
   assert.ok(marketplace.plugins.some((entry) => entry.name === plugin), `marketplace missing ${plugin}`);
   const manifest = readJson(path.join(repo, "plugins", plugin, ".codex-plugin", "plugin.json"));
   assert.equal(manifest.name, plugin);
-  assert.equal(manifest.version, "0.1.1");
+  assert.equal(manifest.version, "0.1.2");
   assert.ok(manifest.skills, `${plugin} missing skills path`);
   assert.ok(manifest.interface?.displayName?.startsWith("RAVO"), `${plugin} displayName should use RAVO`);
   if (plugin !== "ravo-core") assert.ok(manifest.hooks, `${plugin} missing hooks path`);
 }
 
 for (const file of [
+  ".gitattributes",
   "README.md",
   "README_ZH.md",
   "LICENSE",

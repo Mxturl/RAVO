@@ -80,6 +80,8 @@ codex plugin add ravo-acceptance@ravo
 
 安装后新开一个 Codex thread，让 skills 和 hooks 生效。
 
+如果是用户已有的 Codex Agent 帮忙安装 RAVO，`AGENTS.md` 接入应作为插件安装后的选择性升级步骤。Agent 必须先读取用户的 Codex 全局 `AGENTS.md`，判断 RAVO 应如何融入现有规则，展示 diff，并等待用户明确批准后再写入。
+
 > [!IMPORTANT]
 > **hooks 信任是 RAVO 产品能力的一部分，不是可忽略细节。**
 > 如果 `SessionStart` / `SubagentStart` / `UserPromptSubmit` 这些 hooks 没有被信任或批准，RAVO 的自然治理能力会明显退化。此时需求分析可能无法稳定自然触发，主动验收也会退化成更弱的 prompt-time 行为。
@@ -126,6 +128,13 @@ RAVO 不会静默修改 Codex 全局 `AGENTS.md`。
 
 不同用户的 `AGENTS.md` 结构不同。RAVO snippet 是推荐治理块，不是必须机械插入的固定文本。
 
+推荐边界是：
+
+- `AGENTS.md` 决定 **何时委派**：全局优先级、安全边界、交互风格、数据边界和 fallback 行为。
+- RAVO 决定 **如何执行**：分析结构、验收证据、scripts、schemas、hooks 和 artifacts。
+
+不要宣称 RAVO 已接管尚未实现的模块。v0.1 完整覆盖的是 `analysis` 和 `acceptance`；`workstream` 与 `knowledge` 只是协议兼容点，不是完整模块。
+
 ### 手动模式
 
 适用于用户自己安装 RAVO，并希望先审阅 Codex 全局 `AGENTS.md` 的推荐规则文本。
@@ -146,12 +155,14 @@ node plugins/ravo-core/scripts/ravo-agents.js --restore <备份路径>
 
 - 先读取 Codex 全局 `AGENTS.md`，再提出修改建议。
 - 判断应该新增 RAVO marked block、合并到现有段落，还是因为已有等价规则而不修改。
+- 保留与 RAVO 无关的用户规则，例如语言偏好、SSH 策略、安全边界或项目约定。
+- 只补齐缺失的 RAVO 边界规则：`AGENTS.md` 决定何时委派，RAVO 决定如何执行；简单事实问答不强制套第一性原理结构；RAVO 不可用时必须走明确 fallback。
 - 展示 proposed diff，并说明增量行为变化。
 - 等待用户明确批准后再写入。
 - 写入前创建备份。
 - 绝不静默修改用户规则文件。
 
-如果现有 `AGENTS.md` 已经有强治理规则，优先做最小合并，避免重复插入同义 RAVO 文案。
+如果现有 `AGENTS.md` 已经有强治理规则，优先做最小合并，避免重复插入同义 RAVO 文案。目标是选择性升级，不是再塞一份规则手册。
 
 ## 常见问题
 
@@ -182,6 +193,12 @@ node plugins/ravo-core/scripts/ravo-agents.js --restore <备份路径>
 <summary><strong>RAVO 会自动修改 AGENTS.md 吗？</strong></summary>
 
 不会。RAVO 可以预览并应用 Codex 全局 `AGENTS.md` 的推荐规则块，但用户或安装 Agent 必须先读取现有文件、检查 diff，并确认后再写入。
+
+如果由 Agent 执行安装，应选择最小安全接入方式：
+
+- 已有等价规则时不修改；
+- 现有结构清晰时合并到原有 working-rules 段落；
+- 没有合适结构时才新增带标记的 `RAVO` block。
 
 </details>
 

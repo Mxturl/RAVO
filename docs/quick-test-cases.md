@@ -55,3 +55,16 @@ Expected effect:
 
 - RAVO should not force a heavy analysis flow.
 - The tool should treat this as a small direct task.
+
+## 5. Simple Concept Explanation
+
+Prompt:
+
+```text
+What is a Git worktree?
+```
+
+Expected effect:
+
+- RAVO should not force first-principles structure.
+- The answer should explain the concept directly unless the user asks for deeper analysis.
