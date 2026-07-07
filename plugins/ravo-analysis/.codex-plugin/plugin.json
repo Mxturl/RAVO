@@ -6,6 +6,7 @@
     "name": "RAVO contributors"
   },
   "skills": "./skills/",
+  "hooks": "./hooks/claude-codex-hooks.json",
   "license": "MIT",
   "keywords": ["ravo", "analysis", "requirements", "root-cause"],
   "interface": {
@@ -14,7 +15,7 @@
     "longDescription": "RAVO Analysis adds focused requirement-analysis and root-cause-analysis skills that produce reusable analysis artifacts for downstream work and acceptance.",
     "developerName": "RAVO contributors",
     "category": "Developer Tools",
-    "capabilities": ["Skills", "Workspace artifacts"],
+    "capabilities": ["Skills", "Lifecycle hooks", "Workspace artifacts"],
     "brandColor": "#2563EB",
     "defaultPrompt": "Analyze this requirement or root cause with RAVO."
   }

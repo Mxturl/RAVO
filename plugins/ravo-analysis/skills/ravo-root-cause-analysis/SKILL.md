@@ -19,14 +19,17 @@ Include:
 - `Smallest Fix`: one root-level fix, not scattered symptom guards.
 - `Verification`: the smallest check that would fail if the root cause returns.
 
-For important work, write an artifact:
+For important work, or when a RAVO advisory triggered this skill, write an artifact:
 
 ```bash
-node plugins/ravo-analysis/scripts/write-analysis-artifact.js --type root-cause --title "<short title>" --symptom "<symptom>" --proximate-cause "<near cause>" --mechanism-root-cause "<mechanism>" --conclusion "<derived conclusion>"
+node "$RAVO_ANALYSIS_PLUGIN_ROOT/scripts/write-analysis-artifact.js" --type root-cause --title "<short title>" --symptom "<symptom>" --proximate-cause "<near cause>" --mechanism-root-cause "<mechanism>" --conclusion "<derived conclusion>"
 ```
+
+Set `RAVO_ANALYSIS_PLUGIN_ROOT` to the directory two levels above this `SKILL.md` file. Do not assume `plugins/ravo-analysis` exists in the user's workspace after installation.
 
 ## Rules
 
 - Do not stop at symptoms.
+- Do not skip the artifact for non-trivial root-cause analysis when `knowledge/` is available.
 - Do not stop at "prompt issue", "user asked", "implementation mistake", or "missing check" unless that is the verified mechanism boundary.
 - Grep callers before editing a shared bug path; fix once where all callers route through.

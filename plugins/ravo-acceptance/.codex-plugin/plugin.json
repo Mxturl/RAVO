@@ -6,6 +6,7 @@
     "name": "RAVO contributors"
   },
   "skills": "./skills/",
+  "hooks": "./hooks/claude-codex-hooks.json",
   "license": "MIT",
   "keywords": ["ravo", "acceptance", "release", "evidence"],
   "interface": {

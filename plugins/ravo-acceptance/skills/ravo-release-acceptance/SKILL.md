@@ -5,7 +5,9 @@ description: Create or check RAVO acceptance evidence before Codex claims work i
 
 # RAVO Release Acceptance
 
-Use this skill before giving a delivery-status conclusion.
+Use this skill proactively before giving a delivery-status conclusion. The agent must initiate acceptance checks before asking the user to accept work or before claiming `pending_acceptance`, `accepted`, `release_ready`, or `live`.
+
+Prompt-time hooks are only a fallback for direct user readiness prompts. They do not replace this agent-initiated delivery gate.
 
 ## Workflow
 
@@ -14,14 +16,16 @@ Use this skill before giving a delivery-status conclusion.
 3. Write an acceptance artifact when there is enough evidence:
 
 ```bash
-node plugins/ravo-acceptance/scripts/write-acceptance-artifact.js --status pending_acceptance --evidence-level smoke --summary "<summary>"
+node "$RAVO_ACCEPTANCE_PLUGIN_ROOT/scripts/write-acceptance-artifact.js" --status pending_acceptance --evidence-level smoke --summary "<summary>"
 ```
 
 4. Check the gate:
 
 ```bash
-node plugins/ravo-acceptance/scripts/check-ravo-acceptance.js
+node "$RAVO_ACCEPTANCE_PLUGIN_ROOT/scripts/check-ravo-acceptance.js"
 ```
+
+Set `RAVO_ACCEPTANCE_PLUGIN_ROOT` to the directory two levels above this `SKILL.md` file. Do not assume `plugins/ravo-acceptance` exists in the user's workspace after installation.
 
 ## Evidence Levels
 
@@ -37,3 +41,4 @@ node plugins/ravo-acceptance/scripts/check-ravo-acceptance.js
 - Do not say `accepted`, `release-ready`, or `live` unless evidence supports it.
 - API tests, script passes, page smoke tests, and oral confirmation are not real E2E.
 - If evidence is incomplete, report `not_ready`, `in_progress`, or `code_complete` instead.
+- Do not wait for the user to ask "can this be accepted?" when the current answer is a delivery or release conclusion.

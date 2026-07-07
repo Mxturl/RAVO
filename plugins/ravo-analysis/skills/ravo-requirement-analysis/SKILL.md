@@ -18,14 +18,17 @@ Include:
 - `Derived Conclusion`: the chosen path and why it follows from the facts.
 - `Validation`: how the result will be checked.
 
-For important work, write an artifact:
+For important work, or when a RAVO advisory triggered this skill, write an artifact:
 
 ```bash
-node plugins/ravo-analysis/scripts/write-analysis-artifact.js --type requirement --title "<short title>" --conclusion "<derived conclusion>"
+node "$RAVO_ANALYSIS_PLUGIN_ROOT/scripts/write-analysis-artifact.js" --type requirement --title "<short title>" --conclusion "<derived conclusion>"
 ```
+
+Set `RAVO_ANALYSIS_PLUGIN_ROOT` to the directory two levels above this `SKILL.md` file. Do not assume `plugins/ravo-analysis` exists in the user's workspace after installation.
 
 ## Rules
 
 - A conclusion without derivation is invalid.
+- Do not skip the artifact for non-trivial analysis when `knowledge/` is available.
 - Do not turn user preference into automatic arbitration when the final consumer is someone else.
 - For high-impact proposals, run external review when available.

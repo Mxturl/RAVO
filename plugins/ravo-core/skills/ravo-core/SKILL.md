@@ -12,22 +12,24 @@ Use this skill to initialize the shared RAVO artifact protocol before other RAVO
 1. Initialize the workspace manifest when `knowledge/.ravo/manifest.json` is missing:
 
 ```bash
-node plugins/ravo-core/scripts/ravo-init.js
+node "$RAVO_CORE_PLUGIN_ROOT/scripts/ravo-init.js"
 ```
 
 2. For opt-in `AGENTS.md` integration, preview first:
 
 ```bash
-node plugins/ravo-core/scripts/ravo-agents.js --file AGENTS.md
+node "$RAVO_CORE_PLUGIN_ROOT/scripts/ravo-agents.js" --file AGENTS.md
 ```
 
 3. Apply only after the user explicitly asks:
 
 ```bash
-node plugins/ravo-core/scripts/ravo-agents.js --file AGENTS.md --apply
+node "$RAVO_CORE_PLUGIN_ROOT/scripts/ravo-agents.js" --file AGENTS.md --apply
 ```
 
 The apply path creates a backup and updates the marked RAVO block idempotently.
+
+Set `RAVO_CORE_PLUGIN_ROOT` to the directory two levels above this `SKILL.md` file. Do not assume `plugins/ravo-core` exists in the user's workspace after installation.
 
 ## Rules
 

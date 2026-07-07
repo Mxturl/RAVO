@@ -1,0 +1,81 @@
+#!/usr/bin/env node
+
+const assert = require("node:assert");
+const fs = require("node:fs");
+const os = require("node:os");
+const { spawnSync } = require("node:child_process");
+const path = require("node:path");
+
+const repo = path.resolve(__dirname, "..");
+
+function runHook(script, prompt, cwd = repo) {
+  const child = spawnSync(process.execPath, [script], {
+    input: JSON.stringify({ prompt, cwd }),
+    encoding: "utf8",
+    stdio: ["pipe", "pipe", "pipe"]
+  });
+  assert.equal(child.status, 0, child.stderr);
+  return child.stdout.trim() ? JSON.parse(child.stdout) : {};
+}
+
+const analysisHook = path.join(repo, "plugins/ravo-analysis/hooks/ravo-analysis-gate.js");
+const acceptanceHook = path.join(repo, "plugins/ravo-acceptance/hooks/ravo-acceptance-gate.js");
+const acceptanceSessionHook = path.join(repo, "plugins/ravo-acceptance/hooks/ravo-acceptance-session.js");
+const workspace = fs.mkdtempSync(path.join(os.tmpdir(), "ravo-prompt-"));
+
+const session = spawnSync(process.execPath, [acceptanceSessionHook, "SessionStart"], {
+  encoding: "utf8",
+  stdio: ["ignore", "pipe", "pipe"]
+});
+assert.equal(session.status, 0, session.stderr);
+const sessionOutput = JSON.parse(session.stdout);
+assert.equal(sessionOutput.systemMessage, "RAVO_ACCEPTANCE_ACTIVE");
+assert.match(sessionOutput.hookSpecificOutput.additionalContext, /proactively run ravo-release-acceptance/);
+assert.match(sessionOutput.hookSpecificOutput.additionalContext, /completed, done, or 已完成/);
+assert.match(sessionOutput.hookSpecificOutput.additionalContext, /write-acceptance-artifact\.js/);
+
+const requirement = runHook(analysisHook, "我们正在做一个 AI 穿搭小程序，用户上传衣服照片后，系统自动生成衣橱标签。现在我想新增旅行场景穿搭推荐：用户输入目的地、天数、天气和行李箱大小，系统推荐每天穿什么。这个需求先别开发，帮我判断真正的用户是谁、目标是什么、有哪些边界和风险，然后给出推荐方案。", workspace);
+assert.equal(requirement.systemMessage, "RAVO_ANALYSIS_GATE:ADVISORY");
+assert.match(requirement.hookSpecificOutput.additionalContext, /requirement/);
+assert.match(requirement.hookSpecificOutput.additionalContext, /ravo-requirement-analysis/);
+assert.match(requirement.hookSpecificOutput.additionalContext, /Required headings: Goal, Consumer, Constraints, Options, Derived Conclusion, Validation/);
+
+const rootCause = runHook(analysisHook, "我们的验收插件现在能拦截可以验收了吗，但对这个版本是不是能发没有触发。我觉得这可能只是关键词覆盖问题，也可能是设计模式问题。请继续追问为什么，直到找到可验证、可防复发的机制根因。", workspace);
+assert.equal(rootCause.systemMessage, "RAVO_ANALYSIS_GATE:ADVISORY");
+assert.match(rootCause.hookSpecificOutput.additionalContext, /root-cause/);
+assert.match(rootCause.hookSpecificOutput.additionalContext, /ravo-root-cause-analysis/);
+assert.match(rootCause.hookSpecificOutput.additionalContext, /Required headings: Symptom, Proximate Cause, Mechanism Root Cause, Why Chain, Boundary, Smallest Fix, Verification/);
+assert.ok(fs.existsSync(path.join(workspace, "knowledge/.ravo/manifest.json")), "analysis hook writes manifest");
+assert.ok(fs.readdirSync(path.join(workspace, "knowledge/.ravo/analysis")).length >= 2, "analysis hook writes artifacts");
+
+const rootCauseAcceptanceBypass = runHook(acceptanceHook, "我们的验收插件现在能拦截可以验收了吗，但对这个版本是不是能发没有触发。请继续追问为什么，直到找到机制根因。", workspace);
+assert.deepEqual(rootCauseAcceptanceBypass, {}, "acceptance fallback must not block root-cause analysis prompts");
+
+const trivial = runHook(analysisHook, "把按钮颜色改成红色。");
+assert.deepEqual(trivial, {});
+
+const acceptance = runHook(acceptanceHook, "我刚完成了积分扣减功能，代码已经写完但还没做真实小程序端到端验证。这个功能可以验收了吗?", workspace);
+assert.equal(acceptance.systemMessage, "RAVO_ACCEPTANCE_GATE:BLOCK");
+
+for (const prompt of ["这个版本是不是能发", "这个版本是不是能发版", "这个版本能上线吗"]) {
+  const releaseReadiness = runHook(acceptanceHook, prompt, workspace);
+  assert.equal(releaseReadiness.systemMessage, "RAVO_ACCEPTANCE_GATE:BLOCK", prompt);
+}
+
+const deliveryConclusion = runHook(acceptanceHook, "我已经把积分扣减功能做完了，代码已经写完，单元测试也过了。请给我一个交付结论和下一步安排。", workspace);
+assert.equal(deliveryConclusion.systemMessage, "RAVO_ACCEPTANCE_GATE:BLOCK");
+assert.ok(fs.readdirSync(path.join(workspace, "knowledge/.ravo/acceptance")).length >= 2, "acceptance hook writes artifacts");
+
+console.log(JSON.stringify({
+  status: "pass",
+  checks: [
+    "requirement prompt -> ravo-requirement-analysis advisory",
+    "root-cause prompt -> ravo-root-cause-analysis advisory",
+    "root-cause prompt with release wording -> acceptance fallback bypass",
+    "trivial prompt -> no advisory",
+    "session start -> proactive acceptance context",
+    "acceptance prompt without evidence -> block",
+    "release-readiness variants without evidence -> block",
+    "delivery conclusion prompt without evidence -> block"
+  ]
+}, null, 2));

@@ -28,6 +28,7 @@ function parseFrontmatter(file) {
   }
   assert.ok(fields.name, `${file} missing skill name`);
   assert.ok(fields.description, `${file} missing skill description`);
+  assert.ok(!text.includes("node plugins/ravo-"), `${file} uses repo-relative plugin command`);
 }
 
 const marketplace = readJson(path.join(repo, ".agents/plugins/marketplace.json"));
@@ -39,6 +40,7 @@ for (const plugin of plugins) {
   assert.equal(manifest.version, "0.1.0");
   assert.ok(manifest.skills, `${plugin} missing skills path`);
   assert.ok(manifest.interface?.displayName?.startsWith("RAVO"), `${plugin} displayName should use RAVO`);
+  if (plugin !== "ravo-core") assert.ok(manifest.hooks, `${plugin} missing hooks path`);
 }
 
 for (const file of [
@@ -48,7 +50,9 @@ for (const file of [
   "schemas/analysis-artifact.schema.json",
   "schemas/acceptance-artifact.schema.json",
   "templates/agents-snippet.md",
-  "plugins/ravo-acceptance/hooks/claude-codex-hooks.json"
+  "plugins/ravo-analysis/hooks/claude-codex-hooks.json",
+  "plugins/ravo-acceptance/hooks/claude-codex-hooks.json",
+  "scripts/prompt-regression.js"
 ]) {
   assertFile(file);
 }

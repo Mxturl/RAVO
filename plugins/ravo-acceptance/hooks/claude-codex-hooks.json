@@ -1,11 +1,38 @@
 {
   "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/ravo-acceptance-session.js\" SessionStart",
+            "commandWindows": "if (Get-Command node -ErrorAction SilentlyContinue) { node \"$env:CLAUDE_PLUGIN_ROOT\\hooks\\ravo-acceptance-session.js\" SessionStart }",
+            "timeout": 5,
+            "statusMessage": "Loading RAVO acceptance rules..."
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/ravo-acceptance-session.js\" SubagentStart",
+            "commandWindows": "if (Get-Command node -ErrorAction SilentlyContinue) { node \"$env:CLAUDE_PLUGIN_ROOT\\hooks\\ravo-acceptance-session.js\" SubagentStart }",
+            "timeout": 5,
+            "statusMessage": "Loading RAVO acceptance rules..."
+          }
+        ]
+      }
+    ],
     "UserPromptSubmit": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/ravo-acceptance-gate.js\"; exit 0",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/ravo-acceptance-gate.js\"",
             "commandWindows": "if (Get-Command node -ErrorAction SilentlyContinue) { node \"$env:CLAUDE_PLUGIN_ROOT\\hooks\\ravo-acceptance-gate.js\" }",
             "timeout": 10,
             "statusMessage": "Checking RAVO acceptance gate..."
