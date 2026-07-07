@@ -79,25 +79,27 @@ Start a new Codex thread after installing so skills and hooks are picked up.
 
 ### Hook Trust
 
-Codex may ask the user to approve newly installed plugin hooks before they run. Approval is per hook event, so approving `UserPromptSubmit` does not automatically approve later `SessionStart` or `SubagentStart` hooks added by an upgrade. If RAVO does not react to natural prompts, approve/trust all RAVO hooks, then start a fresh Codex thread.
+Codex may ask the user to approve newly installed plugin hooks before they run. Approval is per hook event, so approving `UserPromptSubmit` does not automatically approve later `SessionStart` or `SubagentStart` hooks added by an upgrade.
+
+The host may not always show a prominent approval prompt. After installation, the agent should explicitly remind the user to confirm RAVO hook trust if natural triggering does not appear to work. If RAVO does not react to natural prompts, check or approve RAVO hook trust first, then start a fresh Codex thread.
 
 ## AGENTS.md Integration
 
-RAVO never silently edits `AGENTS.md`.
+RAVO never silently edits Codex global `AGENTS.md`.
 
 Different users keep different `AGENTS.md` structures. Treat the RAVO snippet as a recommended policy block, not as text that must be mechanically inserted unchanged.
 
 ### Manual Mode
 
-Use this when the user installs RAVO directly and wants to review the suggested policy text.
+Use this when the user installs RAVO directly and wants to review the suggested policy text for Codex global `AGENTS.md`.
 
 ```bash
-node plugins/ravo-core/scripts/ravo-agents.js --file AGENTS.md
-node plugins/ravo-core/scripts/ravo-agents.js --file AGENTS.md --apply
-node plugins/ravo-core/scripts/ravo-agents.js --file AGENTS.md --restore AGENTS.md.ravo-bak-...
+node plugins/ravo-core/scripts/ravo-agents.js
+node plugins/ravo-core/scripts/ravo-agents.js --apply
+node plugins/ravo-core/scripts/ravo-agents.js --restore <backup-path>
 ```
 
-The apply path creates a timestamped backup and updates the same marked block idempotently.
+By default, `ravo-agents.js` targets Codex global `AGENTS.md` in the current user's home directory. Use `--file <path>` only when you intentionally want a different file. The apply path creates a timestamped backup and updates the same marked block idempotently.
 
 ### Agent-Assisted Mode
 
@@ -105,7 +107,7 @@ Use this when a user's Agent installs RAVO or maintains their Codex environment.
 
 The installing Agent should:
 
-- Inspect the existing `AGENTS.md` before proposing changes.
+- Inspect Codex global `AGENTS.md` before proposing changes.
 - Decide whether RAVO needs a new marked block, a smaller merge into an existing section, or no change because equivalent rules already exist.
 - Show the user the proposed diff and explain the incremental behavior change.
 - Ask for explicit approval before writing.
@@ -133,7 +135,28 @@ No. RAVO follows Occam's Razor: modules stay independently installable and conne
 <details>
 <summary><strong>Can RAVO modify AGENTS.md automatically?</strong></summary>
 
-No. RAVO can preview and apply a suggested block, but the user or installing Agent must review the existing file, inspect the diff, and approve the write.
+No. RAVO can preview and apply a suggested block to Codex global `AGENTS.md`, but the user or installing Agent must review the existing file, inspect the diff, and approve the write.
+
+</details>
+
+<details>
+<summary><strong>Which AGENTS.md does RAVO target by default?</strong></summary>
+
+Codex global `AGENTS.md` under the current user's home directory. Use `--file <path>` only when you intentionally want a different target.
+
+</details>
+
+<details>
+<summary><strong>What if I do not see a hook approval prompt?</strong></summary>
+
+Some hosts may not show a prominent approval prompt. If natural triggering does not appear to work after installation, explicitly check whether RAVO hooks are trusted or approved, then start a fresh Codex thread and retry a short manual test.
+
+</details>
+
+<details>
+<summary><strong>Where are the shortest no-context manual test prompts?</strong></summary>
+
+See [docs/quick-test-cases.md](./docs/quick-test-cases.md). The prompts are designed for a fresh session with no project context and should finish quickly.
 
 </details>
 
@@ -150,3 +173,5 @@ node scripts/prompt-regression.js
 ```
 
 These checks confirm that RAVO's core structure, shared artifact protocol, and prompt-trigger regressions still work.
+
+For short manual runtime checks with no project context, see [docs/quick-test-cases.md](./docs/quick-test-cases.md).

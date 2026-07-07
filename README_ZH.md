@@ -79,25 +79,27 @@ codex plugin add ravo-acceptance@ravo
 
 ### Hook 授权
 
-Codex 可能会要求用户授权新安装的 plugin hooks。授权按 hook event 生效，所以批准过 `UserPromptSubmit` 不代表后续新增的 `SessionStart` 或 `SubagentStart` 已批准。如果 RAVO 安装后没有自然触发，先确认 RAVO hooks 已授权，再新开会话。
+Codex 可能会要求用户授权新安装的 plugin hooks。授权按 hook event 生效，所以批准过 `UserPromptSubmit` 不代表后续新增的 `SessionStart` 或 `SubagentStart` 已批准。
+
+宿主不一定总会弹出很显眼的授权提示。安装完成后，如果自然触发看起来没有生效，Agent 应主动提醒用户检查 RAVO hooks 是否已被信任或批准；确认后再新开会话继续验证。
 
 ## `AGENTS.md` 接入
 
-RAVO 不会静默修改 `AGENTS.md`。
+RAVO 不会静默修改 Codex 全局 `AGENTS.md`。
 
 不同用户的 `AGENTS.md` 结构不同。RAVO snippet 是推荐治理块，不是必须机械插入的固定文本。
 
 ### 手动模式
 
-适用于用户自己安装 RAVO，并希望先审阅推荐规则文本。
+适用于用户自己安装 RAVO，并希望先审阅 Codex 全局 `AGENTS.md` 的推荐规则文本。
 
 ```bash
-node plugins/ravo-core/scripts/ravo-agents.js --file AGENTS.md
-node plugins/ravo-core/scripts/ravo-agents.js --file AGENTS.md --apply
-node plugins/ravo-core/scripts/ravo-agents.js --file AGENTS.md --restore AGENTS.md.ravo-bak-...
+node plugins/ravo-core/scripts/ravo-agents.js
+node plugins/ravo-core/scripts/ravo-agents.js --apply
+node plugins/ravo-core/scripts/ravo-agents.js --restore <备份路径>
 ```
 
-写入时会创建带时间戳的备份，并幂等更新同一个 RAVO 标记块。
+`ravo-agents.js` 默认目标是当前用户主目录下的 Codex 全局 `AGENTS.md`。只有你明确想操作别的文件时，才使用 `--file <path>`。写入时会创建带时间戳的备份，并幂等更新同一个 RAVO 标记块。
 
 ### Agent 辅助模式
 
@@ -105,7 +107,7 @@ node plugins/ravo-core/scripts/ravo-agents.js --file AGENTS.md --restore AGENTS.
 
 安装 Agent 应该：
 
-- 先读取现有 `AGENTS.md`，再提出修改建议。
+- 先读取 Codex 全局 `AGENTS.md`，再提出修改建议。
 - 判断应该新增 RAVO marked block、合并到现有段落，还是因为已有等价规则而不修改。
 - 展示 proposed diff，并说明增量行为变化。
 - 等待用户明确批准后再写入。
@@ -133,7 +135,28 @@ node plugins/ravo-core/scripts/ravo-agents.js --file AGENTS.md --restore AGENTS.
 <details>
 <summary><strong>RAVO 会自动修改 AGENTS.md 吗？</strong></summary>
 
-不会。RAVO 可以预览并应用推荐规则块，但用户或安装 Agent 必须先读取现有文件、检查 diff，并确认后再写入。
+不会。RAVO 可以预览并应用 Codex 全局 `AGENTS.md` 的推荐规则块，但用户或安装 Agent 必须先读取现有文件、检查 diff，并确认后再写入。
+
+</details>
+
+<details>
+<summary><strong>RAVO 默认作用于哪个 AGENTS.md？</strong></summary>
+
+默认是当前用户主目录下的 Codex 全局 `AGENTS.md`。只有你明确想操作别的文件时，才使用 `--file <path>`。
+
+</details>
+
+<details>
+<summary><strong>如果没有看到 hooks 授权提示怎么办？</strong></summary>
+
+有些宿主不会弹出很显眼的授权提示。如果安装后自然触发看起来没有生效，就主动检查 RAVO hooks 是否已经被信任或批准；确认后新开一个 Codex 会话，再用几条简短 prompt 复测。
+
+</details>
+
+<details>
+<summary><strong>最短的无上下文手工测试用例在哪里？</strong></summary>
+
+可查看 [docs/quick-test-cases-zh.md](./docs/quick-test-cases-zh.md)。这些 prompt 适合在全新会话里直接测试，而且通常会很快结束。
 
 </details>
 
@@ -150,3 +173,5 @@ node scripts/prompt-regression.js
 ```
 
 这些检查用于确认 RAVO 的核心结构、共享 artifact 协议和 prompt 触发回归仍然正常。
+
+如果你想用几条完全无上下文、不会跑太久的 prompt 做手工试用，可看 [docs/quick-test-cases-zh.md](./docs/quick-test-cases-zh.md)。

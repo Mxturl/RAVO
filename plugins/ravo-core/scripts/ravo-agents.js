@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const fs = require("node:fs");
+const os = require("node:os");
 const path = require("node:path");
 
 const BEGIN = "<!-- RAVO:BEGIN -->";
@@ -43,7 +44,7 @@ function diffPreview(before, after) {
 }
 
 function main() {
-  const file = path.resolve(argValue("--file", path.join(process.cwd(), "AGENTS.md")));
+  const file = path.resolve(argValue("--file", path.join(os.homedir(), ".codex", "AGENTS.md")));
   const restore = argValue("--restore", "");
   if (restore) {
     const backup = path.resolve(restore);
@@ -59,6 +60,7 @@ function main() {
   const after = targetText(before);
 
   if (!apply) {
+    console.log(`target=${file}`);
     console.log(diffPreview(before, after));
     console.log("\nPreview only. Re-run with --apply to write.");
     return;

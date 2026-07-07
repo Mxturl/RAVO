@@ -16,11 +16,10 @@ function assertFile(file) {
 }
 
 function parseFrontmatter(file) {
-  const text = fs.readFileSync(file, "utf8");
-  assert.ok(text.startsWith("---\n"), `${file} missing frontmatter`);
-  const end = text.indexOf("\n---", 4);
-  assert.ok(end > 0, `${file} unclosed frontmatter`);
-  const yaml = text.slice(4, end).trim();
+  const text = fs.readFileSync(file, "utf8").replace(/^\uFEFF/, "");
+  const match = text.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/);
+  assert.ok(match, `${file} missing frontmatter`);
+  const yaml = match[1].trim();
   const fields = {};
   for (const line of yaml.split(/\r?\n/)) {
     const match = line.match(/^([a-zA-Z0-9_-]+):\s*(.+)$/);
@@ -45,7 +44,10 @@ for (const plugin of plugins) {
 
 for (const file of [
   "README.md",
+  "README_ZH.md",
   "LICENSE",
+  "docs/quick-test-cases.md",
+  "docs/quick-test-cases-zh.md",
   "schemas/manifest.schema.json",
   "schemas/analysis-artifact.schema.json",
   "schemas/acceptance-artifact.schema.json",
