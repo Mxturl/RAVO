@@ -7,7 +7,7 @@ description: Create or check RAVO acceptance evidence before Codex claims work i
 
 Use this skill proactively before giving a delivery-status conclusion. The agent must initiate acceptance checks before asking the user to accept work or before claiming `pending_acceptance`, `accepted`, `release_ready`, or `live`.
 
-Prompt-time hooks are only a fallback for direct user readiness prompts. They do not replace this agent-initiated delivery gate.
+Prompt-time hooks are only a fallback advisory for direct user readiness prompts. They do not replace this agent-initiated delivery gate.
 
 ## Workflow
 

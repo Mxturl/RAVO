@@ -18,6 +18,10 @@ function runHook(script, prompt, cwd = repo) {
   return child.stdout.trim() ? JSON.parse(child.stdout) : {};
 }
 
+function readJson(file) {
+  return JSON.parse(fs.readFileSync(file, "utf8"));
+}
+
 const analysisHook = path.join(repo, "plugins/ravo-analysis/hooks/ravo-analysis-gate.js");
 const acceptanceHook = path.join(repo, "plugins/ravo-acceptance/hooks/ravo-acceptance-gate.js");
 const acceptanceSessionHook = path.join(repo, "plugins/ravo-acceptance/hooks/ravo-acceptance-session.js");
@@ -38,33 +42,55 @@ const requirement = runHook(analysisHook, "我们正在做一个 AI 穿搭小程
 assert.equal(requirement.systemMessage, "RAVO_ANALYSIS_GATE:ADVISORY");
 assert.match(requirement.hookSpecificOutput.additionalContext, /requirement/);
 assert.match(requirement.hookSpecificOutput.additionalContext, /ravo-requirement-analysis/);
-assert.match(requirement.hookSpecificOutput.additionalContext, /Required headings: Goal, Consumer, Constraints, Options, Derived Conclusion, Validation/);
+assert.match(requirement.hookSpecificOutput.additionalContext, /Required headings: Goal, Consumer, Constraints, Facts, Options, Challenge, Derived Conclusion, Validation/);
 
 const rootCause = runHook(analysisHook, "我们的验收插件现在能拦截可以验收了吗，但对这个版本是不是能发没有触发。我觉得这可能只是关键词覆盖问题，也可能是设计模式问题。请继续追问为什么，直到找到可验证、可防复发的机制根因。", workspace);
 assert.equal(rootCause.systemMessage, "RAVO_ANALYSIS_GATE:ADVISORY");
 assert.match(rootCause.hookSpecificOutput.additionalContext, /root-cause/);
 assert.match(rootCause.hookSpecificOutput.additionalContext, /ravo-root-cause-analysis/);
-assert.match(rootCause.hookSpecificOutput.additionalContext, /Required headings: Symptom, Proximate Cause, Mechanism Root Cause, Why Chain, Boundary, Smallest Fix, Verification/);
+assert.match(rootCause.hookSpecificOutput.additionalContext, /Required headings: Symptom, Proximate Cause, Alternative Hypotheses, Mechanism Root Cause, Why Chain, Boundary, Smallest Fix, Verification/);
 assert.ok(fs.existsSync(path.join(workspace, "knowledge/.ravo/manifest.json")), "analysis hook writes manifest");
 assert.ok(fs.readdirSync(path.join(workspace, "knowledge/.ravo/analysis")).length >= 2, "analysis hook writes artifacts");
+const analysisManifest = readJson(path.join(workspace, "knowledge/.ravo/manifest.json"));
+const latestAnalysisPath = path.join(workspace, analysisManifest.modules.analysis.latestArtifact);
+assert.equal(readJson(latestAnalysisPath).status, "draft", "analysis hook writes draft artifacts");
+assert.equal(analysisManifest.modules.analysis.latestCompleteArtifact || "", "", "analysis hook should not mark placeholder artifact as complete");
 
 const rootCauseAcceptanceBypass = runHook(acceptanceHook, "我们的验收插件现在能拦截可以验收了吗，但对这个版本是不是能发没有触发。请继续追问为什么，直到找到机制根因。", workspace);
-assert.deepEqual(rootCauseAcceptanceBypass, {}, "acceptance fallback must not block root-cause analysis prompts");
+assert.deepEqual(rootCauseAcceptanceBypass, {}, "acceptance fallback must not interfere with root-cause analysis prompts");
 
 const trivial = runHook(analysisHook, "把按钮颜色改成红色。");
 assert.deepEqual(trivial, {});
 
 const acceptance = runHook(acceptanceHook, "我刚完成了积分扣减功能，代码已经写完但还没做真实小程序端到端验证。这个功能可以验收了吗?", workspace);
-assert.equal(acceptance.systemMessage, "RAVO_ACCEPTANCE_GATE:BLOCK");
+assert.equal(acceptance.systemMessage, "RAVO_ACCEPTANCE_GATE:ADVISORY");
+assert.match(acceptance.hookSpecificOutput.additionalContext, /Do not block the user message/);
 
 for (const prompt of ["这个版本是不是能发", "这个版本是不是能发版", "这个版本能上线吗"]) {
   const releaseReadiness = runHook(acceptanceHook, prompt, workspace);
-  assert.equal(releaseReadiness.systemMessage, "RAVO_ACCEPTANCE_GATE:BLOCK", prompt);
+  assert.equal(releaseReadiness.systemMessage, "RAVO_ACCEPTANCE_GATE:ADVISORY", prompt);
 }
 
 const deliveryConclusion = runHook(acceptanceHook, "我已经把积分扣减功能做完了，代码已经写完，单元测试也过了。请给我一个交付结论和下一步安排。", workspace);
-assert.equal(deliveryConclusion.systemMessage, "RAVO_ACCEPTANCE_GATE:BLOCK");
+assert.equal(deliveryConclusion.systemMessage, "RAVO_ACCEPTANCE_GATE:ADVISORY");
 assert.ok(fs.readdirSync(path.join(workspace, "knowledge/.ravo/acceptance")).length >= 2, "acceptance hook writes artifacts");
+
+const readyWorkspace = fs.mkdtempSync(path.join(os.tmpdir(), "ravo-ready-"));
+const writerScript = path.join(repo, "plugins/ravo-acceptance/scripts/write-acceptance-artifact.js");
+const readyArtifact = spawnSync(process.execPath, [
+  writerScript,
+  "--workspace", readyWorkspace,
+  "--status", "pending_acceptance",
+  "--evidence-level", "smoke",
+  "--summary", "ready workspace acceptance evidence"
+], {
+  encoding: "utf8",
+  stdio: ["ignore", "pipe", "pipe"]
+});
+assert.equal(readyArtifact.status, 0, readyArtifact.stderr);
+
+const readyPrompt = runHook(acceptanceHook, "这个版本是不是能发版", readyWorkspace);
+assert.deepEqual(readyPrompt, {}, "acceptance fallback should not poison a ready workspace");
 
 console.log(JSON.stringify({
   status: "pass",
@@ -74,8 +100,9 @@ console.log(JSON.stringify({
     "root-cause prompt with release wording -> acceptance fallback bypass",
     "trivial prompt -> no advisory",
     "session start -> proactive acceptance context",
-    "acceptance prompt without evidence -> block",
-    "release-readiness variants without evidence -> block",
-    "delivery conclusion prompt without evidence -> block"
+    "acceptance prompt without evidence -> advisory",
+    "release-readiness variants without evidence -> advisory",
+    "delivery conclusion prompt without evidence -> advisory",
+    "ready workspace prompt -> no fallback interference"
   ]
 }, null, 2));

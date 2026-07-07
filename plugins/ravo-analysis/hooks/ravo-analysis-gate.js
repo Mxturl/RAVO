@@ -28,6 +28,7 @@ function writeArtifact(cwd, kind, prompt) {
     script,
     "--workspace", cwd,
     "--type", kind,
+    "--status", "draft",
     "--title", shortTitle(prompt, kind),
     "--conclusion", "Pending RAVO analysis artifact created from natural prompt trigger."
   ];
@@ -81,8 +82,8 @@ readJsonStdin((data) => {
   const cwd = data.cwd || process.cwd();
   const artifactPath = writeArtifact(cwd, kind, data.prompt);
   const contract = kind === "root-cause"
-    ? "Required headings: Symptom, Proximate Cause, Mechanism Root Cause, Why Chain, Boundary, Smallest Fix, Verification. Do not stop at symptoms."
-    : "Required headings: Goal, Consumer, Constraints, Options, Derived Conclusion, Validation. Include at least two options with tradeoffs. Do not start implementation before the analysis conclusion.";
+    ? "Required headings: Symptom, Proximate Cause, Alternative Hypotheses, Mechanism Root Cause, Why Chain, Boundary, Smallest Fix, Verification. Test at least one plausible alternative before locking the root cause."
+    : "Required headings: Goal, Consumer, Constraints, Facts, Options, Challenge, Derived Conclusion, Validation. Include at least two options with tradeoffs, separate facts from assumptions, and do not start implementation before the analysis conclusion.";
 
   process.stdout.write(JSON.stringify({
     systemMessage: "RAVO_ANALYSIS_GATE:ADVISORY",

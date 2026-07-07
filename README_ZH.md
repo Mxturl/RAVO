@@ -33,19 +33,22 @@ O = Organize    知识沉淀与复用
 ### 需求与方案分析
 
 - 识别真实目标、真实消费者、约束、方案选项和验证路径。
+- 区分事实、推断和假设，让方案依据显式可见。
+- 在下结论前，先主动挑战一次首选方案，而不是只做顺向论证。
 - 在需求重要或不清晰时，先做第一性原理分析，再进入实现。
 - 将可复用分析结果写入 `knowledge/.ravo/analysis`。
 
 ### 根因分析
 
 - 区分现象、近因、机制根因、复发风险、最小修复和验证方式。
+- 至少比较一个合理的竞争性解释，再锁定根因。
 - 避免把“提示词问题”“用户要求”“缺少检查”这类表层原因误当成根因。
 
 ### 验收与发布门禁
 
 - 在交付、验收、发版、上线、ready、done 等结论前检查证据。
 - 将验收证据写入 `knowledge/.ravo/acceptance`。
-- prompt-time readiness hook 只是兜底；主机制应该是 Agent 在给交付结论前主动运行验收检查。
+- prompt-time readiness hook 只是兜底 advisory；主机制应该是 Agent 在给交付结论前主动运行验收检查。
 
 ### 共享 Artifact 协议
 
@@ -77,11 +80,45 @@ codex plugin add ravo-acceptance@ravo
 
 安装后新开一个 Codex thread，让 skills 和 hooks 生效。
 
+> [!IMPORTANT]
+> **hooks 信任是 RAVO 产品能力的一部分，不是可忽略细节。**
+> 如果 `SessionStart` / `SubagentStart` / `UserPromptSubmit` 这些 hooks 没有被信任或批准，RAVO 的自然治理能力会明显退化。此时需求分析可能无法稳定自然触发，主动验收也会退化成更弱的 prompt-time 行为。
+>
+> 安装或升级后，建议按这个顺序检查：
+> 1. 确认 RAVO hooks 是否已被信任或批准；
+> 2. 如果新增了 hook event，补做对应授权；
+> 3. 新开一个 Codex 会话后再开始测试。
+
 ### Hook 授权
 
 Codex 可能会要求用户授权新安装的 plugin hooks。授权按 hook event 生效，所以批准过 `UserPromptSubmit` 不代表后续新增的 `SessionStart` 或 `SubagentStart` 已批准。
 
 宿主不一定总会弹出很显眼的授权提示。安装完成后，如果自然触发看起来没有生效，Agent 应主动提醒用户检查 RAVO hooks 是否已被信任或批准；确认后再新开会话继续验证。
+
+### 升级 RAVO
+
+RAVO 的设计本身支持相对平滑的升级：plugin id 保持稳定（`ravo-core`、`ravo-analysis`、`ravo-acceptance`），共享协议通过 `knowledge/.ravo/manifest.json` 做版本化管理，各模块也可以独立升级。
+
+常见升级流程：
+
+```bash
+git pull
+codex plugin add ravo-core@ravo
+codex plugin add ravo-analysis@ravo
+codex plugin add ravo-acceptance@ravo
+```
+
+如果你用的不是当前本地仓库，而是 Git marketplace，需要先刷新 marketplace snapshot：
+
+```bash
+codex plugin marketplace upgrade
+```
+
+每次升级后建议：
+
+- 新开一个 Codex thread，
+- 检查是否新增了需要授权的 hook event，
+- 先跑一条简短 RAVO 测试 prompt，再依赖新版本能力。
 
 ## `AGENTS.md` 接入
 
@@ -122,6 +159,15 @@ node plugins/ravo-core/scripts/ravo-agents.js --restore <备份路径>
 <summary><strong>用户需要显式调用 RAVO 吗？</strong></summary>
 
 不需要。RAVO 的目标是自然交互。显式 skill 名称适合测试和调试，但普通需求、根因、验收 prompt 应该通过 skill description 和 hooks 自动触发对应能力。
+
+</details>
+
+<details>
+<summary><strong>安装 RAVO 时会同步安装 Grill-me 吗？</strong></summary>
+
+不会。RAVO 不会把 Grill-me 仓库本体作为依赖一起安装。RAVO 借鉴的是它的*分析姿态*，不是把它当作一个外部插件打包进来。
+
+具体来说，RAVO 现在把其中一部分思想写进了自己的 skill 契约里，比如要求分析时显式给出 `Facts`、`Challenge`、`Alternative Hypotheses`，避免停在第一反应和表层解释。
 
 </details>
 
@@ -174,4 +220,8 @@ node scripts/prompt-regression.js
 
 这些检查用于确认 RAVO 的核心结构、共享 artifact 协议和 prompt 触发回归仍然正常。
 
-如果你想用几条完全无上下文、不会跑太久的 prompt 做手工试用，可看 [docs/quick-test-cases-zh.md](./docs/quick-test-cases-zh.md)。
+如果你想用几条完全无上下文、不会跑太久的 prompt 做语义触发试用，可看 [docs/quick-test-cases-zh.md](./docs/quick-test-cases-zh.md)。
+
+如果你想测试更接近真实开发过程的多轮场景，尤其是 Agent 主动交付治理链路，可看 [docs/runtime-flow-tests-zh.md](./docs/runtime-flow-tests-zh.md)。
+
+如果你改动了 hooks、验收行为或触发逻辑，不要把这三条脚本命令本身当成“主动运行时链路已经证明”的结论；至少还应补跑一条 runtime flow。

@@ -48,14 +48,17 @@ function runChecker(cwd) {
   }
 }
 
-function writeNotReadyArtifact(cwd, prompt) {
+function writeNotReadyArtifact(cwd, prompt, reason) {
   const script = path.join(__dirname, "..", "scripts", "write-acceptance-artifact.js");
   spawnSync(process.execPath, [
     script,
     "--workspace", cwd,
     "--status", "not_ready",
     "--evidence-level", "none",
-    "--summary", String(prompt || "Delivery status prompt").replace(/\s+/g, " ").trim().slice(0, 80) || "Delivery status prompt"
+    "--summary", [
+      String(prompt || "Delivery status prompt").replace(/\s+/g, " ").trim().slice(0, 80) || "Delivery status prompt",
+      reason ? `| ${String(reason).slice(0, 120)}` : ""
+    ].join(" ").trim()
   ], {
     cwd,
     encoding: "utf8",
@@ -70,29 +73,24 @@ readJsonStdin((data) => {
   }
 
   const cwd = data.cwd || process.cwd();
-  writeNotReadyArtifact(cwd, data.prompt);
   const result = runChecker(cwd);
   if (result.gate?.decision === "pass") {
-    process.stdout.write(JSON.stringify({
-      systemMessage: "RAVO_ACCEPTANCE_GATE:PASS",
-      hookSpecificOutput: {
-        hookEventName: "UserPromptSubmit",
-        additionalContext: `RAVO acceptance gate passed. Latest artifact: ${result.latestAcceptance || "<unknown>"}`
-      }
-    }));
+    process.stdout.write("{}");
     return;
   }
 
+  writeNotReadyArtifact(cwd, data.prompt, result.gate?.reason);
+
   process.stdout.write(JSON.stringify({
-    decision: "block",
-    reason: result.gate?.reason || "RAVO acceptance evidence is not ready.",
-    systemMessage: "RAVO_ACCEPTANCE_GATE:BLOCK",
+    systemMessage: "RAVO_ACCEPTANCE_GATE:ADVISORY",
     hookSpecificOutput: {
       hookEventName: "UserPromptSubmit",
       additionalContext: [
-        "RAVO acceptance gate blocked this readiness/release claim.",
+        "RAVO acceptance advisory matched a readiness or delivery-status prompt.",
+        "Do not block the user message. Answer the question normally.",
         result.gate?.reason || "Evidence is incomplete.",
-        "Run ravo-release-acceptance or add an acceptance artifact with enough evidence."
+        "If evidence is incomplete, answer with not_ready, code_complete, or in_progress and list the missing evidence.",
+        "Run ravo-release-acceptance or add an acceptance artifact with enough evidence before claiming accepted, release_ready, or live."
       ].join("\n")
     }
   }));

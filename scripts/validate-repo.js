@@ -48,6 +48,8 @@ for (const file of [
   "LICENSE",
   "docs/quick-test-cases.md",
   "docs/quick-test-cases-zh.md",
+  "docs/runtime-flow-tests.md",
+  "docs/runtime-flow-tests-zh.md",
   "schemas/manifest.schema.json",
   "schemas/analysis-artifact.schema.json",
   "schemas/acceptance-artifact.schema.json",

@@ -3,7 +3,7 @@
   "$id": "https://ravo.dev/schemas/analysis-artifact.schema.json",
   "title": "RAVO Analysis Artifact",
   "type": "object",
-  "required": ["schemaVersion", "id", "type", "title", "createdAt", "derivedConclusion"],
+  "required": ["schemaVersion", "id", "type", "status", "title", "createdAt", "derivedConclusion"],
   "properties": {
     "schemaVersion": {
       "type": "string"
@@ -13,6 +13,9 @@
     },
     "type": {
       "enum": ["requirement", "root-cause", "solution"]
+    },
+    "status": {
+      "enum": ["draft", "complete"]
     },
     "title": {
       "type": "string"
@@ -27,6 +30,21 @@
       }
     },
     "facts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "challenge": {
+      "type": "string"
+    },
+    "whyChain": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "alternativeHypotheses": {
       "type": "array",
       "items": {
         "type": "string"
@@ -64,4 +82,71 @@
     }
   },
   "additionalProperties": true
+  ,
+  "allOf": [
+    {
+      "if": {
+        "required": ["type", "status"],
+        "properties": {
+          "type": { "enum": ["requirement", "solution"] },
+          "status": { "const": "complete" }
+        }
+      },
+      "then": {
+        "required": ["facts", "challenge", "derivedConclusion"],
+        "properties": {
+          "facts": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "challenge": {
+            "type": "string",
+            "minLength": 1
+          },
+          "derivedConclusion": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": ["type", "status"],
+        "properties": {
+          "type": { "const": "root-cause" },
+          "status": { "const": "complete" }
+        }
+      },
+      "then": {
+        "required": ["rootCause", "alternativeHypotheses", "whyChain", "derivedConclusion"],
+        "properties": {
+          "rootCause": {
+            "type": "object",
+            "required": ["symptom", "proximateCause", "mechanismRootCause"],
+            "properties": {
+              "symptom": { "type": "string", "minLength": 1 },
+              "proximateCause": { "type": "string", "minLength": 1 },
+              "mechanismRootCause": { "type": "string", "minLength": 1 }
+            }
+          },
+          "alternativeHypotheses": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "whyChain": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "derivedConclusion": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  ]
 }

@@ -36,8 +36,10 @@ function buildResult(cwd = process.cwd()) {
   addCheck(checks, "manifest", manifest ? "pass" : "fail", true, manifest ? "RAVO manifest exists." : "knowledge/.ravo/manifest.json is missing.");
 
   const analysisDir = path.join(ravoRoot, "analysis");
-  const latestAnalysis = manifest?.modules?.analysis?.latestArtifact
-    ? path.join(cwd, manifest.modules.analysis.latestArtifact)
+  const latestAnalysis = manifest?.modules?.analysis?.latestCompleteArtifact
+    ? path.join(cwd, manifest.modules.analysis.latestCompleteArtifact)
+    : manifest?.modules?.analysis?.latestArtifact
+      ? path.join(cwd, manifest.modules.analysis.latestArtifact)
     : latestJson(analysisDir);
   const analysisExists = Boolean(latestAnalysis && fs.existsSync(latestAnalysis));
   addCheck(checks, "analysisDiscovery", analysisExists ? "pass" : "skip", false, analysisExists ? "Latest analysis artifact discovered." : "No upstream analysis artifact found; standalone acceptance mode.");
