@@ -63,7 +63,7 @@ knowledge/.ravo/
 └── knowledge/
 ```
 
-Single modules work alone. When multiple RAVO modules are installed, they discover upstream artifacts from `knowledge/.ravo/manifest.json`.
+Single modules work alone. When multiple RAVO modules are installed, they discover upstream artifacts from `knowledge/.ravo/manifest.json`. Raw project facts and evidence are workspace-local by default. Abstracted lessons and principles may become transferable user-level knowledge only after redaction, scope labeling, and explicit opt-in.
 
 ## Download and Installation
 

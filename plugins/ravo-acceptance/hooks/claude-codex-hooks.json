@@ -39,6 +39,19 @@
           }
         ]
       }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/ravo-acceptance-stop.js\"",
+            "commandWindows": "if (Get-Command node -ErrorAction SilentlyContinue) { node \"$env:CLAUDE_PLUGIN_ROOT\\hooks\\ravo-acceptance-stop.js\" }",
+            "timeout": 5,
+            "statusMessage": "Recording RAVO stop telemetry..."
+          }
+        ]
+      }
     ]
   }
 }

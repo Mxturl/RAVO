@@ -57,6 +57,7 @@ for (const file of [
   "templates/agents-snippet.md",
   "plugins/ravo-analysis/hooks/claude-codex-hooks.json",
   "plugins/ravo-acceptance/hooks/claude-codex-hooks.json",
+  "plugins/ravo-acceptance/hooks/ravo-acceptance-stop.js",
   "scripts/prompt-regression.js"
 ]) {
   assertFile(file);

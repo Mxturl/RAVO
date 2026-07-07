@@ -63,7 +63,7 @@ knowledge/.ravo/
 └── knowledge/
 ```
 
-单个模块可以独立工作。多个 RAVO 模块同时安装时，通过 `knowledge/.ravo/manifest.json` 发现上游 artifacts。
+单个模块可以独立工作。多个 RAVO 模块同时安装时，通过 `knowledge/.ravo/manifest.json` 发现上游 artifacts。原始项目事实和证据默认只属于当前 workspace；抽象后的经验和原则只有在脱敏、标注适用边界并经用户明确 opt-in 后，才可以沉淀为用户级可迁移知识。
 
 ## 下载安装
 
