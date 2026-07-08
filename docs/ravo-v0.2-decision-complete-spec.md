@@ -421,6 +421,6 @@ RAVO v0.2 is not acceptable unless:
 - smoke test passes,
 - new module tests pass,
 - real session/subagent scenarios are recorded,
-- model-review-council review has run or is explicitly marked partial/unavailable,
+- RAVO Review has run or external review is explicitly marked partial/unavailable,
 - RAVO acceptance check returns ready,
 - final report states status, evidence paths, risks, commit, and push state.

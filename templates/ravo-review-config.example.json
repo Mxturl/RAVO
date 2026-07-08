@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "0.3.0",
+  "schemaVersion": "0.3.1",
   "_template": [
     "Copy to ~/.codex/skill-config/ravo-review.json.",
     "Fill provider fields locally only. Do not commit real API keys."

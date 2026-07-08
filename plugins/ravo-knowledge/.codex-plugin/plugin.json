@@ -1,6 +1,6 @@
 {
   "name": "ravo-knowledge",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Workspace-local knowledge write/retrieve/apply and opt-in transferable lessons for RAVO.",
   "author": {
     "name": "RAVO contributors"
@@ -12,7 +12,7 @@
   "interface": {
     "displayName": "RAVO Knowledge",
     "shortDescription": "Reuse project lessons safely.",
-    "longDescription": "RAVO Knowledge writes, retrieves, and applies workspace-local knowledge, with opt-in transferable lessons after redaction and leakage checks.",
+    "longDescription": "RAVO Knowledge retrieves prior lessons for medium/high-complexity work and captures closeout knowledge as Markdown plus JSON, with opt-in transferable lessons after redaction and leakage checks.",
     "developerName": "RAVO contributors",
     "category": "Developer Tools",
     "capabilities": ["Skills", "Hooks", "Workspace artifacts"],

@@ -111,6 +111,23 @@ assert.match(knowledgePrompt.hookSpecificOutput.additionalContext, /Retrieve wor
 assert.match(knowledgePrompt.hookSpecificOutput.additionalContext, /Do not modify product\/source\/docs outside RAVO knowledge artifacts/);
 assert.match(knowledgePrompt.hookSpecificOutput.additionalContext, /workspace-local path/);
 
+const complexKnowledgePrompt = runHook(knowledgeHook, "我们接下来要做一个长程插件升级，先帮我判断应该从哪里开始，不要直接写代码。", workspace);
+assert.equal(complexKnowledgePrompt.systemMessage, "RAVO_KNOWLEDGE:ADVISORY");
+assert.match(complexKnowledgePrompt.hookSpecificOutput.additionalContext, /medium\/high-complexity/);
+assert.match(complexKnowledgePrompt.hookSpecificOutput.additionalContext, /state what was applied/);
+
+const simpleKnowledgeBypass = runHook(knowledgeHook, "RAVO Review 是什么？", workspace);
+assert.deepEqual(simpleKnowledgeBypass, {}, "simple explanation should not trigger knowledge governance");
+
+const delegatedSimpleKnowledgeBypass = runHook(knowledgeHook, "<codex_delegation><source_thread_id>abc</source_thread_id><input>RAVO Review 是什么？</input></codex_delegation>", workspace);
+assert.deepEqual(delegatedSimpleKnowledgeBypass, {}, "delegated simple explanation should not trigger knowledge governance");
+
+const knowledgeStop = runHookPayload(knowledgeHook, {
+  cwd: workspace,
+  lastAssistantMessage: "这轮插件升级已经完成，测试通过，下一步可以发版。"
+});
+assert.equal(knowledgeStop.systemMessage, "RAVO_KNOWLEDGE_CLOSEOUT_ADVISORY");
+
 const acceptance = runHook(acceptanceHook, "我刚完成了积分扣减功能，代码已经写完但还没做真实小程序端到端验证。这个功能可以验收了吗?", workspace);
 assert.equal(acceptance.systemMessage, "RAVO_ACCEPTANCE_GATE:ADVISORY");
 assert.match(acceptance.hookSpecificOutput.additionalContext, /Do not block the user message/);
@@ -183,6 +200,10 @@ const agentsPreview = spawnSync(process.execPath, [agentsScript, "--file", path.
 assert.equal(agentsPreview.status, 0, agentsPreview.stderr);
 assert.match(agentsPreview.stdout, /AGENTS\.md decides when to delegate/);
 assert.match(agentsPreview.stdout, /Do not force first-principles structure for simple concept explanations/);
+assert.match(agentsPreview.stdout, /ravo-review/);
+assert.match(agentsPreview.stdout, /ravo-knowledge/);
+assert.match(agentsPreview.stdout, /Do not use ravo-knowledge for simple concept explanations/);
+assert.match(agentsPreview.stdout, /Do not mention legacy review-skill names/);
 
 const existingAgentsPath = path.join(workspace, "existing-AGENTS.md");
 fs.writeFileSync(existingAgentsPath, "# Existing Rules\n\n- Keep this user-specific rule.\n", "utf8");
@@ -260,6 +281,10 @@ console.log(JSON.stringify({
     "long-running prompt -> workstream advisory",
     "release prompt -> workstream bypass",
     "knowledge reuse prompt -> knowledge advisory",
+    "medium complexity prompt -> knowledge retrieval advisory",
+    "simple explanation -> no knowledge advisory",
+    "delegated simple explanation -> no knowledge advisory",
+    "Stop closeout -> knowledge closeout advisory",
     "session start -> proactive acceptance context",
     "acceptance prompt without evidence -> advisory",
     "release-readiness variants without evidence -> advisory",

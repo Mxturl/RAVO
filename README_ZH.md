@@ -72,13 +72,17 @@ RAVO 将 Goal Prompt 编写作为一项独立生命周期能力：
 
 ### RAVO Review
 
+- 通过 `ravo-review` 调用已配置的 Provider/Model 做真实评审。
 - 将对抗式评审覆盖状态写入 `knowledge/.ravo/review`。
 - 明确展示 full、partial、timeout、failure、truncation 等状态。
-- 有多模型评审配置时复用现有能力；常规任务不强制配置 Provider。
+- 支持 `~/.codex/skill-config/ravo-review.json` 中的 flat config 和 provider-array config。
+- Provider 未配置时明确写入 `coverage=none`，常规任务不强制配置 Provider。
 
 ### 知识复用
 
 - 写入、检索并应用 workspace-local 的事实、决策、经验、原则和证据。
+- 从 Agent 提供的 closeout/session summary 中沉淀可复用经验。
+- 对中高复杂度的规划、架构、评审、验收和长程任务，即使用户没有说“知识”，也会建议先检索 workspace 知识。
 - transferable lessons 必须用户 opt-in，并经过脱敏、scope 标注和泄漏检查。
 - 持久知识采用人类可读 Markdown + JSON index，既能让人复盘，也方便 Agent 检索。
 
@@ -126,6 +130,28 @@ codex plugin add ravo-review@ravo
 - 用户级 RAVO 默认配置：`~/.codex/skill-config/ravo.json`。
 - RAVO Review Provider 配置：`~/.codex/skill-config/ravo-review.json`；模板：`templates/ravo-review-config.example.json`。
 - Codex 全局规则：`~/.codex/AGENTS.md`；必须通过 `ravo-core` 预览和确认后再写入，不能静默修改。
+
+可以用下面的命令检查 RAVO Review，不会输出密钥：
+
+```bash
+node plugins/ravo-review/scripts/run-review.js --domain architecture --subject "Review this plan" --no-stream
+```
+
+如果只想先做一次有边界的单模型检查：
+
+```bash
+node plugins/ravo-review/scripts/run-review.js --domain architecture --model "<model-id>" --timeout-ms 60000 --subject "Review this plan" --no-stream
+```
+
+如果没有配置 Provider，该命令仍会写入 `coverage=none` artifact，让验收环节知道外部评审不可用，而不是误以为已经评审。
+
+可以从 Agent 提供的总结中沉淀 closeout knowledge：
+
+```bash
+node plugins/ravo-knowledge/scripts/capture-knowledge.js --summary "可复用经验" --content "写清楚学到了什么，以及什么时候适用。" --source agent-closeout --applicability "类似后续任务"
+```
+
+默认只写 workspace-local knowledge。用户级可迁移知识必须显式 opt-in，并带 source、sensitivity、applicability 和 redaction metadata。
 
 诊断当前状态：
 

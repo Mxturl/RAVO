@@ -255,16 +255,16 @@ v0.3 不用于补 v0.2 漏洞，优先解决“可诊断性、边界硬度、运
 
 - 目前多模型评审依赖外部独立 skill，和 RAVO 的插件化产品边界不一致。
 - 重要方案、复杂规则、E2E 用例和发布判断需要外源模型审查，但不应强绑定到单一用户的本地 skill 安装。
-- `model-review-council` 名称准确但不好记，作为公开入口不如 `RAVO Review` 清晰。
+- 旧评审入口名称准确但不好记，作为公开入口不如 `RAVO Review` 清晰。
 - 多模型评审如果不处理输出截断、长时间盲等、Provider 拒绝参数、partial coverage 等运行问题，会误伤评审可信度。
 - 评审能力需要覆盖需求、架构、技术、测试、验收、安全、审计等对抗性审查域，而不只是代码 review。
 
 最小能力：
 
 - 作为独立可安装插件发布，主入口命名为 `ravo-review`，用户可见名称为 `RAVO Review`。
-- 当前项目尚未正式推向市场时，可以直接替换现有 `model-review-council` 入口，不必为旧名称保留长期兼容层。
+- 当前项目尚未正式推向市场时，可以直接替换旧评审入口，不必为旧名称保留长期兼容层。
 - 评审域明确覆盖需求、架构、技术、测试、验收、安全、审计；review rubric 应按域输出风险、反例、缺口和建议。
-- 复用现有 `model-review-council` 的成熟能力：多模型并行/串行评审、结构化输出、partial/full coverage 标记、失败模型原因分类。
+- 复用现有外部评审能力中的成熟部分：多模型并行/串行评审、结构化输出、partial/full coverage 标记、失败模型原因分类。
 - 默认输出预算应支持大模型级别，例如 `maxTokens=48000`；Provider 不支持时必须给出清晰降级或错误提示。
 - 默认支持流式请求，记录 `first_event_ms`、`first_content_ms`、`idle_timeout_ms`、`total_timeout_ms`，避免长时间盲等。
 - 对 `usage.output_tokens >= maxTokens` 或 `finish_reason=length` 标记 `likely_truncated_json`，不要把截断 JSON 泛化成模型无能力。
@@ -303,7 +303,7 @@ v0.3 不用于补 v0.2 漏洞，优先解决“可诊断性、边界硬度、运
 - 是否允许新增小型公共脚本，例如 `scripts/ravo-status.js`。
 - 是否仍坚持 stdlib-first，避免新增依赖。
 - 是否需要英文版 roadmap。
-- 多模型评审应直接替换现有 `model-review-council`，还是先保留短期 legacy alias。
+- 多模型评审应直接替换旧评审入口，还是先保留短期 legacy alias。
 - 安全验收清单的 v0.3 最小范围是否只做文本/证据门槛，不做自动安全扫描。
 - `ravo-quick-validation` 是否继续作为独立 plugin entry，还是在产品叙事中完全下沉为 `ravo-acceptance` 子能力。
 - `ravo-knowledge` 与 ShadowMatrix 的边界：是复用理念和格式，还是提供直接互操作。

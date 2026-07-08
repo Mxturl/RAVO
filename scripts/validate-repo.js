@@ -6,6 +6,7 @@ const path = require("node:path");
 
 const repo = path.resolve(__dirname, "..");
 const plugins = ["ravo-core", "ravo-analysis", "ravo-workstream", "ravo-quick-validation", "ravo-acceptance", "ravo-knowledge", "ravo-review"];
+const version = "0.3.1";
 
 function readJson(file) {
   return JSON.parse(fs.readFileSync(file, "utf8"));
@@ -36,7 +37,7 @@ for (const plugin of plugins) {
   assert.ok(marketplace.plugins.some((entry) => entry.name === plugin), `marketplace missing ${plugin}`);
   const manifest = readJson(path.join(repo, "plugins", plugin, ".codex-plugin", "plugin.json"));
   assert.equal(manifest.name, plugin);
-  assert.equal(manifest.version, "0.3.0");
+  assert.equal(manifest.version, version);
   assert.ok(manifest.skills, `${plugin} missing skills path`);
   assert.ok(manifest.interface?.displayName?.startsWith("RAVO"), `${plugin} displayName should use RAVO`);
   if (!["ravo-core", "ravo-quick-validation", "ravo-review"].includes(plugin)) assert.ok(manifest.hooks, `${plugin} missing hooks path`);
@@ -52,6 +53,7 @@ for (const file of [
   "docs/runtime-flow-tests.md",
   "docs/runtime-flow-tests-zh.md",
   "docs/ravo-v0.2-decision-complete-spec.md",
+  "docs/ravo-v0.3.1-e2e-results-zh.md",
   "schemas/manifest.schema.json",
   "schemas/analysis-artifact.schema.json",
   "schemas/workstream-artifact.schema.json",
@@ -71,7 +73,9 @@ for (const file of [
   "plugins/ravo-acceptance/hooks/claude-codex-hooks.json",
   "plugins/ravo-acceptance/hooks/ravo-acceptance-stop.js",
   "plugins/ravo-knowledge/hooks/claude-codex-hooks.json",
+  "plugins/ravo-knowledge/scripts/capture-knowledge.js",
   "plugins/ravo-review/scripts/write-review-artifact.js",
+  "plugins/ravo-review/scripts/run-review.js",
   "scripts/prompt-regression.js"
 ]) {
   assertFile(file);
@@ -89,6 +93,21 @@ for (const dir of [
   for (const entry of fs.readdirSync(path.join(repo, dir), { withFileTypes: true })) {
     if (entry.isDirectory()) parseFrontmatter(path.join(repo, dir, entry.name, "SKILL.md"));
   }
+}
+
+for (const file of [
+  "README.md",
+  "README_ZH.md",
+  "templates/agents-snippet.md",
+  "plugins/ravo-review/skills/ravo-review/SKILL.md",
+  "plugins/ravo-knowledge/skills/ravo-knowledge/SKILL.md",
+  "docs/ravo-v0.2-decision-complete-spec.md",
+  "docs/ravo-v0.3-decision-complete-spec.md",
+  "docs/ravo-v0.3-candidate-requirements-zh.md",
+  "docs/ravo-v0.3.1-completion-patch-spec.md"
+]) {
+  const text = fs.readFileSync(path.join(repo, file), "utf8");
+  assert.ok(!text.includes("model-review-council"), `${file} contains legacy review skill name`);
 }
 
 console.log("repo validation passed");

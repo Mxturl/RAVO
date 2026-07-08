@@ -86,10 +86,29 @@ function readConfig(workspace) {
 function pluginStatus(repo, name) {
   const manifestPath = path.join(repo, "plugins", name, ".codex-plugin", "plugin.json");
   const manifest = readJson(manifestPath);
+  const cacheRoot = path.join(os.homedir(), ".codex", "plugins", "cache", "ravo", name);
+  const installed = (() => {
+    try {
+      return fs.readdirSync(cacheRoot)
+        .map((version) => ({
+          version,
+          manifestPath: path.join(cacheRoot, version, ".codex-plugin", "plugin.json"),
+          manifest: readJson(path.join(cacheRoot, version, ".codex-plugin", "plugin.json"))
+        }))
+        .filter((entry) => entry.manifest)
+        .sort((a, b) => String(b.version).localeCompare(String(a.version)))
+        [0] || null;
+    } catch (_err) {
+      return null;
+    }
+  })();
   return {
     name,
     present: Boolean(manifest),
     version: manifest?.version || "",
+    installedVersion: installed?.manifest?.version || installed?.version || "",
+    installedManifestPath: installed ? installed.manifestPath : "",
+    drift: Boolean(manifest?.version && installed?.manifest?.version && manifest.version !== installed.manifest.version),
     displayName: manifest?.interface?.displayName || "",
     hasHooks: Boolean(manifest?.hooks),
     manifestPath: fs.existsSync(manifestPath) ? path.relative(repo, manifestPath) : ""
@@ -123,6 +142,9 @@ function buildStatus(workspace, repo) {
     config: config.config,
     configPaths: config.paths,
     warnings: config.warnings,
+    driftWarnings: plugins
+      .filter((plugin) => plugin.drift)
+      .map((plugin) => `${plugin.name} source=${plugin.version} installed=${plugin.installedVersion}`),
     reminders: [
       "Run ravo-core init if knowledge/.ravo/manifest.json is missing.",
       "After install or upgrade, approve RAVO hooks if Codex asks for trust.",

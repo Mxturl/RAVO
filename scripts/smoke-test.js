@@ -17,6 +17,15 @@ function run(script, args = [], cwd = workspace) {
   return JSON.parse(output);
 }
 
+function runEnv(script, args = [], env = {}, cwd = workspace) {
+  const output = execFileSync(process.execPath, [script, ...args], {
+    cwd,
+    encoding: "utf8",
+    env: { ...process.env, ...env }
+  });
+  return JSON.parse(output);
+}
+
 function runStatus(script, args = [], cwd = workspace) {
   return spawnSync(process.execPath, [script, ...args], {
     cwd,
@@ -41,6 +50,8 @@ const goalPrompt = path.join(repo, "plugins", "ravo-core", "scripts", "ravo-goal
 const ravoStatus = path.join(repo, "plugins", "ravo-core", "scripts", "ravo-status.js");
 const writeDecisionSpec = path.join(repo, "plugins", "ravo-analysis", "scripts", "write-decision-spec.js");
 const writeReview = path.join(repo, "plugins", "ravo-review", "scripts", "write-review-artifact.js");
+const runReview = path.join(repo, "plugins", "ravo-review", "scripts", "run-review.js");
+const captureKnowledge = path.join(repo, "plugins", "ravo-knowledge", "scripts", "capture-knowledge.js");
 const securityPassArgs = [
   "--security-pass", "data_privacy",
   "--security-pass", "credentials",
@@ -203,6 +214,8 @@ const leak = runStatus(writeKnowledge, [
   "--opt-in", "true",
   "--kind", "lesson",
   "--content", "Never leak CANARY_CUSTOMER_42 into reusable lessons",
+  "--source", "smoke-test",
+  "--applicability", "transferable lesson",
   "--canary", "CANARY_CUSTOMER_42"
 ], workspace);
 assert.notEqual(leak.status, 0, "transferable lesson fails when canary leaks");
@@ -215,6 +228,7 @@ const userLesson = spawnSync(process.execPath, [
   "--kind", "lesson",
   "--content", "Preserve original user requirements and propose changes separately",
   "--summary", "Preserve user requirements while proposing changes separately",
+  "--source", "smoke-test",
   "--applicability", "requirement refinement",
   "--sensitivity", "redacted",
   "--canary", "CANARY_CUSTOMER_42"
@@ -226,6 +240,26 @@ const userLesson = spawnSync(process.execPath, [
 });
 assert.equal(userLesson.status, 0, userLesson.stderr);
 assert.match(JSON.parse(userLesson.stdout).globalWriteNotice, /User-level RAVO knowledge written/);
+
+const missingUserMetadata = runStatus(writeKnowledge, [
+  "--workspace", workspace,
+  "--scope", "user",
+  "--opt-in", "true",
+  "--kind", "lesson",
+  "--content", "Keep transferable lessons redacted",
+  "--sensitivity", "redacted"
+], workspace);
+assert.notEqual(missingUserMetadata.status, 0, "user-level knowledge requires source and applicability metadata");
+
+const captured = run(captureKnowledge, [
+  "--workspace", workspace,
+  "--summary", "Do not claim readiness without evidence",
+  "--content", "Before release claims, connect status to validation, review, and acceptance artifacts.",
+  "--source", "agent-closeout",
+  "--applicability", "release readiness"
+]);
+assert.ok(fs.existsSync(captured.markdownPath), "capture writes markdown knowledge");
+assert.match(captured.captureNotice, /Workspace-local RAVO knowledge written/);
 
 const secondWorkspace = fs.mkdtempSync(path.join(os.tmpdir(), "ravo-second-"));
 const crossWorkspace = spawnSync(process.execPath, [
@@ -255,6 +289,77 @@ const review = run(writeReview, [
 ]);
 assert.ok(fs.existsSync(review.artifactPath), "review artifact exists");
 
+const reviewHelp = runStatus(runReview, ["--help"], workspace);
+assert.equal(reviewHelp.status, 0, "review runner help exits cleanly");
+assert.match(String(reviewHelp.stdout || ""), /Usage: run-review\.js/);
+
+const reviewConfigDir = fs.mkdtempSync(path.join(os.tmpdir(), "ravo-review-config-"));
+const fullConfigPath = path.join(reviewConfigDir, "full.json");
+fs.writeFileSync(fullConfigPath, JSON.stringify({
+  apiMode: "fake",
+  apiBase: "fake://review",
+  apiKey: "SECRET_SHOULD_NOT_PRINT",
+  models: "fake-a,fake-b"
+}, null, 2), "utf8");
+const fullReview = runEnv(runReview, [
+  "--workspace", workspace,
+  "--config", fullConfigPath,
+  "--domain", "architecture",
+  "--subject", "Upgrade RAVO Review to call configured providers"
+]);
+assert.equal(fullReview.coverage, "full", "fake provider success gives full review coverage");
+assert.equal(fullReview.modelsCompleted.length, 2, "all fake models complete");
+assert.doesNotMatch(JSON.stringify(fullReview), /SECRET_SHOULD_NOT_PRINT/, "review runner does not print api keys");
+
+const partialConfigPath = path.join(reviewConfigDir, "partial.json");
+fs.writeFileSync(partialConfigPath, JSON.stringify({
+  providers: [
+    {
+      id: "fake-provider",
+      enabled: true,
+      apiMode: "fake",
+      apiBase: "fake://review",
+      apiKey: "SECRET_SHOULD_NOT_PRINT",
+      models: [
+        { "id": "fake-ok", "enabled": true },
+        { "id": "fake-fail", "enabled": true }
+      ]
+    }
+  ]
+}, null, 2), "utf8");
+const partialReview = runEnv(runReview, [
+  "--workspace", workspace,
+  "--config", partialConfigPath,
+  "--domain", "testing",
+  "--subject", "Review partial provider behavior"
+]);
+assert.equal(partialReview.coverage, "partial", "one fake model failure gives partial review coverage");
+assert.match(partialReview.failedModelReasons.join("\n"), /provider-error/);
+
+const unavailableReview = runEnv(runReview, [
+  "--workspace", workspace,
+  "--config", path.join(reviewConfigDir, "missing.json"),
+  "--domain", "testing",
+  "--subject", "Review without provider config"
+]);
+assert.equal(unavailableReview.coverage, "none", "missing provider config gives none coverage");
+
+const timeoutConfigPath = path.join(reviewConfigDir, "timeout.json");
+fs.writeFileSync(timeoutConfigPath, JSON.stringify({
+  apiMode: "fake",
+  apiBase: "fake://review",
+  models: ["fake-timeout", "fake-trunc"]
+}, null, 2), "utf8");
+const timeoutReview = runEnv(runReview, [
+  "--workspace", workspace,
+  "--config", timeoutConfigPath,
+  "--domain", "testing",
+  "--subject", "Review timeout and truncation behavior"
+]);
+assert.equal(timeoutReview.coverage, "partial", "timeout plus truncation gives partial coverage");
+assert.match(timeoutReview.failedModelReasons.join("\n"), /timeout/);
+assert.match(timeoutReview.truncationWarnings.join("\n"), /truncation|timeout/);
+
 fs.mkdirSync(path.join(workspace, "docs"), { recursive: true });
 fs.copyFileSync(path.join(repo, "docs", "ravo-v0.2-decision-complete-spec.md"), path.join(workspace, "docs", "ravo-v0.2-decision-complete-spec.md"));
 const suggestedGoal = run(goalPrompt, ["--workspace", workspace]);
@@ -276,7 +381,11 @@ assert.ok(result.latestAnalysis, "acceptance discovers analysis artifact");
 assert.ok(result.latestAcceptance, "acceptance discovers acceptance artifact");
 assert.ok(result.latestWorkstream, "acceptance discovers workstream artifact");
 assert.ok(result.latestSmoke, "acceptance discovers smoke artifact");
+assert.ok(result.latestReview, "acceptance discovers review artifact");
+assert.ok(result.latestKnowledge, "acceptance discovers knowledge artifact");
 assert.ok(result.checks.some((check) => check.id === "securityBaseline" && check.status === "pass"), "acceptance checks security baseline");
+assert.ok(result.checks.some((check) => check.id === "reviewEvidence"), "acceptance checks review evidence");
+assert.ok(result.checks.some((check) => check.id === "knowledgeEvidence"), "acceptance checks knowledge evidence");
 
 console.log(JSON.stringify({
   status: "pass",

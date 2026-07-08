@@ -1,6 +1,6 @@
 {
   "name": "ravo-quick-validation",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "RAVO Evidence smoke manifests and fast validation artifacts for acceptance.",
   "author": {
     "name": "RAVO contributors"

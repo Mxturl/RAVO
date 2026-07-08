@@ -72,13 +72,17 @@ RAVO treats Goal Prompt authoring as a first-class lifecycle capability:
 
 ### RAVO Review
 
+- Run configured provider/model reviews through `ravo-review`.
 - Record adversarial review coverage under `knowledge/.ravo/review`.
 - Keep full, partial, timeout, failure, and truncation states visible.
-- Use existing multi-model review capability when configured; do not require review providers for routine tasks.
+- Support both flat config and provider-array config at `~/.codex/skill-config/ravo-review.json`.
+- Keep missing provider config visible as `coverage=none`; do not require review providers for routine tasks.
 
 ### Knowledge Reuse
 
 - Write, retrieve, and apply workspace-local facts, decisions, lessons, principles, and evidence.
+- Capture closeout/session lessons from Agent-provided summaries.
+- Retrieve workspace knowledge for medium/high-complexity planning, architecture, review, acceptance, and long-running work even when the user does not say "knowledge".
 - Support opt-in transferable lessons only after redaction, scope labeling, and leakage checks.
 - Store durable knowledge as human-readable Markdown plus a JSON index so it can be read by people and retrieved by agents.
 
@@ -126,6 +130,28 @@ After installation, the installing Agent should point the user to the key config
 - User-level RAVO defaults: `~/.codex/skill-config/ravo.json`.
 - RAVO Review provider config: `~/.codex/skill-config/ravo-review.json`; template: `templates/ravo-review-config.example.json`.
 - Codex global rules: `~/.codex/AGENTS.md`; preview and apply through `ravo-core`, never silently edit it.
+
+RAVO Review can be checked without exposing secrets:
+
+```bash
+node plugins/ravo-review/scripts/run-review.js --domain architecture --subject "Review this plan" --no-stream
+```
+
+For a bounded check against one configured model:
+
+```bash
+node plugins/ravo-review/scripts/run-review.js --domain architecture --model "<model-id>" --timeout-ms 60000 --subject "Review this plan" --no-stream
+```
+
+If no provider is configured, the command still writes a `coverage=none` artifact so acceptance can see that external review is unavailable rather than silently assuming it happened.
+
+Closeout knowledge can be captured from an Agent-provided summary:
+
+```bash
+node plugins/ravo-knowledge/scripts/capture-knowledge.js --summary "Reusable lesson" --content "State what was learned and when it applies." --source agent-closeout --applicability "similar future work"
+```
+
+Workspace-local knowledge is the default. User-level transferable knowledge requires explicit opt-in plus source, sensitivity, applicability, and redaction metadata.
 
 For diagnostics, run:
 

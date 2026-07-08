@@ -1,6 +1,6 @@
 {
   "name": "ravo-review",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Independent multi-model adversarial review artifacts for RAVO lifecycle governance.",
   "author": {
     "name": "RAVO contributors"
@@ -11,7 +11,7 @@
   "interface": {
     "displayName": "RAVO Review",
     "shortDescription": "Challenge plans with external review.",
-    "longDescription": "RAVO Review records adversarial review coverage, risks, recommendations, failures, timing, and truncation warnings as RAVO artifacts.",
+    "longDescription": "RAVO Review runs configured provider/model reviews and records full, partial, unavailable, failure, timeout, timing, and truncation coverage as RAVO artifacts.",
     "developerName": "RAVO contributors",
     "category": "Developer Tools",
     "capabilities": ["Skills", "Workspace artifacts", "Adversarial review"],

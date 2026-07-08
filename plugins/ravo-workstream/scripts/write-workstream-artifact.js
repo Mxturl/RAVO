@@ -3,7 +3,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 
-const SCHEMA_VERSION = "0.3.0";
+const SCHEMA_VERSION = "0.3.1";
 const STATUSES = new Set(["planned", "active", "blocked", "ready_for_acceptance", "closed"]);
 
 function argValue(name, fallback = "") {

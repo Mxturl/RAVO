@@ -60,7 +60,7 @@ When the user and Codex are producers, optimize for the final user's trustworthy
 ### Optional In v0.3
 
 - English roadmap beyond README-level user documentation.
-- Legacy alias for `model-review-council` if the implementation cost is small.
+- Legacy alias for the old review entry if the implementation cost is small.
 - Extra reporter formats for status or review artifacts.
 - Additional E2E scenarios after the required matrix passes.
 
@@ -362,7 +362,7 @@ Minimum artifact fields:
 
 Rules:
 
-- Use existing `model-review-council` behavior as the starting point when available.
+- Use the existing external-review behavior as the starting point when available.
 - Public user-facing entry is `RAVO Review`.
 - Configuration path is `~/.codex/skill-config/ravo-review.json`.
 - Do not print secrets from migrated or loaded configs.

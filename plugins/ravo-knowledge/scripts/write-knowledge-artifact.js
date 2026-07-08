@@ -4,7 +4,7 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 
-const SCHEMA_VERSION = "0.3.0";
+const SCHEMA_VERSION = "0.3.1";
 const KINDS = new Set([
   "material",
   "experience",
@@ -164,9 +164,13 @@ function main() {
   if (!content) fail("Knowledge artifact requires --content.");
   const summary = argValue("--summary", content.replace(/\s+/g, " ").slice(0, 160)).trim();
   const sensitivity = argValue("--sensitivity", scope === "user" ? "redacted" : "internal").trim();
+  const source = argValue("--source", "").trim();
+  const applicability = argValues("--applicability");
   if (scope === "user" && sensitivity !== "public" && sensitivity !== "redacted") {
     fail("User-level knowledge requires --sensitivity public or redacted.");
   }
+  if (scope === "user" && !source) fail("User-level knowledge requires --source.");
+  if (scope === "user" && applicability.length === 0) fail("User-level knowledge requires at least one --applicability.");
   const redactionStatus = checkTransferable({
     scope,
     optIn: argValue("--opt-in", "false"),
@@ -183,9 +187,9 @@ function main() {
     title: argValue("--title", summary).trim(),
     summary,
     scope,
-    source: argValue("--source", ""),
+    source,
     content,
-    applicability: argValues("--applicability"),
+    applicability,
     tags: argValues("--tag"),
     sensitivity,
     relatedArtifacts: argValues("--related-artifact"),

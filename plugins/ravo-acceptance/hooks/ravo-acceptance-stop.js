@@ -62,7 +62,7 @@ function writePendingContinuation(cwd, data, message, reason) {
   const id = `${now.replace(/[:.]/g, "-")}-acceptance-stop-telemetry`;
   const artifactPath = path.join(dir, `${id}.json`);
   const artifact = {
-    schemaVersion: "0.3.0",
+    schemaVersion: "0.3.1",
     id,
     type: "acceptance-stop-telemetry",
     status: "pending",

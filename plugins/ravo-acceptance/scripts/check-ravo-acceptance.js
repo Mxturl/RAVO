@@ -29,6 +29,13 @@ function discoverLatest(cwd, manifest, moduleName, dirName) {
     : latestJson(path.join(cwd, "knowledge", ".ravo", dirName));
 }
 
+function discoverKnowledge(cwd, manifest) {
+  const latest = discoverLatest(cwd, manifest, "knowledge", "knowledge");
+  if (latest && fs.existsSync(latest)) return latest;
+  const indexPath = path.join(cwd, "knowledge", ".ravo", "knowledge", "index.json");
+  return fs.existsSync(indexPath) ? indexPath : "";
+}
+
 function addCheck(checks, id, status, required, summary) {
   checks.push({ id, status, required, summary });
 }
@@ -90,6 +97,32 @@ function buildResult(cwd = process.cwd()) {
   addCheck(checks, "securityBaseline", !needsSecurity || securityReady(acceptance) ? "pass" : "fail", true, needsSecurity ? "Security baseline supports accepted/release_ready." : "Security baseline not required for this status.");
   addCheck(checks, "releaseEvidence", acceptance?.status !== "release_ready" || ["real_e2e", "full_external_review"].includes(acceptance.evidenceLevel) ? "pass" : "fail", true, "release_ready requires real_e2e or full_external_review evidence.");
 
+  const latestReview = discoverLatest(cwd, manifest, "review", "review");
+  const review = readJson(latestReview);
+  if (review) {
+    const reviewStatus = review.coverage === "full" ? "pass" : "warn";
+    addCheck(checks, "reviewEvidence", reviewStatus, false, `Latest review coverage is ${review.coverage}.`);
+    const reviewNeeded = ["full_external_review", "partial_external_review"].includes(acceptance?.evidenceLevel);
+    const reviewSupportsEvidence = acceptance?.evidenceLevel === "full_external_review"
+      ? review.coverage === "full"
+      : ["full", "partial"].includes(review.coverage);
+    if (reviewNeeded) addCheck(checks, "reviewEvidenceMatch", reviewSupportsEvidence ? "pass" : "fail", true, `Acceptance evidenceLevel=${acceptance.evidenceLevel} requires matching review coverage.`);
+  } else {
+    addCheck(checks, "reviewEvidence", "skip", false, "No review artifact found.");
+    if (["full_external_review", "partial_external_review"].includes(acceptance?.evidenceLevel)) {
+      addCheck(checks, "reviewEvidenceMatch", "fail", true, `Acceptance evidenceLevel=${acceptance.evidenceLevel} requires a review artifact.`);
+    }
+  }
+
+  const latestKnowledge = discoverKnowledge(cwd, manifest);
+  const knowledge = readJson(latestKnowledge);
+  if (knowledge) {
+    const count = Array.isArray(knowledge.entries) ? knowledge.entries.length : 1;
+    addCheck(checks, "knowledgeEvidence", count > 0 ? "pass" : "warn", false, count > 0 ? `Knowledge evidence discovered (${count} item(s)).` : "Knowledge index exists but has no entries.");
+  } else {
+    addCheck(checks, "knowledgeEvidence", "skip", false, "No knowledge artifact or index found.");
+  }
+
   const blocking = checks.filter((check) => check.required && check.status === "fail");
   return {
     status: blocking.length ? "not_ready" : "ready",
@@ -102,6 +135,8 @@ function buildResult(cwd = process.cwd()) {
     latestWorkstream: workstream ? latestWorkstream : "",
     latestSmoke: smoke ? latestSmoke : "",
     latestAcceptance: acceptance ? latestAcceptance : "",
+    latestReview: review ? latestReview : "",
+    latestKnowledge: knowledge ? latestKnowledge : "",
     checks
   };
 }

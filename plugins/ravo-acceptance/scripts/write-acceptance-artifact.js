@@ -3,7 +3,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 
-const SCHEMA_VERSION = "0.3.0";
+const SCHEMA_VERSION = "0.3.1";
 const STATUSES = new Set(["in_progress", "code_complete", "pending_acceptance", "accepted", "release_ready", "not_ready"]);
 const EVIDENCE_LEVELS = new Set(["none", "notes", "script", "api", "smoke", "real_e2e", "full_external_review", "partial_external_review"]);
 const SECURITY_ITEMS = [
