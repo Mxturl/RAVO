@@ -7,14 +7,38 @@
   "properties": {
     "schemaVersion": { "type": "string" },
     "id": { "type": "string" },
-    "kind": { "enum": ["fact", "decision", "lesson", "principle", "evidence"] },
+    "kind": {
+      "enum": [
+        "material",
+        "experience",
+        "judgment",
+        "terminology",
+        "boundary",
+        "requirement",
+        "solution",
+        "review",
+        "acceptance",
+        "retrospective",
+        "fact",
+        "decision",
+        "lesson",
+        "principle",
+        "evidence"
+      ]
+    },
+    "title": { "type": "string" },
+    "summary": { "type": "string" },
     "scope": { "enum": ["workspace", "user"] },
     "source": { "type": "string" },
     "content": { "type": "string" },
     "applicability": { "type": "array", "items": { "type": "string" } },
+    "tags": { "type": "array", "items": { "type": "string" } },
+    "sensitivity": { "type": "string" },
+    "relatedArtifacts": { "type": "array", "items": { "type": "string" } },
     "confidence": { "type": "number" },
     "redactionStatus": { "type": "string" },
-    "lastUsedAt": { "type": "string" }
+    "lastUsedAt": { "type": "string" },
+    "updatedAt": { "type": "string" }
   },
   "additionalProperties": true
 }

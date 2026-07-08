@@ -33,6 +33,12 @@ function addCheck(checks, id, status, required, summary) {
   checks.push({ id, status, required, summary });
 }
 
+function securityReady(acceptance) {
+  const checklist = acceptance?.securityChecklist;
+  if (!Array.isArray(checklist) || checklist.length === 0) return false;
+  return checklist.every((item) => item.status === "pass");
+}
+
 function buildResult(cwd = process.cwd()) {
   const ravoRoot = path.join(cwd, "knowledge", ".ravo");
   const manifestPath = path.join(ravoRoot, "manifest.json");
@@ -76,10 +82,13 @@ function buildResult(cwd = process.cwd()) {
   addCheck(checks, "acceptanceArtifact", acceptance ? "pass" : "fail", true, acceptance ? "Acceptance artifact exists." : "Acceptance artifact is missing.");
 
   const readyStatuses = new Set(["pending_acceptance", "accepted", "release_ready"]);
-  const readyEvidence = new Set(["api", "smoke", "real_e2e"]);
+  const readyEvidence = new Set(["api", "smoke", "real_e2e", "full_external_review", "partial_external_review"]);
   const statusReady = acceptance && readyStatuses.has(acceptance.status);
   const evidenceReady = acceptance && readyEvidence.has(acceptance.evidenceLevel);
   addCheck(checks, "statusEvidence", statusReady && evidenceReady ? "pass" : "fail", true, statusReady && evidenceReady ? "Status is supported by evidence level." : "Acceptance status is not supported by enough evidence.");
+  const needsSecurity = acceptance && ["accepted", "release_ready"].includes(acceptance.status);
+  addCheck(checks, "securityBaseline", !needsSecurity || securityReady(acceptance) ? "pass" : "fail", true, needsSecurity ? "Security baseline supports accepted/release_ready." : "Security baseline not required for this status.");
+  addCheck(checks, "releaseEvidence", acceptance?.status !== "release_ready" || ["real_e2e", "full_external_review"].includes(acceptance.evidenceLevel) ? "pass" : "fail", true, "release_ready requires real_e2e or full_external_review evidence.");
 
   const blocking = checks.filter((check) => check.required && check.status === "fail");
   return {

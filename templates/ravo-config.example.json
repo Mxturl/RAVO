@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "0.3.0",
+  "technicalDetailLevel": 3,
+  "globalKnowledge": {
+    "enabled": false,
+    "path": "~/.codex/ravo/knowledge",
+    "requireRedaction": true
+  },
+  "acceptance": {
+    "securityBaseline": {
+      "enabled": true
+    },
+    "requireRealE2EForRelease": true
+  },
+  "hooks": {
+    "showTrustReminder": true
+  },
+  "modules": {
+    "analysis": {
+      "enabled": true
+    },
+    "acceptance": {
+      "enabled": true,
+      "includeQuickValidation": true
+    },
+    "knowledge": {
+      "enabled": true
+    }
+  }
+}

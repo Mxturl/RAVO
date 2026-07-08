@@ -20,6 +20,11 @@ Include:
 - `Smallest Fix`: one root-level fix, not scattered symptom guards.
 - `Verification`: the smallest check that would fail if the root cause returns.
 
+Presentation:
+
+- Put each field in its own paragraph or bullet. Do not inline multiple labels such as `Symptom`, `Proximate Cause`, and `Mechanism Root Cause` into one dense paragraph.
+- For Chinese output, each label such as `现象`、`近因`、`机制根因`、`Why Chain`、`验证` must start on a separate line.
+
 For important work, or when a RAVO advisory triggered this skill, write an artifact:
 
 ```bash

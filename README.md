@@ -37,7 +37,20 @@ O = Organize    durable knowledge capture and reuse
 - Challenge the preferred option once before concluding, instead of only defending it.
 - Use first-principles reasoning before implementation when the request is ambiguous or important.
 - Write reusable analysis artifacts under `knowledge/.ravo/analysis`.
-- Generate decision-complete specs before long-running Goal prompts when the current requirements are not yet complete.
+
+### Goal Prompt Methodology
+
+Most people start Goal Mode by stuffing a long requirement list into one prompt. That makes the goal hard to audit, hard to resume, and easy to reinterpret.
+
+RAVO's design intent is simple: Goal Mode is for long-running autonomous work, so it needs a stable spec first; the Goal Prompt should be an execution contract, not the requirements container.
+
+RAVO treats Goal Prompt authoring as a first-class lifecycle capability:
+
+- Check whether a decision-complete spec already exists before writing a Goal Prompt.
+- If no spec exists, do not produce any runnable Goal Prompt. Generate or request the spec first.
+- If a spec exists, generate a short Goal Prompt that references the spec as the single source of truth.
+- Keep the Goal Prompt focused on execution contract, evidence, recovery, and acceptance, not requirement duplication.
+- Use RAVO artifacts so long-running work can resume from spec, workstream, validation, and acceptance evidence.
 
 ### Root-Cause Analysis
 
@@ -51,16 +64,23 @@ O = Organize    durable knowledge capture and reuse
 - Write acceptance artifacts under `knowledge/.ravo/acceptance`.
 - Treat prompt-time readiness hooks as fallback advisory only; the agent should run acceptance checks proactively before delivery conclusions.
 
-### Workstream and Quick Validation
+### Workstream and RAVO Evidence
 
 - Track long-running work with milestone, next step, blocker, decision, and evidence artifacts.
 - Record fast smoke evidence under `knowledge/.ravo/quick-validation`.
 - Keep smoke evidence separate from final acceptance.
 
+### RAVO Review
+
+- Record adversarial review coverage under `knowledge/.ravo/review`.
+- Keep full, partial, timeout, failure, and truncation states visible.
+- Use existing multi-model review capability when configured; do not require review providers for routine tasks.
+
 ### Knowledge Reuse
 
 - Write, retrieve, and apply workspace-local facts, decisions, lessons, principles, and evidence.
 - Support opt-in transferable lessons only after redaction, scope labeling, and leakage checks.
+- Store durable knowledge as human-readable Markdown plus a JSON index so it can be read by people and retrieved by agents.
 
 ### Shared Artifact Protocol
 
@@ -73,10 +93,11 @@ knowledge/.ravo/
 ├── workstream/
 ├── quick-validation/
 ├── acceptance/
-└── knowledge/
+├── knowledge/
+└── review/
 ```
 
-Single modules work alone. When multiple RAVO modules are installed, they discover upstream artifacts from `knowledge/.ravo/manifest.json`. Raw project facts and evidence are workspace-local by default. Abstracted lessons and principles may become transferable user-level knowledge only after redaction, scope labeling, and explicit opt-in.
+Single modules are technically installable on their own. For real use, install `ravo-core` first and treat it as the baseline module: it owns the shared manifest, artifact protocol, AGENTS.md integration, and Goal Prompt foundation. RAVO works best when the full module set is installed together. Raw project facts and evidence are workspace-local by default. Abstracted lessons and principles may become transferable user-level knowledge only after redaction, scope labeling, and explicit opt-in.
 
 ## Download and Installation
 
@@ -92,9 +113,27 @@ codex plugin add ravo-workstream@ravo
 codex plugin add ravo-quick-validation@ravo
 codex plugin add ravo-acceptance@ravo
 codex plugin add ravo-knowledge@ravo
+codex plugin add ravo-review@ravo
 ```
 
+`ravo-core` is the recommended baseline install. The other modules remain modular, but new users should install the full suite unless they have a specific reason not to.
+
 Start a new Codex thread after installing so skills and hooks are picked up.
+
+After installation, the installing Agent should point the user to the key configuration locations:
+
+- Workspace RAVO config: `knowledge/.ravo/config.json`; template: `templates/ravo-config.example.json`.
+- User-level RAVO defaults: `~/.codex/skill-config/ravo.json`.
+- RAVO Review provider config: `~/.codex/skill-config/ravo-review.json`; template: `templates/ravo-review-config.example.json`.
+- Codex global rules: `~/.codex/AGENTS.md`; preview and apply through `ravo-core`, never silently edit it.
+
+For diagnostics, run:
+
+```bash
+node plugins/ravo-core/scripts/ravo-status.js --workspace "$(pwd)"
+```
+
+The report shows manifest health, installed module versions, latest artifacts, config paths, and hook/session reminders.
 
 If an existing Codex Agent is installing RAVO for a user, it should treat `AGENTS.md` integration as a selective upgrade step after plugin installation. The agent must inspect the user's Codex global `AGENTS.md`, propose how RAVO should fit into the existing rules, show a diff, and wait for explicit approval before writing.
 
@@ -127,6 +166,7 @@ codex plugin add ravo-workstream@ravo
 codex plugin add ravo-quick-validation@ravo
 codex plugin add ravo-acceptance@ravo
 codex plugin add ravo-knowledge@ravo
+codex plugin add ravo-review@ravo
 ```
 
 If your marketplace source is a Git marketplace rather than the current local repo checkout, refresh it first:
@@ -152,7 +192,7 @@ The intended boundary is:
 - `AGENTS.md` decides **when** to delegate: global priority, safety, interaction style, data boundaries, and fallback behavior.
 - RAVO decides **how** to execute once delegated: analysis structure, acceptance evidence, scripts, schemas, hooks, and artifacts.
 
-RAVO v0.2 covers `analysis`, `workstream`, `quick-validation`, `acceptance`, and `knowledge` as independently installable modules. Small, clearly bounded tasks do not require every module.
+RAVO v0.3 covers `analysis`, `workstream`, `RAVO Evidence` (`ravo-quick-validation` compatibility entry), `acceptance`, `knowledge`, and `review` as independently installable modules. Small, clearly bounded tasks do not require every module.
 
 ### Manual Mode
 

@@ -22,13 +22,13 @@ Goal: verify that the agent starts with analysis in a real product conversation 
 ### Turn 1
 
 ```text
-We are building a travel budgeting app for young professionals. We want to add a shared trip planner where friends can split expenses and vote on itinerary choices.
+Our AI wardrobe app already tags uploaded clothes, but users still struggle before trips because they do not know what to pack. I want to add a travel outfit recommendation feature: destination, trip length, weather, suitcase size, then daily outfit suggestions.
 ```
 
 ### Turn 2
 
 ```text
-Do not build it yet. First tell me who the real user is, what the core goal is, which known facts matter most, what the main boundaries and risks are, and what solution you recommend.
+Do not touch the code yet. I am not even sure this is worth doing as a first version; help me think it through.
 ```
 
 Expected effect:
@@ -45,19 +45,19 @@ Goal: verify that the agent keeps digging toward mechanism-level cause instead o
 ### Turn 1
 
 ```text
-Our coding helper works the first time after install, but after reopening Codex it sometimes stops influencing replies.
+This plugin works right after installation, but after reopening Codex it sometimes feels like it is not installed at all.
 ```
 
 ### Turn 2
 
 ```text
-Do not patch it yet. First tell me whether this looks more like a configuration problem, a lifecycle problem, or a governance-injection timing problem.
+My first guess is that the hook is not firing, but that may be too shallow. Do not patch it yet; help me investigate the direction.
 ```
 
 ### Turn 3
 
 ```text
-Keep going. Do not stop at the first explanation. Compare competing hypotheses until you reach a mechanism-level cause that is verifiable and helps prevent recurrence, then give me the smallest verification step.
+That explanation still feels one layer too shallow. Go one level deeper and tell me how we would verify it.
 ```
 
 Expected effect:
@@ -75,25 +75,25 @@ Recommendation: use a fresh session in a scratch directory.
 ### Turn 1
 
 ```text
-In the current directory, create a minimal sum utility with `sum.js` and `sum.test.js`. It only needs to cover the `1 + 2 = 3` case. Just do it directly; you do not need to propose a plan first.
+In the current directory, make a tiny Node script that reads `clothes.json` and prints the top three clothes to pack for a trip. Define the fields yourself and do not add dependencies.
 ```
 
 ### Turn 2
 
 ```text
-Continue and make the test pass. Also keep track of what you actually verified.
+Run it and add the smallest sample input if you need one.
 ```
 
 ### Turn 3
 
 ```text
-Do not talk about release yet. I only want a progress sync: what you changed, what you verified, what delivery status should be reported right now, and what is still missing.
+I am going into a meeting. Wrap up the current state so I can pick it back up later.
 ```
 
 ### Turn 4 (optional, stronger variant)
 
 ```text
-I do not have time for a real end-to-end validation yet. Give me a cautious conclusion based only on the evidence that exists right now.
+If I need to tell a teammate one sentence this afternoon, what should I say without overstating it?
 ```
 
 Expected effect:
@@ -110,13 +110,13 @@ Goal: verify that `UserPromptSubmit` fallback advisory still exists, while makin
 ### Turn 1
 
 ```text
-I just finished the upload flow change and unit tests pass, but I have not done a real end-to-end validation yet.
+I just finished the upload flow change and unit tests pass, but I have not tested it on a real device yet.
 ```
 
 ### Turn 2
 
 ```text
-What delivery status should I report externally right now?
+My manager is asking whether we can call it ready today.
 ```
 
 Expected effect:

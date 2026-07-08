@@ -2,6 +2,7 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
+const crypto = require("node:crypto");
 const { spawnSync } = require("node:child_process");
 
 function readJsonStdin(callback) {
@@ -50,20 +51,32 @@ function runChecker(cwd) {
   }
 }
 
-function writePendingContinuation(cwd, message, reason) {
+function sourceHash(message) {
+  return crypto.createHash("sha256").update(String(message || "")).digest("hex").slice(0, 16);
+}
+
+function writePendingContinuation(cwd, data, message, reason) {
   const now = new Date().toISOString();
   const root = path.join(cwd, "knowledge", ".ravo");
   const dir = path.join(root, "continuation");
   const id = `${now.replace(/[:.]/g, "-")}-acceptance-stop-telemetry`;
   const artifactPath = path.join(dir, `${id}.json`);
   const artifact = {
-    schemaVersion: "0.2.0",
+    schemaVersion: "0.3.0",
     id,
     type: "acceptance-stop-telemetry",
     status: "pending",
     createdAt: now,
+    threadId: data.session_id || data.sessionId || "",
+    turnId: data.turn_id || data.turnId || "",
+    targetWorkspace: cwd,
+    sourceMessageHash: sourceHash(message),
+    policyReviewStatus: "pending_policy_review",
     reason,
     lastAssistantMessage: String(message || "").slice(0, 2000),
+    nextStep: "Reconcile the previous readiness claim with RAVO acceptance evidence.",
+    blockers: [reason],
+    evidenceRefs: [],
     instruction: "Before continuing, reconcile the previous readiness claim with RAVO acceptance evidence. If evidence is incomplete, correct the status and list missing evidence."
   };
 
@@ -97,12 +110,8 @@ readJsonStdin((data) => {
     return;
   }
 
-  const artifactPath = writePendingContinuation(cwd, message, result.gate?.reason || "RAVO acceptance evidence is incomplete.");
+  const artifactPath = writePendingContinuation(cwd, data, message, result.gate?.reason || "RAVO acceptance evidence is incomplete.");
   process.stdout.write(JSON.stringify({
-    systemMessage: "RAVO_STOP_TELEMETRY_RECORDED",
-    hookSpecificOutput: {
-      hookEventName: "Stop",
-      additionalContext: `RAVO stop telemetry recorded a pending continuation: ${artifactPath}`
-    }
+    systemMessage: `RAVO_STOP_TELEMETRY_RECORDED: ${artifactPath}`
   }));
 });

@@ -1,9 +1,9 @@
 ---
 name: ravo-quick-validation
-description: Write and check RAVO smoke manifests for fast branch, phase, script, or risk validation evidence.
+description: Write and check RAVO Evidence smoke manifests for fast branch, phase, script, or risk validation evidence.
 ---
 
-# RAVO Quick Validation
+# RAVO Evidence
 
 Use this skill to record fast validation evidence before final acceptance.
 
@@ -28,3 +28,4 @@ Set `RAVO_QUICK_VALIDATION_PLUGIN_ROOT` to the directory two levels above this `
 - Smoke evidence is not final acceptance.
 - `real-device-pending` is a risk marker, not a pass.
 - Required smoke failures must block readiness.
+- User-facing language should say RAVO Evidence; `ravo-quick-validation` remains the compatibility entry name.

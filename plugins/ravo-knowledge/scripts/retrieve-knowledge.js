@@ -27,6 +27,23 @@ function listJson(dir) {
   }
 }
 
+function readIndex(dir) {
+  const index = readJson(path.join(dir, "index.json"));
+  return (index?.entries || []).map((entry) => ({ sourceType: "index", file: entry.artifactPath || entry.markdownPath || "", artifact: {
+    id: entry.id || "",
+    kind: entry.ravo_type || entry.kind,
+    scope: entry.scope,
+    content: entry.content || entry.summary || "",
+    summary: entry.summary || "",
+    source: entry.source || "",
+    applicability: entry.applicability || [],
+    tags: entry.tags || [],
+    sensitivity: entry.sensitivity || "",
+    relatedArtifacts: entry.related_artifacts || entry.relatedArtifacts || [],
+    lastUsedAt: entry.lastUsedAt || ""
+  }}));
+}
+
 function userKnowledgeRoot() {
   return process.env.RAVO_USER_KNOWLEDGE_DIR || path.join(os.homedir(), ".codex", "ravo", "knowledge");
 }
@@ -41,14 +58,28 @@ function main() {
   const workspace = path.resolve(argValue("--workspace", process.cwd()));
   const query = argValue("--query", "");
   const includeUser = argValue("--include-user", "false") === "true";
+  const workspaceDir = path.join(workspace, "knowledge", ".ravo", "knowledge");
+  const userDir = userKnowledgeRoot();
   const files = [
-    ...listJson(path.join(workspace, "knowledge", ".ravo", "knowledge")),
-    ...(includeUser ? listJson(userKnowledgeRoot()) : [])
+    ...listJson(workspaceDir),
+    ...(includeUser ? listJson(userDir) : [])
+  ];
+  const indexed = [
+    ...readIndex(workspaceDir),
+    ...(includeUser ? readIndex(userDir) : [])
   ];
   const now = new Date().toISOString();
-  const matches = files
-    .map((file) => ({ file, artifact: readJson(file) }))
-    .filter((entry) => entry.artifact)
+  const jsonEntries = files
+    .map((file) => ({ sourceType: "json", file, artifact: readJson(file) }))
+    .filter((entry) => entry.artifact && path.basename(entry.file) !== "index.json");
+  const seen = new Set();
+  const matches = [...jsonEntries, ...indexed]
+    .filter((entry) => {
+      const key = entry.artifact.id || entry.file || `${entry.artifact.kind}:${entry.artifact.content}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
     .map((entry) => ({ ...entry, score: score(entry.artifact, query) }))
     .filter((entry) => entry.score > 0 || !query)
     .sort((a, b) => b.score - a.score)
@@ -56,7 +87,9 @@ function main() {
 
   for (const match of matches) {
     match.artifact.lastUsedAt = now;
-    writeJson(match.file, match.artifact);
+    if (match.sourceType === "json" && match.file.endsWith(".json") && fs.existsSync(match.file) && path.basename(match.file) !== "index.json") {
+      writeJson(match.file, match.artifact);
+    }
   }
 
   console.log(JSON.stringify({
@@ -67,8 +100,12 @@ function main() {
       score: match.score,
       kind: match.artifact.kind,
       scope: match.artifact.scope,
+      summary: match.artifact.summary || "",
+      source: match.artifact.source || "",
       content: match.artifact.content,
       applicability: match.artifact.applicability,
+      sensitivity: match.artifact.sensitivity || "",
+      relatedArtifacts: match.artifact.relatedArtifacts || [],
       lastUsedAt: match.artifact.lastUsedAt
     })),
     applicationInstruction: matches.length

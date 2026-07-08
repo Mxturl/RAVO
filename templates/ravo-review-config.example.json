@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "0.3.0",
+  "_template": [
+    "Copy to ~/.codex/skill-config/ravo-review.json.",
+    "Fill provider fields locally only. Do not commit real API keys."
+  ],
+  "enableReasoningParams": false,
+  "maxTokens": 48000,
+  "stream": true,
+  "timeoutMs": 900000,
+  "firstEventTimeoutMs": 30000,
+  "firstContentTimeoutMs": 0,
+  "idleTimeoutMs": 60000,
+  "providers": [
+    {
+      "id": "provider-a",
+      "label": "Provider A",
+      "enabled": false,
+      "apiBase": "https://your-review-api.example.com/v1/responses",
+      "apiMode": "responses",
+      "apiKey": "REPLACE_LOCALLY_NEVER_COMMIT",
+      "modelsMode": "manual",
+      "models": [
+        { "id": "model-a", "enabled": true },
+        { "id": "model-b", "enabled": false }
+      ]
+    }
+  ]
+}

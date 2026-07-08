@@ -25,7 +25,9 @@ readStdin((data) => {
       additionalContext: [
         "RAVO knowledge may apply.",
         "Retrieve workspace knowledge before answering, and include user-level lessons only after explicit opt-in.",
-        "State which knowledge was applied and which was not applicable if it materially affects the result."
+        "For knowledge capture/reuse prompts, only write, retrieve, or apply knowledge. Do not modify product/source/docs outside RAVO knowledge artifacts unless the user explicitly asks.",
+        "State which knowledge was applied and which was not applicable if it materially affects the result.",
+        "If knowledge is written or proposed, the final visible reply must include the workspace-local path and whether user-level global knowledge writing was disabled or explicitly enabled."
       ].join("\n")
     }
   }));

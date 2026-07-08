@@ -24,6 +24,7 @@ function walk(dir, pattern, out = []) {
 function isDecisionComplete(file) {
   try {
     const text = fs.readFileSync(file, "utf8");
+    if (/^Status:\s*(draft|candidate|wip|todo)\b/im.test(text)) return false;
     const required = [
       /Product Definition|产品定义/i,
       /Module Contracts|模块契约/i,
@@ -76,7 +77,9 @@ function main() {
   if (!spec) {
     console.log(JSON.stringify({
       status: "missing_spec",
-      message: "当前还没有 decision-complete 的需求规格文档。这个目标会长时间自动执行，建议先生成规格文档；规格确认后，再返回文档链接和配套 Goal Prompt。"
+      canGenerateGoalPrompt: false,
+      forbiddenOutputs: ["short_goal_prompt", "temporary_goal_prompt", "draft_goal_prompt"],
+      message: "当前还没有 decision-complete 的需求规格文档。这个目标会长时间自动执行，不能先输出临时或短版 Goal Prompt；建议先生成规格文档，规格确认后再返回文档链接和配套 Goal Prompt。"
     }, null, 2));
     return;
   }

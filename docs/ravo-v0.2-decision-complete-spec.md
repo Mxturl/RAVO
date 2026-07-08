@@ -272,7 +272,7 @@ Flow:
 
 1. Check whether a decision-complete requirement spec exists.
 2. If an accepted spec exists, generate a concise Goal prompt that references the spec path and requires implementation according to the spec.
-3. If no accepted spec exists, tell the user that a spec should be generated first.
+3. If no accepted spec exists, tell the user that a spec should be generated first and do not output any runnable Goal prompt, including short, temporary, or draft versions.
 4. After generating the spec, return both:
    - the spec document link,
    - the matching Goal prompt.
@@ -287,7 +287,7 @@ Spec discovery order:
    - `knowledge/.ravo/analysis/*`
 3. Treat a document as accepted only if it contains the decision-complete sections listed below or an explicit accepted/reviewed status.
 4. If several candidate specs exist, use the newest accepted spec unless the user named a different target.
-5. If no candidate is decision-complete, do not generate a large Goal prompt; offer to generate the spec first.
+5. If no candidate is decision-complete, do not generate any runnable Goal prompt; offer to generate the spec first.
 
 A spec is decision-complete only if it includes:
 
@@ -306,7 +306,7 @@ This requirement applies to long-running, multi-module, high-risk, ambiguous, or
 Recommended response when no spec exists:
 
 ```text
-当前还没有 decision-complete 的需求规格文档。这个目标会长时间自动执行，建议先生成规格文档；规格确认后，我会同时给出文档链接和配套 Goal Prompt。
+当前还没有 decision-complete 的需求规格文档。这个目标会长时间自动执行，不能先输出临时或短版 Goal Prompt；建议先生成规格文档，规格确认后我会同时给出文档链接和配套 Goal Prompt。
 ```
 
 Recommended Goal prompt pattern when a spec exists:
@@ -324,7 +324,7 @@ Recommended Goal prompt pattern when a spec exists:
 Required Goal authoring validation scenarios:
 
 - Existing spec: user asks for a suggested Goal prompt; output includes the spec link and a concise Goal prompt that references it.
-- Missing spec: user asks for a suggested Goal prompt; output says a decision-complete spec should be generated first and does not produce a bloated Goal prompt.
+- Missing spec: user asks for a suggested Goal prompt; output says a decision-complete spec should be generated first and produces no runnable Goal prompt.
 - Newly generated spec: after spec generation, output includes both the spec link and the matching Goal prompt.
 - Multiple specs: the Agent selects the newest accepted spec or asks only if multiple accepted specs target different products/modules.
 

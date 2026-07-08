@@ -1,6 +1,6 @@
 {
   "name": "ravo-acceptance",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Evidence-matched acceptance status checks and release acceptance skills for RAVO lifecycle governance.",
   "author": {
     "name": "RAVO contributors"

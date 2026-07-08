@@ -50,16 +50,38 @@ assert.equal(requirement.systemMessage, "RAVO_ANALYSIS_GATE:ADVISORY");
 assert.match(requirement.hookSpecificOutput.additionalContext, /requirement/);
 assert.match(requirement.hookSpecificOutput.additionalContext, /ravo-requirement-analysis/);
 assert.match(requirement.hookSpecificOutput.additionalContext, /Required headings: Goal, Consumer, Constraints, Facts, Options, Challenge, Derived Conclusion, Validation/);
+assert.match(requirement.hookSpecificOutput.additionalContext, /Put each field on its own line or bullet/);
+assert.match(requirement.hookSpecificOutput.additionalContext, /technicalDetailLevel=3/);
+assert.match(requirement.hookSpecificOutput.additionalContext, /not rigor, safety, evidence/);
+
+const naturalRequirement = runHook(analysisHook, "我们这个 AI 穿搭小程序现在会给衣服打标签，但用户出门旅行前还是不知道该带哪些衣服。我想加一个旅行穿搭推荐：填目的地、天数、天气和箱子大小，然后给每天穿什么。", workspace);
+assert.equal(naturalRequirement.systemMessage, "RAVO_ANALYSIS_GATE:ADVISORY");
+assert.match(naturalRequirement.hookSpecificOutput.additionalContext, /requirement/);
 
 const complexArchitecture = runHook(analysisHook, "我们要设计一个面向多团队的 Codex 插件治理方案，涉及安装、权限、hooks、验收证据和长期维护。先不要实现，先分析目标、约束、风险和推荐架构。", workspace);
 assert.equal(complexArchitecture.systemMessage, "RAVO_ANALYSIS_GATE:ADVISORY");
 assert.match(complexArchitecture.hookSpecificOutput.additionalContext, /ravo-requirement-analysis/);
+
+const goalPromptRequest = runHook(analysisHook, "基于刚才的旅行穿搭推荐需求，给我一个可以放进 Codex Goal 模式里的 Prompt。", workspace);
+assert.equal(goalPromptRequest.systemMessage, "RAVO_ANALYSIS_GATE:ADVISORY");
+assert.match(goalPromptRequest.hookSpecificOutput.additionalContext, /goal-prompt/);
+assert.match(goalPromptRequest.hookSpecificOutput.additionalContext, /ravo-core/);
+assert.match(goalPromptRequest.hookSpecificOutput.additionalContext, /decision-complete spec/);
+assert.match(goalPromptRequest.hookSpecificOutput.additionalContext, /No analysis artifact is written for Goal Prompt preflight/);
+assert.match(goalPromptRequest.hookSpecificOutput.additionalContext, /do not output any runnable Goal Prompt/);
+assert.match(goalPromptRequest.hookSpecificOutput.additionalContext, /If the user only asked for a Goal Prompt/);
+assert.match(goalPromptRequest.hookSpecificOutput.additionalContext, /do not also generate a runnable Goal Prompt in that same missing-spec response/);
 
 const rootCause = runHook(analysisHook, "我们的验收插件现在能拦截可以验收了吗，但对这个版本是不是能发没有触发。我觉得这可能只是关键词覆盖问题，也可能是设计模式问题。请继续追问为什么，直到找到可验证、可防复发的机制根因。", workspace);
 assert.equal(rootCause.systemMessage, "RAVO_ANALYSIS_GATE:ADVISORY");
 assert.match(rootCause.hookSpecificOutput.additionalContext, /root-cause/);
 assert.match(rootCause.hookSpecificOutput.additionalContext, /ravo-root-cause-analysis/);
 assert.match(rootCause.hookSpecificOutput.additionalContext, /Required headings: Symptom, Proximate Cause, Alternative Hypotheses, Mechanism Root Cause, Why Chain, Boundary, Smallest Fix, Verification/);
+assert.match(rootCause.hookSpecificOutput.additionalContext, /Put each field on its own line or bullet/);
+
+const naturalRootCause = runHook(analysisHook, "我有点担心这个功能最后会推荐一堆看着合理、但用户根本不会带的衣服。先别改，分析一下为什么会出现这种问题。", workspace);
+assert.equal(naturalRootCause.systemMessage, "RAVO_ANALYSIS_GATE:ADVISORY");
+assert.match(naturalRootCause.hookSpecificOutput.additionalContext, /root-cause/);
 assert.ok(fs.existsSync(path.join(workspace, "knowledge/.ravo/manifest.json")), "analysis hook writes manifest");
 assert.ok(fs.readdirSync(path.join(workspace, "knowledge/.ravo/analysis")).length >= 2, "analysis hook writes artifacts");
 const analysisManifest = readJson(path.join(workspace, "knowledge/.ravo/manifest.json"));
@@ -86,6 +108,8 @@ assert.deepEqual(workstreamReleaseBypass, {}, "workstream must not interfere wit
 const knowledgePrompt = runHook(knowledgeHook, "之前类似项目踩过什么坑，这次能复用哪些经验？", workspace);
 assert.equal(knowledgePrompt.systemMessage, "RAVO_KNOWLEDGE:ADVISORY");
 assert.match(knowledgePrompt.hookSpecificOutput.additionalContext, /Retrieve workspace knowledge/);
+assert.match(knowledgePrompt.hookSpecificOutput.additionalContext, /Do not modify product\/source\/docs outside RAVO knowledge artifacts/);
+assert.match(knowledgePrompt.hookSpecificOutput.additionalContext, /workspace-local path/);
 
 const acceptance = runHook(acceptanceHook, "我刚完成了积分扣减功能，代码已经写完但还没做真实小程序端到端验证。这个功能可以验收了吗?", workspace);
 assert.equal(acceptance.systemMessage, "RAVO_ACCEPTANCE_GATE:ADVISORY");
@@ -109,17 +133,41 @@ assert.deepEqual(nonReadinessStop, {}, "Stop telemetry ignores non-readiness rep
 
 const readinessStop = runHookPayload(acceptanceStopHook, {
   cwd: stopWorkspace,
+  session_id: "session-a",
+  turn_id: "turn-a",
   lastAssistantMessage: "积分扣减功能已经完成了，单元测试也通过了。"
 });
-assert.equal(readinessStop.systemMessage, "RAVO_STOP_TELEMETRY_RECORDED");
-assert.match(readinessStop.hookSpecificOutput.additionalContext, /pending continuation/);
+assert.match(readinessStop.systemMessage, /^RAVO_STOP_TELEMETRY_RECORDED:/);
+assert.deepEqual(
+  Object.keys(readinessStop).sort(),
+  ["systemMessage"],
+  "Stop hook output stays within Codex stop.command.output schema"
+);
 const continuationDir = path.join(stopWorkspace, "knowledge/.ravo/continuation");
 const continuationFiles = fs.readdirSync(continuationDir).filter((file) => file.endsWith(".json"));
 assert.equal(continuationFiles.length, 1, "Stop telemetry writes one continuation artifact");
 const continuationPath = path.join(continuationDir, continuationFiles[0]);
 assert.equal(readJson(continuationPath).status, "pending", "Stop telemetry artifact starts pending");
+assert.equal(readJson(continuationPath).targetWorkspace, stopWorkspace, "Stop telemetry records target workspace");
+assert.equal(readJson(continuationPath).threadId, "session-a", "Stop telemetry records thread/session affinity");
+assert.equal(readJson(continuationPath).policyReviewStatus, "pending_policy_review", "Stop telemetry records policy review state");
 
-const continuationAdvisory = runHook(acceptanceHook, "把刚才的结果整理成简短说明。", stopWorkspace);
+const wrongWorkspace = fs.mkdtempSync(path.join(os.tmpdir(), "ravo-wrong-workspace-"));
+fs.mkdirSync(path.join(wrongWorkspace, "knowledge/.ravo/continuation"), { recursive: true });
+fs.copyFileSync(continuationPath, path.join(wrongWorkspace, "knowledge/.ravo/continuation/copied.json"));
+const wrongContinuation = runHookPayload(acceptanceHook, {
+  cwd: wrongWorkspace,
+  session_id: "session-a",
+  prompt: "继续刚才的 RAVO review。"
+});
+assert.deepEqual(wrongContinuation, {}, "wrong-workspace continuation is not injected");
+assert.equal(readJson(path.join(wrongWorkspace, "knowledge/.ravo/continuation/copied.json")).status, "out_of_scope");
+
+const continuationAdvisory = runHookPayload(acceptanceHook, {
+  cwd: stopWorkspace,
+  session_id: "session-a",
+  prompt: "把刚才的结果整理成简短说明。"
+});
 assert.equal(continuationAdvisory.systemMessage, "RAVO_STOP_TELEMETRY:ADVISORY");
 assert.match(continuationAdvisory.hookSpecificOutput.additionalContext, /pending continuation/);
 assert.equal(readJson(continuationPath).status, "consumed", "next prompt consumes pending Stop telemetry once");
@@ -162,7 +210,11 @@ const missingGoal = spawnSync(process.execPath, [goalScript, "--workspace", goal
   stdio: ["ignore", "pipe", "pipe"]
 });
 assert.equal(missingGoal.status, 0, missingGoal.stderr);
-assert.equal(JSON.parse(missingGoal.stdout).status, "missing_spec");
+const missingGoalOutput = JSON.parse(missingGoal.stdout);
+assert.equal(missingGoalOutput.status, "missing_spec");
+assert.equal(missingGoalOutput.canGenerateGoalPrompt, false);
+assert.ok(!Object.hasOwn(missingGoalOutput, "goalPrompt"), "missing spec must not output a runnable Goal prompt");
+assert.match(missingGoalOutput.message, /不能先输出临时或短版 Goal Prompt/);
 
 const goalReadyWorkspace = fs.mkdtempSync(path.join(os.tmpdir(), "ravo-goal-ready-"));
 fs.mkdirSync(path.join(goalReadyWorkspace, "docs"), { recursive: true });
@@ -197,8 +249,11 @@ console.log(JSON.stringify({
   status: "pass",
   checks: [
     "requirement prompt -> ravo-requirement-analysis advisory",
+    "natural product prompt -> ravo-requirement-analysis advisory",
     "complex architecture prompt -> ravo-requirement-analysis advisory",
+    "Goal prompt request -> decision-complete spec contract advisory",
     "root-cause prompt -> ravo-root-cause-analysis advisory",
+    "natural concern prompt -> ravo-root-cause-analysis advisory",
     "root-cause prompt with release wording -> acceptance fallback bypass",
     "trivial prompt -> no advisory",
     "simple concept explanation -> no analysis advisory",
@@ -214,7 +269,7 @@ console.log(JSON.stringify({
     "next normal prompt -> consumes Stop continuation advisory once",
     "AGENTS preview -> delegated when/how boundary",
     "AGENTS apply -> preserves existing rules and is idempotent",
-    "Goal prompt missing spec -> missing_spec",
+    "Goal prompt missing spec -> missing_spec without runnable prompt",
     "Goal prompt existing spec -> concise Goal prompt",
     "ready workspace prompt -> no fallback interference"
   ]

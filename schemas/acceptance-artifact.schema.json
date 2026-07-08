@@ -15,7 +15,7 @@
       "enum": ["in_progress", "code_complete", "pending_acceptance", "accepted", "release_ready", "not_ready"]
     },
     "evidenceLevel": {
-      "enum": ["none", "notes", "script", "api", "smoke", "real_e2e"]
+      "enum": ["none", "notes", "script", "api", "smoke", "real_e2e", "full_external_review", "partial_external_review"]
     },
     "summary": {
       "type": "string"
@@ -33,6 +33,18 @@
       "type": "array",
       "items": {
         "type": "string"
+      }
+    },
+    "securityChecklist": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "status"],
+        "properties": {
+          "id": { "type": "string" },
+          "status": { "enum": ["pass", "unknown", "fail"] }
+        },
+        "additionalProperties": true
       }
     }
   },

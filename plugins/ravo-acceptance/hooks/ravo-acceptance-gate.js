@@ -63,7 +63,7 @@ function writeJson(file, value) {
   fs.renameSync(tmp, file);
 }
 
-function consumePendingContinuation(cwd) {
+function consumePendingContinuation(cwd, data) {
   const dir = path.join(cwd, "knowledge", ".ravo", "continuation");
   let latest = "";
   try {
@@ -77,6 +77,16 @@ function consumePendingContinuation(cwd) {
   }
   const artifact = latest ? readJson(latest) : null;
   if (!artifact || artifact.status !== "pending") return null;
+  const currentThread = data.session_id || data.sessionId || "";
+  const sameWorkspace = !artifact.targetWorkspace || path.resolve(artifact.targetWorkspace) === path.resolve(cwd);
+  const sameThread = !artifact.threadId || !currentThread || artifact.threadId === currentThread;
+  if (!sameWorkspace || !sameThread) {
+    artifact.status = "out_of_scope";
+    artifact.outOfScopeAt = new Date().toISOString();
+    artifact.outOfScopeReason = !sameWorkspace ? "workspace_mismatch" : "thread_mismatch";
+    writeJson(latest, artifact);
+    return null;
+  }
   artifact.status = "consumed";
   artifact.consumedAt = new Date().toISOString();
   writeJson(latest, artifact);
@@ -103,7 +113,7 @@ function writeNotReadyArtifact(cwd, prompt, reason) {
 
 readJsonStdin((data) => {
   const cwd = data.cwd || process.cwd();
-  const continuation = consumePendingContinuation(cwd);
+  const continuation = consumePendingContinuation(cwd, data);
 
   if (!wantsAcceptance(data.prompt)) {
     if (continuation) {

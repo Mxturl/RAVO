@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ravo.dev/schemas/review-artifact.schema.json",
+  "title": "RAVO Review Artifact",
+  "type": "object",
+  "required": ["schemaVersion", "id", "domain", "coverage", "summary", "createdAt"],
+  "properties": {
+    "schemaVersion": { "type": "string" },
+    "id": { "type": "string" },
+    "domain": { "type": "string" },
+    "coverage": { "enum": ["none", "partial", "full"] },
+    "modelsRequested": { "type": "array", "items": { "type": "string" } },
+    "modelsCompleted": { "type": "array", "items": { "type": "string" } },
+    "modelsFailed": { "type": "array", "items": { "type": "string" } },
+    "failedModelReasons": { "type": "array", "items": { "type": "string" } },
+    "truncationWarnings": { "type": "array", "items": { "type": "string" } },
+    "summary": { "type": "string" },
+    "risks": { "type": "array", "items": { "type": "string" } },
+    "recommendations": { "type": "array", "items": { "type": "string" } },
+    "rawResultRef": { "type": "string" },
+    "timing": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

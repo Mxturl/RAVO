@@ -3,7 +3,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 
-const SCHEMA_VERSION = "0.2.0";
+const SCHEMA_VERSION = "0.3.0";
 
 function argValue(name, fallback = "") {
   const index = process.argv.indexOf(name);
@@ -31,7 +31,7 @@ function ravoRoot(workspace) {
 
 function ensureManifest(workspace, moduleName = "core") {
   const root = ravoRoot(workspace);
-  for (const dir of ["analysis", "workstream", "quick-validation", "acceptance", "continuation", "knowledge"]) {
+  for (const dir of ["analysis", "workstream", "quick-validation", "acceptance", "continuation", "knowledge", "review"]) {
     fs.mkdirSync(path.join(root, dir), { recursive: true });
   }
 
@@ -43,6 +43,7 @@ function ensureManifest(workspace, moduleName = "core") {
   };
 
   manifest.schemaVersion = manifest.schemaVersion || SCHEMA_VERSION;
+  if (manifest.schemaVersion === "0.1.0" || manifest.schemaVersion === "0.2.0") manifest.schemaVersion = SCHEMA_VERSION;
   manifest.workspace = manifest.workspace || ".";
   manifest.modules = manifest.modules || {};
   manifest.modules[moduleName] = {

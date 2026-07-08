@@ -4,7 +4,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const SCHEMA_VERSION = "0.3.0";
-const STATUSES = new Set(["planned", "active", "blocked", "ready_for_acceptance", "closed"]);
+const COVERAGE = new Set(["none", "partial", "full"]);
 
 function argValue(name, fallback = "") {
   const index = process.argv.indexOf(name);
@@ -13,12 +13,14 @@ function argValue(name, fallback = "") {
 
 function argValues(name) {
   const values = [];
-  for (let i = 0; i < process.argv.length; i += 1) if (process.argv[i] === name) values.push(process.argv[i + 1] || "");
+  for (let index = 0; index < process.argv.length; index += 1) {
+    if (process.argv[index] === name) values.push(process.argv[index + 1] || "");
+  }
   return values.map((value) => value.trim()).filter(Boolean);
 }
 
 function slug(value) {
-  return String(value || "workstream").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48) || "workstream";
+  return String(value || "review").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48) || "review";
 }
 
 function readJson(file) {
@@ -43,10 +45,10 @@ function ensureManifest(workspace, artifactPath) {
   const manifest = readJson(manifestPath) || { schemaVersion: SCHEMA_VERSION, workspace: ".", modules: {} };
   manifest.schemaVersion = manifest.schemaVersion || SCHEMA_VERSION;
   manifest.modules = manifest.modules || {};
-  manifest.modules.workstream = {
-    ...(manifest.modules.workstream || {}),
+  manifest.modules.review = {
+    ...(manifest.modules.review || {}),
     enabled: true,
-    artifacts: ["knowledge/.ravo/workstream"],
+    artifacts: ["knowledge/.ravo/review"],
     latestArtifact: path.relative(workspace, artifactPath),
     updatedAt: new Date().toISOString()
   };
@@ -56,35 +58,36 @@ function ensureManifest(workspace, artifactPath) {
 
 function main() {
   const workspace = path.resolve(argValue("--workspace", process.cwd()));
-  const status = argValue("--status", "active");
-  if (!STATUSES.has(status)) fail(`Unsupported workstream status: ${status}`);
-  const goal = argValue("--goal", "Long-running RAVO work").trim();
-  const nextStep = argValue("--next-step", "").trim();
-  const blockers = argValues("--blocker");
-  const recovery = argValue("--recovery", "").trim();
-  if (status === "active" && !nextStep) fail("Active workstream requires --next-step.");
-  if (status === "blocked" && blockers.length === 0) fail("Blocked workstream requires at least one --blocker.");
-  if (status === "blocked" && !recovery) fail("Blocked workstream requires --recovery.");
-
+  const coverage = argValue("--coverage", "partial");
+  if (!COVERAGE.has(coverage)) fail(`Unsupported review coverage: ${coverage}`);
+  const summary = argValue("--summary", "RAVO review artifact");
   const now = new Date().toISOString();
-  const id = `${now.replace(/[:.]/g, "-")}-${slug(goal)}`;
+  const id = `${now.replace(/[:.]/g, "-")}-${slug(summary)}`;
   const artifact = {
     schemaVersion: SCHEMA_VERSION,
     id,
-    status,
-    goal,
-    specRef: argValue("--spec-ref", ""),
-    milestones: argValues("--milestone"),
-    currentMilestone: argValue("--current-milestone", ""),
-    nextStep,
-    blockers,
-    recovery,
-    decisions: argValues("--decision"),
-    evidenceRefs: argValues("--evidence-ref"),
-    createdAt: now,
-    updatedAt: now
+    domain: argValue("--domain", "general"),
+    coverage,
+    modelsRequested: argValues("--model-requested"),
+    modelsCompleted: argValues("--model-completed"),
+    modelsFailed: argValues("--model-failed"),
+    failedModelReasons: argValues("--failure-reason"),
+    timing: {
+      firstEventMs: Number(argValue("--first-event-ms", "0")),
+      firstContentMs: Number(argValue("--first-content-ms", "0")),
+      totalMs: Number(argValue("--total-ms", "0"))
+    },
+    truncationWarnings: argValues("--truncation-warning"),
+    summary,
+    risks: argValues("--risk"),
+    recommendations: argValues("--recommendation"),
+    rawResultRef: argValue("--raw-result-ref", ""),
+    createdAt: now
   };
-  const artifactPath = path.join(workspace, "knowledge", ".ravo", "workstream", `${id}.json`);
+  if (coverage === "full" && artifact.modelsCompleted.length === 0) {
+    fail("Full review coverage requires at least one --model-completed.");
+  }
+  const artifactPath = path.join(workspace, "knowledge", ".ravo", "review", `${id}.json`);
   writeJson(artifactPath, artifact);
   const manifestPath = ensureManifest(workspace, artifactPath);
   console.log(JSON.stringify({ status: "ok", artifactPath, manifestPath }, null, 2));

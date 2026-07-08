@@ -37,7 +37,20 @@ O = Organize    知识沉淀与复用
 - 在下结论前，先主动挑战一次首选方案，而不是只做顺向论证。
 - 在需求重要或不清晰时，先做第一性原理分析，再进入实现。
 - 将可复用分析结果写入 `knowledge/.ravo/analysis`。
-- 当长时间 Goal Prompt 缺少完整规格书时，先生成 decision-complete spec，再生成短 Goal Prompt。
+
+### Goal Prompt 方法论
+
+大多数人在设置 Goal 模式时，会把大量需求直接塞进一个超长 Prompt。这样会让目标难以审查、难以续跑，也容易被 Agent 在长任务中重新解释。
+
+RAVO 的设计意图很直接：Goal 模式是为长程自治任务准备的，所以必须先有稳定规格书；Goal Prompt 应该是执行契约，而不是需求容器。
+
+RAVO 将 Goal Prompt 编写作为一项独立生命周期能力：
+
+- 写 Goal Prompt 前，先检查是否已有 decision-complete 规格书。
+- 如果没有规格书，不输出任何可执行 Goal Prompt；必须先生成或请求规格书。
+- 如果已有规格书，生成短 Goal Prompt，并把规格书作为唯一需求来源。
+- Goal Prompt 只承载执行契约、证据要求、恢复入口和验收边界，不重复堆叠需求细节。
+- 通过 RAVO artifacts 连接规格书、workstream、验证证据和验收结论，让长任务可以续跑和审查。
 
 ### 根因分析
 
@@ -51,16 +64,23 @@ O = Organize    知识沉淀与复用
 - 将验收证据写入 `knowledge/.ravo/acceptance`。
 - prompt-time readiness hook 只是兜底 advisory；主机制应该是 Agent 在给交付结论前主动运行验收检查。
 
-### 任务编排与快速验证
+### 任务编排与 RAVO Evidence
 
 - 用 milestone、next step、blocker、decision 和 evidence artifacts 跟踪长任务。
 - 将快速 smoke 证据写入 `knowledge/.ravo/quick-validation`。
 - smoke 证据不替代最终验收。
 
+### RAVO Review
+
+- 将对抗式评审覆盖状态写入 `knowledge/.ravo/review`。
+- 明确展示 full、partial、timeout、failure、truncation 等状态。
+- 有多模型评审配置时复用现有能力；常规任务不强制配置 Provider。
+
 ### 知识复用
 
 - 写入、检索并应用 workspace-local 的事实、决策、经验、原则和证据。
 - transferable lessons 必须用户 opt-in，并经过脱敏、scope 标注和泄漏检查。
+- 持久知识采用人类可读 Markdown + JSON index，既能让人复盘，也方便 Agent 检索。
 
 ### 共享 Artifact 协议
 
@@ -73,10 +93,11 @@ knowledge/.ravo/
 ├── workstream/
 ├── quick-validation/
 ├── acceptance/
-└── knowledge/
+├── knowledge/
+└── review/
 ```
 
-单个模块可以独立工作。多个 RAVO 模块同时安装时，通过 `knowledge/.ravo/manifest.json` 发现上游 artifacts。原始项目事实和证据默认只属于当前 workspace；抽象后的经验和原则只有在脱敏、标注适用边界并经用户明确 opt-in 后，才可以沉淀为用户级可迁移知识。
+单个模块在技术上可以独立安装。实际使用时，建议先安装 `ravo-core`，并把它视为基础必装模块：它承载共享 manifest、artifact 协议、AGENTS.md 接入和 Goal Prompt 基础能力。RAVO 最推荐的使用方式是安装完整模块集。原始项目事实和证据默认只属于当前 workspace；抽象后的经验和原则只有在脱敏、标注适用边界并经用户明确 opt-in 后，才可以沉淀为用户级可迁移知识。
 
 ## 下载安装
 
@@ -92,9 +113,27 @@ codex plugin add ravo-workstream@ravo
 codex plugin add ravo-quick-validation@ravo
 codex plugin add ravo-acceptance@ravo
 codex plugin add ravo-knowledge@ravo
+codex plugin add ravo-review@ravo
 ```
 
+`ravo-core` 是推荐的基础安装项。其它模块仍保持模块化，但新用户默认建议全量安装，除非有明确理由只装其中一部分。
+
 安装后新开一个 Codex thread，让 skills 和 hooks 生效。
+
+安装完成后，执行安装的 Agent 应把关键配置位置告诉用户：
+
+- workspace RAVO 配置：`knowledge/.ravo/config.json`；模板：`templates/ravo-config.example.json`。
+- 用户级 RAVO 默认配置：`~/.codex/skill-config/ravo.json`。
+- RAVO Review Provider 配置：`~/.codex/skill-config/ravo-review.json`；模板：`templates/ravo-review-config.example.json`。
+- Codex 全局规则：`~/.codex/AGENTS.md`；必须通过 `ravo-core` 预览和确认后再写入，不能静默修改。
+
+诊断当前状态：
+
+```bash
+node plugins/ravo-core/scripts/ravo-status.js --workspace "$(pwd)"
+```
+
+报告会展示 manifest 健康度、已安装模块版本、最新 artifacts、配置路径、hook 授权和新会话提醒。
 
 如果是用户已有的 Codex Agent 帮忙安装 RAVO，`AGENTS.md` 接入应作为插件安装后的选择性升级步骤。Agent 必须先读取用户的 Codex 全局 `AGENTS.md`，判断 RAVO 应如何融入现有规则，展示 diff，并等待用户明确批准后再写入。
 
@@ -127,6 +166,7 @@ codex plugin add ravo-workstream@ravo
 codex plugin add ravo-quick-validation@ravo
 codex plugin add ravo-acceptance@ravo
 codex plugin add ravo-knowledge@ravo
+codex plugin add ravo-review@ravo
 ```
 
 如果你用的不是当前本地仓库，而是 Git marketplace，需要先刷新 marketplace snapshot：
@@ -152,7 +192,7 @@ RAVO 不会静默修改 Codex 全局 `AGENTS.md`。
 - `AGENTS.md` 决定 **何时委派**：全局优先级、安全边界、交互风格、数据边界和 fallback 行为。
 - RAVO 决定 **如何执行**：分析结构、验收证据、scripts、schemas、hooks 和 artifacts。
 
-RAVO v0.2 将 `analysis`、`workstream`、`quick-validation`、`acceptance` 和 `knowledge` 作为可独立安装模块覆盖。小而明确的任务不要求安装全部模块。
+RAVO v0.3 将 `analysis`、`workstream`、`RAVO Evidence`（兼容入口仍是 `ravo-quick-validation`）、`acceptance`、`knowledge` 和 `review` 作为可独立安装模块覆盖。小而明确的任务不要求安装全部模块。
 
 ### 手动模式
 
