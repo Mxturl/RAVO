@@ -13,10 +13,10 @@ Prompt-time hooks are only a fallback advisory for direct user readiness prompts
 
 1. Inspect the change scope and existing evidence.
 2. Reuse any upstream RAVO analysis artifact from `knowledge/.ravo/manifest.json`.
-3. Write an acceptance artifact when there is enough evidence:
+3. Write an acceptance artifact when there is enough evidence. This also creates a PM-facing acceptance document that must be sent or summarized in the final chat:
 
 ```bash
-node "$RAVO_ACCEPTANCE_PLUGIN_ROOT/scripts/write-acceptance-artifact.js" --status pending_acceptance --evidence-level smoke --summary "<summary>"
+node "$RAVO_ACCEPTANCE_PLUGIN_ROOT/scripts/write-acceptance-artifact.js" --status pending_acceptance --evidence-level smoke --summary "<summary>" --real-response-ref "<response or path>" --screenshot-ref "<screenshot path or not_applicable>" --data-evidence-ref "<artifact path>"
 ```
 
 4. Check the gate:
@@ -59,3 +59,4 @@ Before `accepted` or `release_ready`, record security evidence with `--security-
 - `release_ready` requires `real_e2e` or `full_external_review` evidence plus security baseline.
 - If evidence is incomplete, report `not_ready`, `in_progress`, or `code_complete` instead.
 - Do not wait for the user to ask "can this be accepted?" when the current answer is a delivery or release conclusion.
+- For `pending_acceptance`, `accepted`, or `release_ready`, include the PM acceptance document path and core checklist in the final user-visible reply. Script passes alone are not PM acceptance.

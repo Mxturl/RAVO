@@ -11,6 +11,12 @@ const DEFAULT_CONFIG = {
     path: "~/.codex/ravo/knowledge",
     requireRedaction: true
   },
+  goalPrompt: {
+    missingSpecPolicy: "auto_spec"
+  },
+  spec: {
+    alignmentDraftPolicy: "required"
+  },
   acceptance: {
     securityBaseline: { enabled: true },
     requireRealE2EForRelease: true

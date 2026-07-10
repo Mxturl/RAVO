@@ -6,7 +6,7 @@ const path = require("node:path");
 
 const repo = path.resolve(__dirname, "..");
 const plugins = ["ravo-core", "ravo-analysis", "ravo-workstream", "ravo-quick-validation", "ravo-acceptance", "ravo-knowledge", "ravo-review"];
-const version = "0.3.1";
+const version = "0.4.0";
 
 function readJson(file) {
   return JSON.parse(fs.readFileSync(file, "utf8"));

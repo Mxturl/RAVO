@@ -76,6 +76,10 @@ const statusReport = run(ravoStatus, ["--workspace", workspace, "--repo", repo],
 assert.equal(statusReport.config.technicalDetailLevel, 3, "invalid technicalDetailLevel falls back to 3");
 assert.ok(statusReport.warnings.some((warning) => /technicalDetailLevel/.test(warning)), "invalid technicalDetailLevel is visible");
 assert.ok(statusReport.plugins.some((plugin) => plugin.name === "ravo-review" && plugin.present), "ravo-status reports ravo-review");
+fs.writeFileSync(path.join(workspace, "knowledge/.ravo/config.json"), JSON.stringify({ technicalDetailLevel: 1, globalKnowledge: { enabled: false } }, null, 2), "utf8");
+const levelOneStatus = run(ravoStatus, ["--workspace", workspace, "--repo", repo], repo);
+assert.equal(levelOneStatus.config.technicalDetailLevel, 1, "technicalDetailLevel=1 is visible");
+assert.equal(levelOneStatus.config.goalPrompt.missingSpecPolicy, "auto_spec", "goal prompt config default is visible");
 
 const invalidRequirement = runStatus(writeAnalysis, [
   "--type", "requirement",
@@ -127,9 +131,14 @@ const workstream = run(writeWorkstream, [
   "--spec-ref", "docs/ravo-v0.2-decision-complete-spec.md",
   "--current-milestone", "smoke",
   "--next-step", "run acceptance",
+  "--roadmap-audit", "done=smoke remains=acceptance blockers=none specDelta=none",
+  "--worker-evidence", "{\"did\":\"ran smoke\",\"changed\":\"artifacts\",\"learned\":\"evidence is connected\",\"evidence\":\"analysis artifact\",\"blockers\":\"none\",\"next\":\"acceptance\"}",
   "--evidence-ref", path.relative(workspace, analysis.artifactPath)
 ]);
 assert.ok(fs.existsSync(workstream.artifactPath), "workstream artifact exists");
+const workstreamArtifact = JSON.parse(fs.readFileSync(workstream.artifactPath, "utf8"));
+assert.equal(workstreamArtifact.roadmapAudit.length, 1, "workstream records Roadmap Audit");
+assert.equal(workstreamArtifact.workerEvidence[0].did, "ran smoke", "workstream records worker evidence contract");
 
 const invalidBlockedWorkstream = runStatus(writeWorkstream, [
   "--status", "blocked",
@@ -159,6 +168,7 @@ assert.ok(fs.existsSync(knowledge.indexPath), "knowledge index exists");
 const retrieved = run(retrieveKnowledge, ["--query", "release readiness evidence"]);
 assert.ok(retrieved.matches.length >= 1, "knowledge retrieval returns a match");
 assert.ok(retrieved.matches[0].summary !== undefined, "knowledge retrieval returns summary field");
+assert.equal(retrieved.technicalDetailLevel, 1, "knowledge retrieval reads technicalDetailLevel");
 
 const fullKnowledge = run(writeKnowledge, [
   "--kind", "lesson",
@@ -189,7 +199,10 @@ const generatedSpec = run(writeDecisionSpec, [
 ]);
 assert.ok(fs.existsSync(generatedSpec.specPath), "decision-complete spec is generated");
 const draftGoal = run(goalPrompt, ["--workspace", generatedSpecWorkspace]);
-assert.equal(draftGoal.status, "missing_spec", "draft specs cannot generate runnable Goal prompts");
+assert.equal(draftGoal.status, "spec_draft", "default auto_spec writes a draft and does not generate runnable Goal prompts");
+assert.ok(fs.existsSync(draftGoal.draftSpecPath), "auto_spec draft spec exists");
+assert.ok(fs.existsSync(draftGoal.alignmentDraftPath), "auto_spec alignment draft exists");
+assert.ok(!Object.hasOwn(draftGoal, "goalPrompt"), "draft specs cannot generate runnable Goal prompts");
 const reviewedSpec = run(writeDecisionSpec, [
   "--workspace", generatedSpecWorkspace,
   "--status", "decision-complete",
@@ -260,6 +273,7 @@ const captured = run(captureKnowledge, [
 ]);
 assert.ok(fs.existsSync(captured.markdownPath), "capture writes markdown knowledge");
 assert.match(captured.captureNotice, /Workspace-local RAVO knowledge written/);
+assert.doesNotMatch(captured.captureNotice, /user-level global knowledge not written/);
 
 const secondWorkspace = fs.mkdtempSync(path.join(os.tmpdir(), "ravo-second-"));
 const crossWorkspace = spawnSync(process.execPath, [
@@ -309,7 +323,66 @@ const fullReview = runEnv(runReview, [
 ]);
 assert.equal(fullReview.coverage, "full", "fake provider success gives full review coverage");
 assert.equal(fullReview.modelsCompleted.length, 2, "all fake models complete");
+assert.equal(fullReview.roundsRequested, 2, "review runner defaults to two rounds");
+assert.equal(fullReview.roundsExecuted, 2, "default review executes two rounds");
+assert.equal(fullReview.roundCoverage.length, 2, "default review records two round coverages");
+assert.equal(fullReview.roundCoverage[0].purpose, "independent_review", "round 1 has independent purpose");
+assert.equal(fullReview.roundCoverage[1].purpose, "challenge_response", "round 2 has challenge purpose");
+assert.match(fullReview.roundCoverage[1].inputHash, /^sha256:/, "round coverage records input hash");
+const fullReviewArtifact = JSON.parse(fs.readFileSync(fullReview.artifactPath, "utf8"));
+assert.equal(fullReviewArtifact.technicalDetailLevel, 1, "review artifact records technicalDetailLevel");
+assert.ok(fullReviewArtifact.briefs.challengeBriefRef, "review records challenge brief");
+assert.ok(fullReviewArtifact.issueLedgerRef, "review records issue ledger");
+assert.ok(fullReviewArtifact.issueStatusCounts.challenged >= 1, "review issue ledger moves through challenge state");
+const round2Prompt = fs.readFileSync(path.join(workspace, fullReviewArtifact.roundCoverage[1].inputRef), "utf8");
+assert.match(round2Prompt, /Challenge brief:/, "round 2 prompt contains challenge brief");
+assert.match(round2Prompt, /Your own Round 1 result:/, "round 2 prompt contains own round 1 result");
+assert.equal(fullReview.second_round_coverage, "full", "default second round succeeds");
 assert.doesNotMatch(JSON.stringify(fullReview), /SECRET_SHOULD_NOT_PRINT/, "review runner does not print api keys");
+
+const oneRoundConfigPath = path.join(reviewConfigDir, "one-round.json");
+fs.writeFileSync(oneRoundConfigPath, JSON.stringify({
+  apiMode: "fake",
+  apiBase: "fake://review",
+  apiKey: "SECRET_SHOULD_NOT_PRINT",
+  models: "fake-a",
+  rounds: 1
+}, null, 2), "utf8");
+const oneRoundReview = runEnv(runReview, [
+  "--workspace", workspace,
+  "--config", oneRoundConfigPath,
+  "--domain", "architecture",
+  "--subject", "Review one configured round"
+]);
+assert.equal(oneRoundReview.roundsRequested, 1, "config can set one review round");
+assert.equal(oneRoundReview.roundCoverage.length, 1, "one-round config records one round");
+
+const threeRoundReview = runEnv(runReview, [
+  "--workspace", workspace,
+  "--config", oneRoundConfigPath,
+  "--domain", "architecture",
+  "--subject", "Review CLI override rounds",
+  "--rounds", "3"
+]);
+assert.equal(threeRoundReview.roundsRequested, 3, "CLI can override to three review rounds");
+assert.equal(threeRoundReview.roundCoverage.length, 3, "three-round override records three rounds");
+const threeRoundArtifact = JSON.parse(fs.readFileSync(threeRoundReview.artifactPath, "utf8"));
+assert.equal(threeRoundArtifact.roundCoverage[2].purpose, "convergence_adjudication", "round 3 has convergence purpose");
+assert.ok(threeRoundArtifact.briefs.convergenceBriefRef, "review records convergence brief");
+assert.notEqual(threeRoundArtifact.convergenceStatus, "not_requested", "three-round review records convergence status");
+
+const discussionFile = path.join(reviewConfigDir, "discussion.md");
+fs.writeFileSync(discussionFile, "Manual challenge: focus on acceptance evidence.", "utf8");
+const invalidDiscussion = runStatus(runReview, [
+  "--workspace", workspace,
+  "--config", oneRoundConfigPath,
+  "--domain", "architecture",
+  "--subject", "Invalid discussion with one round",
+  "--rounds", "1",
+  "--discussion-file", discussionFile
+]);
+assert.notEqual(invalidDiscussion.status, 0, "discussion file requires rounds >= 2");
+assert.match(String(invalidDiscussion.stderr || ""), /discussion-file requires --rounds 2 or 3/);
 
 const partialConfigPath = path.join(reviewConfigDir, "partial.json");
 fs.writeFileSync(partialConfigPath, JSON.stringify({
@@ -359,21 +432,29 @@ const timeoutReview = runEnv(runReview, [
 assert.equal(timeoutReview.coverage, "partial", "timeout plus truncation gives partial coverage");
 assert.match(timeoutReview.failedModelReasons.join("\n"), /timeout/);
 assert.match(timeoutReview.truncationWarnings.join("\n"), /truncation|timeout/);
+assert.ok(timeoutReview.attempts.some((attempt) => attempt.result === "retryAttempt"), "review records retry attempts");
 
 fs.mkdirSync(path.join(workspace, "docs"), { recursive: true });
 fs.copyFileSync(path.join(repo, "docs", "ravo-v0.2-decision-complete-spec.md"), path.join(workspace, "docs", "ravo-v0.2-decision-complete-spec.md"));
 const suggestedGoal = run(goalPrompt, ["--workspace", workspace]);
 assert.equal(suggestedGoal.status, "ok", "goal prompt script finds decision-complete spec");
 assert.match(suggestedGoal.goalPrompt, /严格按照/);
+assert.equal(suggestedGoal.technicalDetailLevel, 1, "goal prompt output records technicalDetailLevel");
 
 const acceptedWithSecurity = run(writeAcceptance, [
   "--status", "accepted",
   "--evidence-level", "smoke",
   "--summary", "Accepted smoke evidence with security baseline",
   "--analysis-artifact", path.relative(workspace, analysis.artifactPath),
+  "--real-response-ref", "CLI response: ok",
+  "--not-applicable-evidence", "No UI screenshot required for CLI smoke.",
+  "--data-evidence-ref", path.relative(workspace, analysis.artifactPath),
+  "--acceptance-item", "{\"name\":\"Smoke acceptance\",\"expected\":\"Evidence is connected\",\"implementation\":\"Artifacts are linked\",\"effect\":\"Checker passes\",\"judgment\":\"基本满足\"}",
   ...securityPassArgs
 ]);
 assert.ok(fs.existsSync(acceptedWithSecurity.artifactPath), "accepted artifact with security exists");
+assert.ok(fs.existsSync(acceptedWithSecurity.pmChecklistPath), "accepted artifact creates PM acceptance document");
+assert.equal(JSON.parse(fs.readFileSync(acceptedWithSecurity.artifactPath, "utf8")).technicalDetailLevel, 1, "acceptance artifact records technicalDetailLevel");
 
 const result = run(checkAcceptance);
 assert.equal(result.gate.decision, "pass", "acceptance gate passes with smoke evidence");
@@ -384,6 +465,7 @@ assert.ok(result.latestSmoke, "acceptance discovers smoke artifact");
 assert.ok(result.latestReview, "acceptance discovers review artifact");
 assert.ok(result.latestKnowledge, "acceptance discovers knowledge artifact");
 assert.ok(result.checks.some((check) => check.id === "securityBaseline" && check.status === "pass"), "acceptance checks security baseline");
+assert.ok(result.checks.some((check) => check.id === "pmAcceptancePackage" && check.status === "pass"), "acceptance checks PM acceptance package");
 assert.ok(result.checks.some((check) => check.id === "reviewEvidence"), "acceptance checks review evidence");
 assert.ok(result.checks.some((check) => check.id === "knowledgeEvidence"), "acceptance checks knowledge evidence");
 

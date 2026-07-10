@@ -63,6 +63,24 @@ Goal: ${goal}
 
 Consumer: ${consumer}
 
+Core problem:
+
+${sectionList(argValues("--problem"), "State the user-visible problem this spec solves.")}
+
+Success result:
+
+${sectionList(argValues("--success"), "State what must be true when this spec is accepted.")}
+
+## Current Baseline
+
+Implemented:
+
+${sectionList(argValues("--implemented"), "Record current shipped behavior or write Not applicable.")}
+
+Known gaps:
+
+${sectionList(argValues("--gap"), "Record gaps between current behavior and expected behavior.")}
+
 ## Scope
 
 In scope:
@@ -102,6 +120,32 @@ ${sectionList(argValues("--fallback"), "Define what happens when evidence, input
 ## Assumptions
 
 ${sectionList(argValues("--assumption"), "Record assumptions that should be verified or challenged.")}
+
+## Data Boundary And Security
+
+${sectionList(argValues("--data-boundary"), "Record external calls, credentials, privacy, permissions, logs, and global knowledge boundaries.")}
+
+## Implementation Plan
+
+${sectionList(argValues("--plan"), "Record implementation phases. Phases are sequencing only; final delivery must satisfy every required item unless explicitly blocked.")}
+
+## Release Wording
+
+Allowed:
+
+${sectionList(argValues("--allowed-wording"), "Record what may be claimed after validation.")}
+
+Forbidden:
+
+${sectionList(argValues("--forbidden-wording"), "Record what must not be claimed without evidence.")}
+
+## PM Acceptance Requirements
+
+${sectionList(argValues("--pm-acceptance"), "Record how a PM can verify expected behavior, implementation effect, evidence, gaps, and risk.")}
+
+## Next Step Advice Rule
+
+${sectionList(argValues("--next-step-rule"), "Record what concise next-step advice should be given after delivery or partial completion.")}
 `;
 
   writeAtomic(specPath, text);

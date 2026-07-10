@@ -33,6 +33,8 @@ O = Organize    durable knowledge capture and reuse
 ### Requirement and Solution Analysis
 
 - Identify the real goal, consumer, constraints, options, and validation path.
+- For medium/high-complexity requirements, start with requirement co-creation: background, current state, scenarios, consumer, pain, references, constraints, and a `continue clarifying / direct to solution` choice.
+- Surface likely user blind spots with judgment and suggested action, not just risk hints.
 - Separate facts from assumptions and make the basis of the recommendation explicit.
 - Challenge the preferred option once before concluding, instead of only defending it.
 - Use first-principles reasoning before implementation when the request is ambiguous or important.
@@ -47,8 +49,9 @@ RAVO's design intent is simple: Goal Mode is for long-running autonomous work, s
 RAVO treats Goal Prompt authoring as a first-class lifecycle capability:
 
 - Check whether a decision-complete spec already exists before writing a Goal Prompt.
-- If no spec exists, do not produce any runnable Goal Prompt. Generate or request the spec first.
-- If a spec exists, generate a short Goal Prompt that references the spec as the single source of truth.
+- If no spec exists, do not produce any runnable Goal Prompt. Generate or request the spec according to config first.
+- If a spec exists, check whether newer alignment drafts, candidate requirements, spec deltas, or TODOs remain unmerged. If they do, update the spec first and do not output a runnable Goal Prompt.
+- If a current spec exists, generate a short Goal Prompt that references the spec as the single source of truth.
 - Keep the Goal Prompt focused on execution contract, evidence, recovery, and acceptance, not requirement duplication.
 - Use RAVO artifacts so long-running work can resume from spec, workstream, validation, and acceptance evidence.
 
@@ -57,24 +60,29 @@ RAVO treats Goal Prompt authoring as a first-class lifecycle capability:
 - Separate symptoms, proximate causes, mechanism root cause, recurrence risk, smallest fix, and verification.
 - Compare at least one plausible competing explanation before locking the root cause.
 - Avoid shallow answers such as "prompt issue", "user asked", or "missing check" when those are only surface causes.
+- For complex or high-impact root causes, connect RAVO Review and keep `full/partial/unavailable` review evidence explicit.
 
 ### Acceptance and Release Gates
 
 - Check delivery, acceptance, release, go-live, readiness, and completed/done conclusions against evidence.
 - Write acceptance artifacts under `knowledge/.ravo/acceptance`.
+- Generate a PM-facing acceptance document with expected behavior, current implementation approach, actual effect, real responses, screenshots or substitute evidence, gaps, and risks.
 - Treat prompt-time readiness hooks as fallback advisory only; the agent should run acceptance checks proactively before delivery conclusions.
 
 ### Workstream and RAVO Evidence
 
 - Track long-running work with milestone, next step, blocker, decision, and evidence artifacts.
+- Record a Roadmap Audit after each milestone: remaining required items, evidence gaps, blockers, and whether the spec must change.
+- Worker/subagent evidence should state what was done, what changed, what was learned, evidence, blockers, and next recommendation.
 - Record fast smoke evidence under `knowledge/.ravo/quick-validation`.
 - Keep smoke evidence separate from final acceptance.
 
 ### RAVO Review
 
 - Run configured provider/model reviews through `ravo-review`.
+- Default to two rounds: independent review then challenge response; explicit three-round runs add convergence adjudication.
 - Record adversarial review coverage under `knowledge/.ravo/review`.
-- Keep full, partial, timeout, failure, and truncation states visible.
+- Keep full, partial, timeout, failure, truncation, retry attempts, challenge briefs, issue ledgers, and convergence state visible.
 - Support both flat config and provider-array config at `~/.codex/skill-config/ravo-review.json`.
 - Keep missing provider config visible as `coverage=none`; do not require review providers for routine tasks.
 
@@ -83,6 +91,7 @@ RAVO treats Goal Prompt authoring as a first-class lifecycle capability:
 - Write, retrieve, and apply workspace-local facts, decisions, lessons, principles, and evidence.
 - Capture closeout/session lessons from Agent-provided summaries.
 - Retrieve workspace knowledge for medium/high-complexity planning, architecture, review, acceptance, and long-running work even when the user does not say "knowledge".
+- When user-level global knowledge is explicitly enabled, retrieval includes user scope and reports source, sensitivity, applicability, and staleness risk; cross-project lessons remain advisory.
 - Support opt-in transferable lessons only after redaction, scope labeling, and leakage checks.
 - Store durable knowledge as human-readable Markdown plus a JSON index so it can be read by people and retrieved by agents.
 
@@ -137,10 +146,12 @@ RAVO Review can be checked without exposing secrets:
 node plugins/ravo-review/scripts/run-review.js --domain architecture --subject "Review this plan" --no-stream
 ```
 
+By default the runner uses `rounds=2`. Set `rounds` in `~/.codex/skill-config/ravo-review.json`, or pass `--rounds 1`, `--rounds 2`, or `--rounds 3`.
+
 For a bounded check against one configured model:
 
 ```bash
-node plugins/ravo-review/scripts/run-review.js --domain architecture --model "<model-id>" --timeout-ms 60000 --subject "Review this plan" --no-stream
+node plugins/ravo-review/scripts/run-review.js --domain architecture --model "<model-id>" --rounds 1 --timeout-ms 60000 --subject "Review this plan" --no-stream
 ```
 
 If no provider is configured, the command still writes a `coverage=none` artifact so acceptance can see that external review is unavailable rather than silently assuming it happened.
@@ -218,7 +229,7 @@ The intended boundary is:
 - `AGENTS.md` decides **when** to delegate: global priority, safety, interaction style, data boundaries, and fallback behavior.
 - RAVO decides **how** to execute once delegated: analysis structure, acceptance evidence, scripts, schemas, hooks, and artifacts.
 
-RAVO v0.3 covers `analysis`, `workstream`, `RAVO Evidence` (`ravo-quick-validation` compatibility entry), `acceptance`, `knowledge`, and `review` as independently installable modules. Small, clearly bounded tasks do not require every module.
+RAVO covers `analysis`, `workstream`, `RAVO Evidence` (`ravo-quick-validation` compatibility entry), `acceptance`, `knowledge`, and `review` as independently installable modules. Small, clearly bounded tasks do not require every module.
 
 ### Manual Mode
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const fs = require("node:fs");
+const os = require("node:os");
 const path = require("node:path");
 
 const SCHEMA_VERSION = "0.3.1";
@@ -38,6 +39,18 @@ function readJson(file) {
   }
 }
 
+function readRavoConfig(workspace) {
+  return {
+    ...(readJson(path.join(os.homedir(), ".codex", "skill-config", "ravo.json")) || {}),
+    ...(readJson(path.join(workspace, "knowledge", ".ravo", "config.json")) || {})
+  };
+}
+
+function technicalDetailLevel(workspace) {
+  const level = readRavoConfig(workspace).technicalDetailLevel;
+  return Number.isInteger(level) && level >= 1 && level <= 5 ? level : 3;
+}
+
 function writeJson(file, value) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
   const tmp = `${file}.${process.pid}.tmp`;
@@ -64,6 +77,51 @@ function buildSecurityChecklist(passed) {
     id,
     status: passedSet.has(id) ? "pass" : "unknown"
   }));
+}
+
+function pmDocFor(artifact) {
+  const rows = artifact.acceptanceItems.length
+    ? artifact.acceptanceItems.map((item) => {
+        try { return JSON.parse(item); } catch (_err) { return { name: item, expected: "", implementation: "", effect: "", judgment: "待补证据" }; }
+      })
+    : [{ name: "整体验收", expected: artifact.summary, implementation: "见实现产物和证据引用。", effect: artifact.summary, judgment: artifact.status === "accepted" ? "基本满足" : "待补证据" }];
+  const table = rows.map((item) => `| ${item.name || "验收项"} | ${item.expected || artifact.summary} | ${item.implementation || "见证据引用"} | ${item.effect || artifact.summary} | ${item.judgment || "待补证据"} |`).join("\n");
+  return `# 面向产品经理的验收文档
+
+## 验收结论摘要
+
+${artifact.summary}
+
+状态：${artifact.status}
+
+证据等级：${artifact.evidenceLevel}
+
+## 需求预期与实现效果
+
+| 验收项 | 需求预期 | 当前实现方案 | 当前实现效果 | 验收判断 |
+|---|---|---|---|---|
+${table}
+
+## PM 验收清单
+
+${rows.map((item) => `- ${item.name || "整体验收"}：${item.judgment || "待补证据"}`).join("\n")}
+
+## 真实响应证据
+
+${artifact.realResponseRefs.length ? artifact.realResponseRefs.map((item) => `- ${item}`).join("\n") : "- 待补证据"}
+
+## 截图/录屏或替代证据
+
+${artifact.screenshotRefs.length ? artifact.screenshotRefs.map((item) => `- ${item}`).join("\n") : artifact.notApplicableEvidence.length ? artifact.notApplicableEvidence.map((item) => `- ${item}`).join("\n") : "- 待补证据"}
+
+## 数据、CLI、日志或产物证据
+
+${artifact.dataEvidenceRefs.length ? artifact.dataEvidenceRefs.map((item) => `- ${item}`).join("\n") : artifact.evidence.map((item) => `- ${item}`).join("\n") || "- 待补证据"}
+
+## 未满足项与风险
+
+${artifact.unmetItems.length ? artifact.unmetItems.map((item) => `- ${item}`).join("\n") : artifact.knownGaps.map((item) => `- ${item}`).join("\n") || "- 暂无明确未满足项；仍需按证据等级复核。"}
+`;
 }
 
 function validateState(status, evidenceLevel, securityChecklist) {
@@ -110,23 +168,37 @@ function main() {
   validateState(status, evidenceLevel, securityChecklist);
   const now = new Date().toISOString();
   const id = `${now.replace(/[:.]/g, "-")}-${slug(summary)}`;
+  const detailLevel = technicalDetailLevel(workspace);
   const artifact = {
     schemaVersion: SCHEMA_VERSION,
     id,
     status,
     evidenceLevel,
+    technicalDetailLevel: detailLevel,
+    outputMode: detailLevel <= 2 ? "product" : detailLevel >= 4 ? "engineering" : "balanced",
     summary,
     createdAt: now,
     analysisArtifact: argValue("--analysis-artifact", ""),
     evidence: argValues("--evidence"),
     knownGaps: argValues("--known-gap"),
+    pmChecklistRef: "",
+    realResponseRefs: argValues("--real-response-ref"),
+    screenshotRefs: argValues("--screenshot-ref"),
+    dataEvidenceRefs: argValues("--data-evidence-ref"),
+    acceptanceItems: argValues("--acceptance-item"),
+    unmetItems: argValues("--unmet-item"),
+    notApplicableEvidence: argValues("--not-applicable-evidence"),
     securityChecklist
   };
 
   const artifactPath = path.join(workspace, "knowledge", ".ravo", "acceptance", `${id}.json`);
+  const pmDocPath = path.join(workspace, "knowledge", ".ravo", "acceptance", `${id}-pm-acceptance.md`);
+  artifact.pmChecklistRef = path.relative(workspace, pmDocPath);
+  fs.mkdirSync(path.dirname(pmDocPath), { recursive: true });
+  fs.writeFileSync(pmDocPath, pmDocFor(artifact));
   writeJson(artifactPath, artifact);
   const manifestPath = ensureManifest(workspace, artifactPath);
-  console.log(JSON.stringify({ status: "ok", artifactPath, manifestPath }, null, 2));
+  console.log(JSON.stringify({ status: "ok", artifactPath, pmChecklistPath: pmDocPath, manifestPath }, null, 2));
 }
 
 if (require.main === module) main();

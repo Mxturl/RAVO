@@ -125,6 +125,16 @@ function main() {
       proximateCause: argValue("--proximate-cause", "").trim(),
       mechanismRootCause: argValue("--mechanism-root-cause", "").trim()
     },
+    analysisMode: argValue("--analysis-mode", "").trim(),
+    clarificationStatus: argValue("--clarification-status", "").trim(),
+    openQuestions: listArg("--open-question"),
+    assumptions: listArg("--assumption"),
+    coCreationDecision: argValue("--co-creation-decision", "").trim(),
+    blindSpotFindings: listArg("--blind-spot").map((item) => {
+      try { return JSON.parse(item); } catch (_err) { return { title: item, basis: "inference", impact: "medium", suggestedAction: "clarify", specUpdateRequired: false }; }
+    }),
+    reviewEvidence: argValue("--review-evidence", "").trim(),
+    reviewArtifact: argValue("--review-artifact", "").trim(),
     derivedConclusion: argValue("--conclusion", status === "draft" ? "Draft analysis artifact created; fill details in Codex output or edit this file." : "").trim(),
     risks: listArg("--risk"),
     nextActions: listArg("--next-action")

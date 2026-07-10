@@ -1,6 +1,6 @@
 {
   "name": "ravo-review",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "Independent multi-model adversarial review artifacts for RAVO lifecycle governance.",
   "author": {
     "name": "RAVO contributors"

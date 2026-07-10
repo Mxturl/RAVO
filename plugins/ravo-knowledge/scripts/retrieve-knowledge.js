@@ -13,6 +13,12 @@ function readJson(file) {
   try { return JSON.parse(fs.readFileSync(file, "utf8")); } catch (_err) { return null; }
 }
 
+function readConfig(workspace) {
+  return readJson(path.join(workspace, "knowledge", ".ravo", "config.json"))
+    || readJson(path.join(os.homedir(), ".codex", "skill-config", "ravo.json"))
+    || {};
+}
+
 function writeJson(file, value) {
   const tmp = `${file}.${process.pid}.tmp`;
   fs.writeFileSync(tmp, `${JSON.stringify(value, null, 2)}\n`);
@@ -57,7 +63,11 @@ function score(item, query) {
 function main() {
   const workspace = path.resolve(argValue("--workspace", process.cwd()));
   const query = argValue("--query", "");
-  const includeUser = argValue("--include-user", "false") === "true";
+  const config = readConfig(workspace);
+  const includeUser = argValue("--include-user", config.globalKnowledge?.enabled ? "true" : "false") === "true";
+  const detailLevel = Number.isInteger(config.technicalDetailLevel) && config.technicalDetailLevel >= 1 && config.technicalDetailLevel <= 5
+    ? config.technicalDetailLevel
+    : 3;
   const workspaceDir = path.join(workspace, "knowledge", ".ravo", "knowledge");
   const userDir = userKnowledgeRoot();
   const files = [
@@ -95,6 +105,8 @@ function main() {
   console.log(JSON.stringify({
     status: "ok",
     query,
+    technicalDetailLevel: detailLevel,
+    outputMode: detailLevel <= 2 ? "product" : detailLevel >= 4 ? "engineering" : "balanced",
     matches: matches.map((match) => ({
       path: match.file,
       score: match.score,
@@ -106,7 +118,8 @@ function main() {
       applicability: match.artifact.applicability,
       sensitivity: match.artifact.sensitivity || "",
       relatedArtifacts: match.artifact.relatedArtifacts || [],
-      lastUsedAt: match.artifact.lastUsedAt
+      lastUsedAt: match.artifact.lastUsedAt,
+      staleness: match.artifact.updatedAt ? "dated" : "unknown"
     })),
     applicationInstruction: matches.length
       ? "State which retrieved knowledge was applied and which was not applicable."

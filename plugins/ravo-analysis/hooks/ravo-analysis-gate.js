@@ -88,6 +88,7 @@ function classify(prompt) {
   const rootCause = matchesAny(text, [
     /根因|机制根因|五个\s*why|5\s*why|为什么.*为什么|防复发|复发风险/,
     /为什么会出现这种问题|为什么会出现.*问题|问题.*反复出现/,
+    /(问题|挑战|失败|异常|卡住|阻塞).*(为什么|原因|分析|根因|复盘|防止|避免)/,
     /symptom|proximate cause|mechanism root cause|root cause|why chain/i
   ]);
   if (rootCause) return "root-cause";
@@ -118,11 +119,16 @@ readJsonStdin((data) => {
       : "ravo-requirement-analysis";
   const cwd = data.cwd || process.cwd();
   const artifactPath = kind === "goal-prompt" ? "" : writeArtifact(cwd, kind, data.prompt);
+  const chinese = /[\u4e00-\u9fff]/.test(String(data.prompt || ""));
   const contract = kind === "root-cause"
-    ? "Required headings: Symptom, Proximate Cause, Alternative Hypotheses, Mechanism Root Cause, Why Chain, Boundary, Smallest Fix, Verification. Put each field on its own line or bullet; do not inline multiple labels into one dense paragraph. Test at least one plausible alternative before locking the root cause."
+    ? chinese
+      ? "必需标题：现象、近因、备选假设、机制根因、追问链、边界、最小修复、验证。每个字段单独成段或条目；不要把多个标签挤进同一段。定稿根因前至少检验一个合理备选假设。"
+      : "Required headings: Symptom, Proximate Cause, Alternative Hypotheses, Mechanism Root Cause, Why Chain, Boundary, Smallest Fix, Verification. Put each field on its own line or bullet; do not inline multiple labels into one dense paragraph. Test at least one plausible alternative before locking the root cause."
     : kind === "goal-prompt"
-      ? "Goal Prompt Contract: before writing any Goal Prompt, check for a decision-complete spec with ravo-core/ravo-goal-prompt. If missing_spec, do not output any runnable Goal Prompt, including short, temporary, or draft versions. If the user only asked for a Goal Prompt, stop after explaining that a spec is needed first and offer to generate it. Create a spec only when explicitly asked or after approval; then return the spec path, but do not also generate a runnable Goal Prompt in that same missing-spec response."
-    : "Required headings: Goal, Consumer, Constraints, Facts, Options, Challenge, Derived Conclusion, Validation. Put each field on its own line or bullet; do not inline multiple labels into one dense paragraph. Include at least two options with tradeoffs, separate facts from assumptions, and do not start implementation before the analysis conclusion.";
+      ? "Goal Prompt Contract: before writing any Goal Prompt, check for a decision-complete spec with ravo-core/ravo-goal-prompt. If missing_spec or stale_spec, do not output any runnable Goal Prompt, including short, temporary, or draft versions. If stale_spec, first update the Spec, write a spec delta, or explicitly exclude newer candidate inputs. If the user only asked for a Goal Prompt, stop after explaining the missing/stale Spec condition."
+    : chinese
+      ? "必需标题：需求共创、目标、真实消费者、约束、事实、方案选项、可能盲区、挑战、推导结论、验证。每个字段单独成段或条目；不要把多个标签挤进同一段。中高复杂需求先补齐背景/现状/场景/消费者/痛点/参考对象，并提供“继续澄清 / 直接进入方案”。可能盲区必须包含判断和建议动作，不只是提示风险。至少给出两个带权衡的方案，区分事实和假设，分析结论前不要开始实现。"
+      : "Required headings: Requirement Co-Creation, Goal, Consumer, Constraints, Facts, Options, Blind Spots, Challenge, Derived Conclusion, Validation. Put each field on its own line or bullet; do not inline multiple labels into one dense paragraph. For medium/high-complexity requirements, cover background/current state/scenarios/consumer/pain/reference and offer Continue Clarifying / Direct To Solution. Blind spots must include judgment and suggested action, not only risk hints. Include at least two options with tradeoffs, separate facts from assumptions, and do not start implementation before the analysis conclusion.";
 
   process.stdout.write(JSON.stringify({
     systemMessage: "RAVO_ANALYSIS_GATE:ADVISORY",

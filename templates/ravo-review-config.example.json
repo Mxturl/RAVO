@@ -5,6 +5,13 @@
     "Fill provider fields locally only. Do not commit real API keys."
   ],
   "enableReasoningParams": false,
+  "rounds": 2,
+  "retry": {
+    "maxAttempts": 2,
+    "baseDelayMs": 1000,
+    "maxDelayMs": 8000,
+    "retryableStatusCodes": [429, 502, 503, 504]
+  },
   "maxTokens": 48000,
   "stream": true,
   "timeoutMs": 900000,

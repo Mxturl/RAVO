@@ -81,6 +81,11 @@ function main() {
     recovery,
     decisions: argValues("--decision"),
     evidenceRefs: argValues("--evidence-ref"),
+    roadmapAudit: argValues("--roadmap-audit"),
+    specDeltas: argValues("--spec-delta"),
+    workerEvidence: argValues("--worker-evidence").map((item) => {
+      try { return JSON.parse(item); } catch (_err) { return { summary: item }; }
+    }),
     createdAt: now,
     updatedAt: now
   };

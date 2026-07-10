@@ -49,8 +49,10 @@ const requirement = runHook(analysisHook, "我们正在做一个 AI 穿搭小程
 assert.equal(requirement.systemMessage, "RAVO_ANALYSIS_GATE:ADVISORY");
 assert.match(requirement.hookSpecificOutput.additionalContext, /requirement/);
 assert.match(requirement.hookSpecificOutput.additionalContext, /ravo-requirement-analysis/);
-assert.match(requirement.hookSpecificOutput.additionalContext, /Required headings: Goal, Consumer, Constraints, Facts, Options, Challenge, Derived Conclusion, Validation/);
-assert.match(requirement.hookSpecificOutput.additionalContext, /Put each field on its own line or bullet/);
+assert.match(requirement.hookSpecificOutput.additionalContext, /必需标题：需求共创、目标、真实消费者、约束、事实、方案选项、可能盲区、挑战、推导结论、验证/);
+assert.match(requirement.hookSpecificOutput.additionalContext, /每个字段单独成段或条目/);
+assert.match(requirement.hookSpecificOutput.additionalContext, /继续澄清 \/ 直接进入方案/);
+assert.match(requirement.hookSpecificOutput.additionalContext, /可能盲区必须包含判断和建议动作/);
 assert.match(requirement.hookSpecificOutput.additionalContext, /technicalDetailLevel=3/);
 assert.match(requirement.hookSpecificOutput.additionalContext, /not rigor, safety, evidence/);
 
@@ -69,15 +71,15 @@ assert.match(goalPromptRequest.hookSpecificOutput.additionalContext, /ravo-core/
 assert.match(goalPromptRequest.hookSpecificOutput.additionalContext, /decision-complete spec/);
 assert.match(goalPromptRequest.hookSpecificOutput.additionalContext, /No analysis artifact is written for Goal Prompt preflight/);
 assert.match(goalPromptRequest.hookSpecificOutput.additionalContext, /do not output any runnable Goal Prompt/);
-assert.match(goalPromptRequest.hookSpecificOutput.additionalContext, /If the user only asked for a Goal Prompt/);
-assert.match(goalPromptRequest.hookSpecificOutput.additionalContext, /do not also generate a runnable Goal Prompt in that same missing-spec response/);
+assert.match(goalPromptRequest.hookSpecificOutput.additionalContext, /missing_spec or stale_spec/);
+assert.match(goalPromptRequest.hookSpecificOutput.additionalContext, /update the Spec, write a spec delta/);
 
 const rootCause = runHook(analysisHook, "我们的验收插件现在能拦截可以验收了吗，但对这个版本是不是能发没有触发。我觉得这可能只是关键词覆盖问题，也可能是设计模式问题。请继续追问为什么，直到找到可验证、可防复发的机制根因。", workspace);
 assert.equal(rootCause.systemMessage, "RAVO_ANALYSIS_GATE:ADVISORY");
 assert.match(rootCause.hookSpecificOutput.additionalContext, /root-cause/);
 assert.match(rootCause.hookSpecificOutput.additionalContext, /ravo-root-cause-analysis/);
-assert.match(rootCause.hookSpecificOutput.additionalContext, /Required headings: Symptom, Proximate Cause, Alternative Hypotheses, Mechanism Root Cause, Why Chain, Boundary, Smallest Fix, Verification/);
-assert.match(rootCause.hookSpecificOutput.additionalContext, /Put each field on its own line or bullet/);
+assert.match(rootCause.hookSpecificOutput.additionalContext, /必需标题：现象、近因、备选假设、机制根因、追问链、边界、最小修复、验证/);
+assert.match(rootCause.hookSpecificOutput.additionalContext, /每个字段单独成段或条目/);
 
 const naturalRootCause = runHook(analysisHook, "我有点担心这个功能最后会推荐一堆看着合理、但用户根本不会带的衣服。先别改，分析一下为什么会出现这种问题。", workspace);
 assert.equal(naturalRootCause.systemMessage, "RAVO_ANALYSIS_GATE:ADVISORY");
@@ -88,6 +90,10 @@ const analysisManifest = readJson(path.join(workspace, "knowledge/.ravo/manifest
 const latestAnalysisPath = path.join(workspace, analysisManifest.modules.analysis.latestArtifact);
 assert.equal(readJson(latestAnalysisPath).status, "draft", "analysis hook writes draft artifacts");
 assert.equal(analysisManifest.modules.analysis.latestCompleteArtifact || "", "", "analysis hook should not mark placeholder artifact as complete");
+
+const challengeRootCause = runHook(analysisHook, "这个验收流程遇到挑战了，为什么总是脚本通过但 PM 还是不认可？请分析原因。", workspace);
+assert.equal(challengeRootCause.systemMessage, "RAVO_ANALYSIS_GATE:ADVISORY");
+assert.match(challengeRootCause.hookSpecificOutput.additionalContext, /root-cause/);
 
 const rootCauseAcceptanceBypass = runHook(acceptanceHook, "我们的验收插件现在能拦截可以验收了吗，但对这个版本是不是能发没有触发。请继续追问为什么，直到找到机制根因。", workspace);
 assert.deepEqual(rootCauseAcceptanceBypass, {}, "acceptance fallback must not interfere with root-cause analysis prompts");
@@ -232,10 +238,37 @@ const missingGoal = spawnSync(process.execPath, [goalScript, "--workspace", goal
 });
 assert.equal(missingGoal.status, 0, missingGoal.stderr);
 const missingGoalOutput = JSON.parse(missingGoal.stdout);
-assert.equal(missingGoalOutput.status, "missing_spec");
+assert.equal(missingGoalOutput.status, "spec_draft");
 assert.equal(missingGoalOutput.canGenerateGoalPrompt, false);
 assert.ok(!Object.hasOwn(missingGoalOutput, "goalPrompt"), "missing spec must not output a runnable Goal prompt");
-assert.match(missingGoalOutput.message, /不能先输出临时或短版 Goal Prompt/);
+assert.ok(fs.existsSync(missingGoalOutput.draftSpecPath), "default auto_spec writes a draft spec");
+assert.ok(fs.existsSync(missingGoalOutput.alignmentDraftPath), "default auto_spec writes an alignment draft");
+assert.match(missingGoalOutput.message, /不输出可运行 Goal Prompt/);
+
+const askGoalWorkspace = fs.mkdtempSync(path.join(os.tmpdir(), "ravo-goal-ask-"));
+fs.mkdirSync(path.join(askGoalWorkspace, "knowledge/.ravo"), { recursive: true });
+fs.writeFileSync(path.join(askGoalWorkspace, "knowledge/.ravo/config.json"), JSON.stringify({ goalPrompt: { missingSpecPolicy: "ask_to_generate_spec" } }, null, 2), "utf8");
+const askGoal = spawnSync(process.execPath, [goalScript, "--workspace", askGoalWorkspace], {
+  encoding: "utf8",
+  stdio: ["ignore", "pipe", "pipe"]
+});
+assert.equal(askGoal.status, 0, askGoal.stderr);
+const askGoalOutput = JSON.parse(askGoal.stdout);
+assert.equal(askGoalOutput.status, "missing_spec");
+assert.ok(!Object.hasOwn(askGoalOutput, "goalPrompt"), "ask_to_generate_spec must not output a runnable Goal prompt");
+
+const staleGoalWorkspace = fs.mkdtempSync(path.join(os.tmpdir(), "ravo-goal-stale-"));
+fs.mkdirSync(path.join(staleGoalWorkspace, "docs"), { recursive: true });
+fs.copyFileSync(path.join(repo, "docs/ravo-v0.2-decision-complete-spec.md"), path.join(staleGoalWorkspace, "docs/ravo-v0.2-decision-complete-spec.md"));
+fs.writeFileSync(path.join(staleGoalWorkspace, "docs/new-requirements-alignment.md"), "# New Alignment\n\nUnmerged requirement.\n", "utf8");
+const staleGoal = spawnSync(process.execPath, [goalScript, "--workspace", staleGoalWorkspace, "--spec", "docs/ravo-v0.2-decision-complete-spec.md"], {
+  encoding: "utf8",
+  stdio: ["ignore", "pipe", "pipe"]
+});
+assert.equal(staleGoal.status, 0, staleGoal.stderr);
+const staleGoalOutput = JSON.parse(staleGoal.stdout);
+assert.equal(staleGoalOutput.status, "stale_spec");
+assert.ok(!Object.hasOwn(staleGoalOutput, "goalPrompt"), "stale spec must not output a runnable Goal prompt");
 
 const goalReadyWorkspace = fs.mkdtempSync(path.join(os.tmpdir(), "ravo-goal-ready-"));
 fs.mkdirSync(path.join(goalReadyWorkspace, "docs"), { recursive: true });
@@ -275,6 +308,7 @@ console.log(JSON.stringify({
     "Goal prompt request -> decision-complete spec contract advisory",
     "root-cause prompt -> ravo-root-cause-analysis advisory",
     "natural concern prompt -> ravo-root-cause-analysis advisory",
+    "challenge prompt -> ravo-root-cause-analysis advisory",
     "root-cause prompt with release wording -> acceptance fallback bypass",
     "trivial prompt -> no advisory",
     "simple concept explanation -> no analysis advisory",
@@ -294,7 +328,9 @@ console.log(JSON.stringify({
     "next normal prompt -> consumes Stop continuation advisory once",
     "AGENTS preview -> delegated when/how boundary",
     "AGENTS apply -> preserves existing rules and is idempotent",
-    "Goal prompt missing spec -> missing_spec without runnable prompt",
+    "Goal prompt missing spec -> auto draft without runnable prompt",
+    "Goal prompt ask_to_generate_spec -> missing_spec without runnable prompt",
+    "Goal prompt stale spec -> stale_spec without runnable prompt",
     "Goal prompt existing spec -> concise Goal prompt",
     "ready workspace prompt -> no fallback interference"
   ]

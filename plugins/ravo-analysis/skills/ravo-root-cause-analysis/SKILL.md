@@ -6,8 +6,11 @@ description: Perform mechanism-level root-cause analysis for bugs, failures, reg
 # RAVO Root-Cause Analysis
 
 Use this skill when a symptom report could hide a deeper mechanism.
+Use it for meaningful problems, challenges, failures, blockers, abnormal behavior, or self-confirming analysis risks; it is not limited to repeated failures.
 
 ## Output Contract
+
+Use the user's conversation language for visible headings. The English names below are semantic fields, not mandatory display text.
 
 Include:
 
@@ -23,7 +26,7 @@ Include:
 Presentation:
 
 - Put each field in its own paragraph or bullet. Do not inline multiple labels such as `Symptom`, `Proximate Cause`, and `Mechanism Root Cause` into one dense paragraph.
-- For Chinese output, each label such as `现象`、`近因`、`机制根因`、`Why Chain`、`验证` must start on a separate line.
+- For Chinese output, prefer natural labels: `现象`、`近因`、`备选假设`、`机制根因`、`追问链`、`边界`、`最小修复`、`验证`. Each label must start on a separate line.
 
 For important work, or when a RAVO advisory triggered this skill, write an artifact:
 
@@ -41,4 +44,5 @@ Automatic hook-triggered placeholder artifacts stay `draft`; reusable artifacts 
 - Do not stop at "prompt issue", "user asked", "implementation mistake", or "missing check" unless that is the verified mechanism boundary.
 - Test the leading root-cause hypothesis against at least one plausible alternative before locking the conclusion.
 - If the first explanation is just a wording gap or a missing guard, continue asking why that gap existed until the recurrence mechanism is explained or the boundary is explicit.
+- For high-impact RCA that affects architecture, release, acceptance, permissions, data safety, Agent workflow, or long-term governance, attempt RAVO Review or record `reviewEvidence=unavailable|partial|full` with the reason.
 - Grep callers before editing a shared bug path; fix once where all callers route through.

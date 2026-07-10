@@ -1,6 +1,6 @@
 {
   "name": "ravo-workstream",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "Milestone, blocker, next-step, and evidence-index artifacts for long-running RAVO work.",
   "author": {
     "name": "RAVO contributors"

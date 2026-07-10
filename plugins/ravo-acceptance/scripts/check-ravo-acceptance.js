@@ -96,6 +96,15 @@ function buildResult(cwd = process.cwd()) {
   const needsSecurity = acceptance && ["accepted", "release_ready"].includes(acceptance.status);
   addCheck(checks, "securityBaseline", !needsSecurity || securityReady(acceptance) ? "pass" : "fail", true, needsSecurity ? "Security baseline supports accepted/release_ready." : "Security baseline not required for this status.");
   addCheck(checks, "releaseEvidence", acceptance?.status !== "release_ready" || ["real_e2e", "full_external_review"].includes(acceptance.evidenceLevel) ? "pass" : "fail", true, "release_ready requires real_e2e or full_external_review evidence.");
+  const needsPmPackage = acceptance && ["pending_acceptance", "accepted", "release_ready"].includes(acceptance.status);
+  const pmPath = acceptance?.pmChecklistRef ? path.join(cwd, acceptance.pmChecklistRef) : "";
+  addCheck(
+    checks,
+    "pmAcceptancePackage",
+    !needsPmPackage || (pmPath && fs.existsSync(pmPath)) ? "pass" : "fail",
+    Boolean(needsPmPackage),
+    needsPmPackage ? "PM acceptance package is required for acceptance-facing status." : "PM acceptance package not required for this status."
+  );
 
   const latestReview = discoverLatest(cwd, manifest, "review", "review");
   const review = readJson(latestReview);

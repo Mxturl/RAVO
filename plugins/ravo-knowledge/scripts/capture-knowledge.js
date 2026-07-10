@@ -38,6 +38,13 @@ function main() {
   const content = argValue("--content", stdin).trim();
   if (!summary) fail("Knowledge capture requires --summary.");
   if (!content) fail("Knowledge capture requires --content or stdin.");
+  if (argValue("--skip-if-low-value", "false") === "true" && !/(复用|lesson|经验|原则|边界|机制|验收|防复发|decision|evidence|risk)/i.test(`${summary}\n${content}`)) {
+    console.log(JSON.stringify({
+      status: "skipped",
+      reason: "low_value"
+    }, null, 2));
+    return;
+  }
 
   const args = [
     path.join(__dirname, "write-knowledge-artifact.js"),
@@ -71,7 +78,7 @@ function main() {
     ...parsed,
     captureNotice: parsed.globalWriteNotice
       ? parsed.globalWriteNotice
-      : `Workspace-local RAVO knowledge written to ${parsed.markdownPath}; user-level global knowledge not written.`
+      : `Workspace-local RAVO knowledge written to ${parsed.markdownPath}.`
   }, null, 2));
 }
 
