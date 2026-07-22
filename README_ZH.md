@@ -1,103 +1,152 @@
 <div align="center">
 
-# RAVO 生命周期治理
+# RAVO
 
-### 面向 Codex Agent 的模块化治理插件
+### 面向产品经理与 Codex 的轻量协作框架
 
 [English](README.md) | 中文
 
 </div>
 
-## 为什么选择 RAVO？
+当前开发版本：`v0.6.2`。版本号只表示产品代码版本，不代表已经验收、可发版或已发布。
 
-AI 编程 Agent 很强，但长程任务经常在固定位置失控：需求过早被接受，根因分析停在症状层，流程复杂度不断膨胀，证据不足却宣称完成，经验教训在会话结束后消失。
+## RAVO 是什么
 
-**RAVO** 为 Codex Agent 提供一层轻量生命周期治理能力。它通过可安装的 skills、hooks、scripts 和共享 artifacts，让 Agent 在开发前先分析、交付前先验证，并把可复用证据沉淀下来，而不是把用户绑进一个大而全框架。
+RAVO 帮助产品经理和 Codex 更快得到正确、可信、可纠偏的结果。它会系统化处理需求、根因、重要方案和交付证据，但不治理 Codex 的每一个步骤，也不要求简单工作套用完整流程。
 
-```text
-R = Reason      需求、方案、根因
-A = Act         任务编排与执行交接
-V = Verify      验收证据与状态门禁
-O = Organize    知识沉淀与复用
+RAVO 以一个 `ravo@ravo` 插件完整安装，内部包含九个按需加载的 Skills。`AGENTS.md` 只负责场景召回和硬边界；具体方法由 Skill 与 Codex 根据任务选择。数据、凭据、权限、外部调用、不可逆操作、发布授权和状态真实性仍是不可绕过的边界。
+
+## 怎么使用
+
+像平常一样使用 Codex，不需要先选择流程，也不用记住模块名。明确的小任务、事实问答、只读检查和低风险本地工作应直接完成；RAVO 未被召回时保持安静。
+
+当任务目标清晰、需要多轮或多个可靠步骤时，Codex 可以在宿主能力可用且获得授权的情况下使用已有 Goal；你不需要手工输入特殊 Goal Prompt。活跃 Goal 中的“继续”会复用当前目标，已经完成、终态阻塞或停放的 Goal 不会因为一句“继续”重复创建；只有出现新的独立目标才重新判断。宿主没有 Goal 能力时，Codex 会正常继续工作，不把它变成阻塞。
+
+面对重要或模糊需求，可以直接说“帮我系统化梳理这个需求”。RAVO 会补齐消费者、场景、痛点、目标、边界、成功标准、非目标、约束和风险，并明确区分已确认事实、合理假设和待决策项。只有会改变产品方向、范围或成功标准的问题才需要你决定，其余缺口会作为可纠正的合理假设继续推进。
+
+当对话中形成明确的新需求、范围外问题或可复用经验时，Codex 会先做最小分析，再显性说明已记录、已合并、已更新、进入 Spec Delta，或为什么无需持久化。你已经明确表达的需求会直接成为 confirmed candidate，不再重复询问“是否是需求”；Codex 推断的内容保持 `needs_triage`。接受、拒绝、延期、重复和理由都保留，但候选版本不会自动变成版本承诺或 Release Slice。
+
+你可以直接问“下一版本候选需求有哪些”。Codex 会从当前 workspace 的结构化 Pool 返回 PM 列表，区分已锁定、候选和待确认，并显示类型、价值、优先级、下一步和责任人；不要求先打开 SoloDesk。普通事实问题、纯脑暴和无复用价值的一次性细节不会触发入池仪式。
+
+遇到 Bug 时，先查清实际原因。稳定、局部、原因确定的问题只给出症状、根因、最小根级修复和一个回归检查；重复、未知、共享机制、高影响、数据、安全或权限问题才展开完整 RCA。简单问题不会因为使用了 RAVO 就变成一份长报告。
+
+验证强度与真实风险、留证成本相称。每项改动仍需做实际检查；简单、局部、可逆、低风险 case 如果专门留证的时间或 Token 成本明显高于价值，可以只说明直接检查结果，不强制生成 Evidence Artifact。复杂、跨模块、高影响、数据、安全、权限、不可逆、验收和发布 case 仍必须有明确可追溯证据。
+
+当你需要判断“是否完成、能否验收、是否可发版”时，使用 RAVO Acceptance。实现完成、自动验证通过、本机可用、PM 已接受、具备发布条件和已经发布是六个不同状态，必须分别由证据支持。
+
+对于非简单任务，RAVO 会在阶段收口时给出一条明确负责人的具体下一步。它不会要求 PM 重复确认既定决策，也不会把范围内安全本地工作重新交回 PM；简单问答和一次性结果不会为了补建议而强行续写。
+
+## 按需 Skills
+
+| Skill | 何时使用 |
+|---|---|
+| `ravo-core` | 直接执行与 Goal 选择、Goal 生命周期、初始化、状态、入池决策、AGENTS、Release Goal Prompt、预检和迁移 |
+| `ravo-requirement-analysis` | 重要或模糊需求需要系统化打磨 |
+| `ravo-root-cause-analysis` | Bug 或失败需要查清实际原因 |
+| `ravo-workstream` | 长程任务需要里程碑、阻塞和续跑证据 |
+| `ravo-quick-validation` | 根据风险和采集成本选择验证与留证强度，用户语言为 RAVO Evidence |
+| `ravo-release-acceptance` | 非简单交付、验收、发版或上线状态判断 |
+| `ravo-knowledge` | 项目历史、决策或经验可能改变当前结果 |
+| `ravo-review` | 重要、高风险或发布敏感方案需要独立对抗式审查 |
+| `ravo-dashboard` | 直接查询下一版本候选，或打开、诊断本机 SoloDesk |
+
+Codex 安装时只发现 Skill 的名称与简短描述，匹配场景或用户明确指定后才读取正文。这里的“按需”是上下文与召回策略，不是权限系统、固定步骤或调用顺序。
+
+## 安装
+
+本仓库使用 `.agents/plugins/marketplace.json` 作为本地 marketplace。在仓库根目录执行：
+
+```bash
+codex plugin marketplace add "$(pwd)"
+codex plugin add ravo@ravo
 ```
 
-## 核心原则
+安装后新建一个 Codex Task，让统一 Skills 和 Hooks 从干净会话加载。
 
-- **第一性原理**：先从目标、真实消费者、约束、事实和机制根因出发，再决定实现路径。
-- **奥卡姆剃刀原理**：优先选择足够简单的流程、artifact 和实现；模块与共享文件足够时，不做中心化调度器。
-- **可证伪性原则**：重要方案和交付结论必须能被挑战。RAVO 通过对抗式审查和证据匹配交付，提前暴露错误假设、验证缺口和不被证据支持的 `验收通过`、`可发版`、`已上线` 结论。
-- **最小惊讶原则**：治理能力应该自然融入交互。用户正常描述需求、问题或验收诉求即可触发能力，不应要求用户日常显式说“调用 RAVO”。
+### 从 v0.5.5 迁移
 
-## 功能特性
+v0.6.2 正式支持从同一 marketplace 的八个 `0.5.5` legacy 插件迁移。先安装统一插件，再预览：
 
-### 需求与方案分析
+```bash
+node plugins/ravo/modules/ravo-core/scripts/ravo-migrate.js --preview
+```
 
-- 识别真实目标、真实消费者、约束、方案选项和验证路径。
-- 中高复杂需求先进入需求共创，补齐背景、现状、场景、消费者、痛点、参考对象和约束，并保留“继续澄清 / 直接进入方案”选择。
-- 对用户可能遗漏的盲区给出判断和建议动作，而不是只提示风险。
-- 区分事实、推断和假设，让方案依据显式可见。
-- 在下结论前，先主动挑战一次首选方案，而不是只做顺向论证。
-- 在需求重要或不清晰时，先做第一性原理分析，再进入实现。
-- 将可复用分析结果写入 `knowledge/.ravo/analysis`。
+确认本机状态符合预期后执行：
 
-### Goal Prompt 方法论
+```bash
+node plugins/ravo/modules/ravo-core/scripts/ravo-migrate.js --apply
+```
 
-大多数人在设置 Goal 模式时，会把大量需求直接塞进一个超长 Prompt。这样会让目标难以审查、难以续跑，也容易被 Agent 在长任务中重新解释。
+apply 会先把八个已安装包复制到本机离线恢复快照，再逐项移除旧插件。中途失败会自动恢复八插件状态；如果自动恢复也失败，结果只提供同一个快照恢复命令。快照不读取或复制 Review Provider 配置，默认保留到 PM 验收完成，本版本不会自动删除。迁移成功后必须新建 Codex Task，旧 Session 不能证明 legacy Hooks 已消失。
 
-RAVO 的设计意图很直接：Goal 模式是为长程自治任务准备的，所以必须先有稳定规格书；Goal Prompt 应该是执行契约，而不是需求容器。
+只读检查统一包：
 
-RAVO 将 Goal Prompt 编写作为一项独立生命周期能力：
+```bash
+node plugins/ravo/modules/ravo-core/scripts/ravo-preflight.js
+```
 
-- 写 Goal Prompt 前，先检查是否已有 decision-complete 规格书。
-- 如果没有规格书，不输出任何可执行 Goal Prompt；按配置生成或请求规格书。
-- 如果已有规格书，还会检查是否存在更新的 alignment draft、candidate requirements、spec delta 或 TODO；未合并时先维护 Spec，不输出可执行 Goal Prompt。
-- 如果已有且最新的规格书，生成短 Goal Prompt，并把规格书作为唯一需求来源。
-- Goal Prompt 只承载执行契约、证据要求、恢复入口和验收边界，不重复堆叠需求细节。
-- 通过 RAVO artifacts 连接规格书、workstream、验证证据和验收结论，让长任务可以续跑和审查。
+## AGENTS.md 召回
 
-### 根因分析
+RAVO 不会静默修改 Codex 全局 `AGENTS.md`。先预览，再按用户明确要求应用：
 
-- 区分现象、近因、机制根因、复发风险、最小修复和验证方式。
-- 至少比较一个合理的竞争性解释，再锁定根因。
-- 避免把“提示词问题”“用户要求”“缺少检查”这类表层原因误当成根因。
-- 复杂或高影响根因分析可以接入 RAVO Review，并把 `full/partial/unavailable` 复核证据写清楚。
+```bash
+node plugins/ravo/modules/ravo-core/scripts/ravo-agents.js
+node plugins/ravo/modules/ravo-core/scripts/ravo-agents.js --apply
+```
 
-### 验收与发布门禁
+marked block 只有七条规则：简单任务与已有 Goal 生命周期、需求与 RCA 分级、按风险选择 Skill 与证据、Release Goal/Spec 和显性入池边界、下一版本候选投影、不可绕过的硬边界与状态真实性，以及非简单任务的一条明确负责人下一步。Skill 拥有结果契约，不垄断固定方法。
 
-- 在交付、验收、发版、上线、ready、done 等结论前检查证据。
-- 将验收证据写入 `knowledge/.ravo/acceptance`。
-- 同时生成面向产品经理的验收文档，包含需求预期、当前实现方案、实现效果、真实响应、截图或替代证据、缺口和风险。
-- prompt-time readiness hook 只是兜底 advisory；主机制应该是 Agent 在给交付结论前主动运行验收检查。
+## Hooks
 
-### 任务编排与 RAVO Evidence
+统一插件只注册：
 
-- 用 milestone、next step、blocker、decision 和 evidence artifacts 跟踪长任务。
-- 每个里程碑后记录 Roadmap Audit，确认剩余 required 项、证据缺口、阻塞和是否需要更新 Spec。
-- worker/subagent evidence 需要说明做了什么、改了什么、学到了什么、证据、阻塞和下一步建议。
-- 将快速 smoke 证据写入 `knowledge/.ravo/quick-validation`。
-- smoke 证据不替代最终验收。
+- `Stop`：只读检查无证据的完成/验收/发布声明，以及回答已明确形成需求、问题、经验或产品决定却遗漏显性处置的情况；两类检查合并为一次决定，同一回合最多续写一次，零 Artifact、零 telemetry、零网络写入。引用、否定、脑暴、机制说明、普通问答和只读列表不触发。
 
-### RAVO Review
+v0.6.2 不注册 `PermissionRequest`、`UserPromptSubmit`、`SessionStart`、`SubagentStart`、`SubagentStop`、`PreToolUse` 或 `PostToolUse`。Requirement、RCA、Review 和 Acceptance 主要通过 Skill description 与 `AGENTS.md` 召回，而不是 Prompt 路由 Hook。
 
-- 通过 `ravo-review` 调用已配置的 Provider/Model 做真实评审。
-- 默认二轮：Round 1 独立评审，Round 2 基于 challenge brief 复审；显式三轮时增加 convergence adjudication。
-- 将对抗式评审覆盖状态写入 `knowledge/.ravo/review`。
-- 明确展示 full、partial、timeout、failure、truncation、retry attempt、challenge brief、issue ledger 和 convergence 状态。
-- 支持 `~/.codex/skill-config/ravo-review.json` 中的 flat config 和 provider-array config。
-- Provider 未配置时明确写入 `coverage=none`，常规任务不强制配置 Provider。
+## Goal 与 Release Goal Prompt
 
-### 知识复用
+普通、清晰的多轮 Codex Goal 不强制要求 Spec；RAVO 复用宿主已有能力，宿主未启动或未授权时不会伪装 Goal 已生效。
 
-- 写入、检索并应用 workspace-local 的事实、决策、经验、原则和证据。
-- 从 Agent 提供的 closeout/session summary 中沉淀可复用经验。
-- 对中高复杂度的规划、架构、评审、验收和长程任务，即使用户没有说“知识”，也会建议先检索 workspace 知识。
-- 如果用户显式启用全局知识，检索会纳入 user scope，并显示 source、sensitivity、applicability 和过期风险；跨项目经验只作为参考。
-- transferable lessons 必须用户 opt-in，并经过脱敏、scope 标注和泄漏检查。
-- 持久知识采用人类可读 Markdown + JSON index，既能让人复盘，也方便 Agent 检索。
+RAVO 的版本交付、Release Slice、验收、上线或发布 Goal Prompt 是更严格的执行契约，生成前必须存在 current、decision-complete 的 Spec；新需求进入 Requirement/Issue Pool 或 Spec Delta，不能静默扩大当前 Release Slice。
 
-### 共享 Artifact 协议
+```bash
+node plugins/ravo/modules/ravo-core/scripts/ravo-goal-prompt.js --workspace "$(pwd)"
+```
 
-RAVO 模块通过 workspace 文件连接，不做中心化 dispatcher：
+## SoloDesk
+
+```bash
+node plugins/ravo/modules/ravo-dashboard/scripts/ravo-solodesk.js open
+```
+
+SoloDesk 只监听 loopback，复用单一用户实例，并只读取显式 allowlist 的 workspace。Dashboard 健康不等于当前功能已经本机可用，仍应以匹配的真实体验或 Acceptance 证据为准。
+
+无需启动 SoloDesk 服务也能读取下一版本候选：
+
+```bash
+node plugins/ravo/modules/ravo-dashboard/scripts/ravo-pool.js --scenario next_version_candidates --workspace "$(pwd)" [--version v0.6.2]
+```
+
+## Review 与知识
+
+Review Provider 配置保存在 `~/.codex/skill-config/ravo-review.json`，示例为 `templates/ravo-review-config.example.json`。外部评审前必须先检查数据边界；Provider 已配置不等于内容已经获准外发。
+
+```bash
+node plugins/ravo/modules/ravo-review/scripts/run-review.js --preview --domain architecture --subject "Review this plan"
+```
+
+原始项目事实和证据默认只写当前 workspace。用户级可迁移知识必须显式 opt-in，并经过脱敏、scope、sensitivity 和 applicability 标注。
+
+v0.6.2 已知限制：RCA、Review 或 smoke 已形成可复用事实后，Codex 仍可能继续解决问题而没有主动写入 RAVO Knowledge。重要经验可以明确要求 Codex 立即记录；尚未验证的方案只能保留为候选，不能写成结论。
+
+```bash
+node plugins/ravo/modules/ravo-knowledge/scripts/retrieve-knowledge.js --query "<task>" --record-use false
+```
+
+## Artifact 协议
+
+内部模块仍通过 workspace 文件连接，不引入中央流程引擎：
 
 ```text
 knowledge/.ravo/
@@ -106,235 +155,29 @@ knowledge/.ravo/
 ├── workstream/
 ├── quick-validation/
 ├── acceptance/
+├── pool/
 ├── knowledge/
 └── review/
 ```
 
-单个模块在技术上可以独立安装。实际使用时，建议先安装 `ravo-core`，并把它视为基础必装模块：它承载共享 manifest、artifact 协议、AGENTS.md 接入和 Goal Prompt 基础能力。RAVO 最推荐的使用方式是安装完整模块集。原始项目事实和证据默认只属于当前 workspace；抽象后的经验和原则只有在脱敏、标注适用边界并经用户明确 opt-in 后，才可以沉淀为用户级可迁移知识。
+Artifact/config/schema 的 `0.5.x` 版本是兼容协议，不随产品版本 `0.6.2` 自动改写。
 
-## 下载安装
-
-当前仓库使用 `.agents/plugins/marketplace.json` 作为本地 marketplace。
-
-在仓库根目录执行：
+## 本地验证
 
 ```bash
-codex plugin marketplace add "$(pwd)"
-codex plugin add ravo-core@ravo
-codex plugin add ravo-analysis@ravo
-codex plugin add ravo-workstream@ravo
-codex plugin add ravo-quick-validation@ravo
-codex plugin add ravo-acceptance@ravo
-codex plugin add ravo-knowledge@ravo
-codex plugin add ravo-review@ravo
-```
-
-`ravo-core` 是推荐的基础安装项。其它模块仍保持模块化，但新用户默认建议全量安装，除非有明确理由只装其中一部分。
-
-安装后新开一个 Codex thread，让 skills 和 hooks 生效。
-
-安装完成后，执行安装的 Agent 应把关键配置位置告诉用户：
-
-- workspace RAVO 配置：`knowledge/.ravo/config.json`；模板：`templates/ravo-config.example.json`。
-- 用户级 RAVO 默认配置：`~/.codex/skill-config/ravo.json`。
-- RAVO Review Provider 配置：`~/.codex/skill-config/ravo-review.json`；模板：`templates/ravo-review-config.example.json`。
-- Codex 全局规则：`~/.codex/AGENTS.md`；必须通过 `ravo-core` 预览和确认后再写入，不能静默修改。
-
-可以用下面的命令检查 RAVO Review，不会输出密钥：
-
-```bash
-node plugins/ravo-review/scripts/run-review.js --domain architecture --subject "Review this plan" --no-stream
-```
-
-默认会执行 `rounds=2`。可以在 `~/.codex/skill-config/ravo-review.json` 里设置 `rounds`，也可以临时传 `--rounds 1`、`--rounds 2` 或 `--rounds 3`。
-
-如果只想先做一次有边界的单模型检查：
-
-```bash
-node plugins/ravo-review/scripts/run-review.js --domain architecture --model "<model-id>" --rounds 1 --timeout-ms 60000 --subject "Review this plan" --no-stream
-```
-
-如果没有配置 Provider，该命令仍会写入 `coverage=none` artifact，让验收环节知道外部评审不可用，而不是误以为已经评审。
-
-可以从 Agent 提供的总结中沉淀 closeout knowledge：
-
-```bash
-node plugins/ravo-knowledge/scripts/capture-knowledge.js --summary "可复用经验" --content "写清楚学到了什么，以及什么时候适用。" --source agent-closeout --applicability "类似后续任务"
-```
-
-默认只写 workspace-local knowledge。用户级可迁移知识必须显式 opt-in，并带 source、sensitivity、applicability 和 redaction metadata。
-
-诊断当前状态：
-
-```bash
-node plugins/ravo-core/scripts/ravo-status.js --workspace "$(pwd)"
-```
-
-报告会展示 manifest 健康度、已安装模块版本、最新 artifacts、配置路径、hook 授权和新会话提醒。
-
-如果是用户已有的 Codex Agent 帮忙安装 RAVO，`AGENTS.md` 接入应作为插件安装后的选择性升级步骤。Agent 必须先读取用户的 Codex 全局 `AGENTS.md`，判断 RAVO 应如何融入现有规则，展示 diff，并等待用户明确批准后再写入。
-
-> [!IMPORTANT]
-> **hooks 信任是 RAVO 产品能力的一部分，不是可忽略细节。**
-> 如果 `SessionStart` / `SubagentStart` / `UserPromptSubmit` 这些 hooks 没有被信任或批准，RAVO 的自然治理能力会明显退化。此时需求分析可能无法稳定自然触发，主动验收也会退化成更弱的 prompt-time 行为。
->
-> 安装或升级后，建议按这个顺序检查：
-> 1. 确认 RAVO hooks 是否已被信任或批准；
-> 2. 如果新增了 hook event，补做对应授权；
-> 3. 新开一个 Codex 会话后再开始测试。
-
-### Hook 授权
-
-Codex 可能会要求用户授权新安装的 plugin hooks。授权按 hook event 生效，所以批准过 `UserPromptSubmit` 不代表后续新增的 `SessionStart` 或 `SubagentStart` 已批准。
-
-宿主不一定总会弹出很显眼的授权提示。安装完成后，如果自然触发看起来没有生效，Agent 应主动提醒用户检查 RAVO hooks 是否已被信任或批准；确认后再新开会话继续验证。
-
-### 升级 RAVO
-
-RAVO 的设计本身支持相对平滑的升级：plugin id 保持稳定（`ravo-core`、`ravo-analysis`、`ravo-workstream`、`ravo-quick-validation`、`ravo-acceptance`、`ravo-knowledge`），共享协议通过 `knowledge/.ravo/manifest.json` 做版本化管理，各模块也可以独立升级。
-
-常见升级流程：
-
-```bash
-git pull
-codex plugin add ravo-core@ravo
-codex plugin add ravo-analysis@ravo
-codex plugin add ravo-workstream@ravo
-codex plugin add ravo-quick-validation@ravo
-codex plugin add ravo-acceptance@ravo
-codex plugin add ravo-knowledge@ravo
-codex plugin add ravo-review@ravo
-```
-
-如果你用的不是当前本地仓库，而是 Git marketplace，需要先刷新 marketplace snapshot：
-
-```bash
-codex plugin marketplace upgrade
-```
-
-每次升级后建议：
-
-- 新开一个 Codex thread，
-- 检查是否新增了需要授权的 hook event，
-- 先跑一条简短 RAVO 测试 prompt，再依赖新版本能力。
-
-## `AGENTS.md` 接入
-
-RAVO 不会静默修改 Codex 全局 `AGENTS.md`。
-
-不同用户的 `AGENTS.md` 结构不同。RAVO snippet 是推荐治理块，不是必须机械插入的固定文本。
-
-推荐边界是：
-
-- `AGENTS.md` 决定 **何时委派**：全局优先级、安全边界、交互风格、数据边界和 fallback 行为。
-- RAVO 决定 **如何执行**：分析结构、验收证据、scripts、schemas、hooks 和 artifacts。
-
-RAVO 将 `analysis`、`workstream`、`RAVO Evidence`（兼容入口仍是 `ravo-quick-validation`）、`acceptance`、`knowledge` 和 `review` 作为可独立安装模块覆盖。小而明确的任务不要求安装全部模块。
-
-### 手动模式
-
-适用于用户自己安装 RAVO，并希望先审阅 Codex 全局 `AGENTS.md` 的推荐规则文本。
-
-```bash
-node plugins/ravo-core/scripts/ravo-agents.js
-node plugins/ravo-core/scripts/ravo-agents.js --apply
-node plugins/ravo-core/scripts/ravo-agents.js --restore <备份路径>
-```
-
-`ravo-agents.js` 默认目标是当前用户主目录下的 Codex 全局 `AGENTS.md`。只有你明确想操作别的文件时，才使用 `--file <path>`。写入时会创建带时间戳的备份，并幂等更新同一个 RAVO 标记块。
-
-### Agent 辅助模式
-
-适用于用户的 Agent 帮忙安装 RAVO 或维护 Codex 环境。
-
-安装 Agent 应该：
-
-- 先读取 Codex 全局 `AGENTS.md`，再提出修改建议。
-- 判断应该新增 RAVO marked block、合并到现有段落，还是因为已有等价规则而不修改。
-- 保留与 RAVO 无关的用户规则，例如语言偏好、SSH 策略、安全边界或项目约定。
-- 只补齐缺失的 RAVO 边界规则：`AGENTS.md` 决定何时委派，RAVO 决定如何执行；简单事实问答不强制套第一性原理结构；RAVO 不可用时必须走明确 fallback。
-- 展示 proposed diff，并说明增量行为变化。
-- 等待用户明确批准后再写入。
-- 写入前创建备份。
-- 绝不静默修改用户规则文件。
-
-如果现有 `AGENTS.md` 已经有强治理规则，优先做最小合并，避免重复插入同义 RAVO 文案。目标是选择性升级，不是再塞一份规则手册。
-
-## 常见问题
-
-<details>
-<summary><strong>用户需要显式调用 RAVO 吗？</strong></summary>
-
-不需要。RAVO 的目标是自然交互。显式 skill 名称适合测试和调试，但普通需求、根因、验收 prompt 应该通过 skill description 和 hooks 自动触发对应能力。
-
-</details>
-
-<details>
-<summary><strong>安装 RAVO 时会同步安装 Grill-me 吗？</strong></summary>
-
-不会。RAVO 不会把 Grill-me 仓库本体作为依赖一起安装。RAVO 借鉴的是它的*分析姿态*，不是把它当作一个外部插件打包进来。
-
-具体来说，RAVO 现在把其中一部分思想写进了自己的 skill 契约里，比如要求分析时显式给出 `Facts`、`Challenge`、`Alternative Hypotheses`，避免停在第一反应和表层解释。
-
-</details>
-
-<details>
-<summary><strong>RAVO 是一个大而全流程引擎吗？</strong></summary>
-
-不是。RAVO 遵循奥卡姆剃刀原理：模块保持独立安装，通过 artifacts 连接。只有当共享 artifacts 不够用时，才考虑中心化调度器。
-
-</details>
-
-<details>
-<summary><strong>RAVO 会自动修改 AGENTS.md 吗？</strong></summary>
-
-不会。RAVO 可以预览并应用 Codex 全局 `AGENTS.md` 的推荐规则块，但用户或安装 Agent 必须先读取现有文件、检查 diff，并确认后再写入。
-
-如果由 Agent 执行安装，应选择最小安全接入方式：
-
-- 已有等价规则时不修改；
-- 现有结构清晰时合并到原有 working-rules 段落；
-- 没有合适结构时才新增带标记的 `RAVO` block。
-
-</details>
-
-<details>
-<summary><strong>RAVO 默认作用于哪个 AGENTS.md？</strong></summary>
-
-默认是当前用户主目录下的 Codex 全局 `AGENTS.md`。只有你明确想操作别的文件时，才使用 `--file <path>`。
-
-</details>
-
-<details>
-<summary><strong>如果没有看到 hooks 授权提示怎么办？</strong></summary>
-
-有些宿主不会弹出很显眼的授权提示。如果安装后自然触发看起来没有生效，就主动检查 RAVO hooks 是否已经被信任或批准；确认后新开一个 Codex 会话，再用几条简短 prompt 复测。
-
-</details>
-
-<details>
-<summary><strong>最短的无上下文手工测试用例在哪里？</strong></summary>
-
-可查看 [docs/quick-test-cases-zh.md](./docs/quick-test-cases-zh.md)。这些 prompt 适合在全新会话里直接测试，而且通常会很快结束。
-
-</details>
-
-## 修改后自检
-
-如果你只是安装和使用 RAVO，不需要运行这些命令。
-
-如果你修改了 RAVO 的代码、文档、skill、hook、schema 或脚本，建议运行：
-
-```bash
+npm test
 node scripts/validate-repo.js
 node scripts/smoke-test.js
 node scripts/prompt-regression.js
+node scripts/ravo-v0.6-architecture-test.js
+node scripts/ravo-v0.6-hook-test.js
+node scripts/ravo-v0.6-migration-test.js
 ```
 
-这些检查用于确认 RAVO 的核心结构、共享 artifact 协议和 prompt 触发回归仍然正常。
+脚本通过只能证明对应自动检查，不等于 PM 已验收、可发版或已经发布。
 
-如果你想用几条完全无上下文、不会跑太久的 prompt 做语义触发试用，可看 [docs/quick-test-cases-zh.md](./docs/quick-test-cases-zh.md)。
+## License
 
-如果你想测试更接近真实开发过程的多轮场景，尤其是 Agent 主动交付治理链路，可看 [docs/runtime-flow-tests-zh.md](./docs/runtime-flow-tests-zh.md)。
+[MIT](LICENSE)
 
-如果你改动了 hooks、验收行为或触发逻辑，不要把这三条脚本命令本身当成“主动运行时链路已经证明”的结论；至少还应补跑一条 runtime flow。
+仓库：https://github.com/Mxturl/RAVO

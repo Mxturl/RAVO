@@ -1,0 +1,118 @@
+{
+  "schemaVersion": "0.5.4",
+  "modules": [
+    {
+      "moduleId": "core",
+      "displayName": "RAVO Core",
+      "scope": "user",
+      "target": "user-ravo",
+      "workspaceTarget": "workspace-ravo",
+      "fields": [
+        { "path": "deliveryProfile", "label": "交付模式", "type": "enum", "default": "rapid", "required": true, "options": ["rapid", "balanced", "strict"], "secret": false, "workspaceAllowed": true, "description": "rapid 默认以最短可信候选周期为目标；更高档位只在 Spec 或风险证据要求时使用。" },
+        { "path": "execution.wallClockBudgetMinutes", "label": "墙钟时间上限（分钟）", "type": "integer", "default": null, "nullable": true, "required": false, "min": 0, "max": 10080, "secret": false, "workspaceAllowed": true, "description": "留空时使用当前交付模式默认值；到达上限后停止新增可选工作并提交真实状态。" },
+        { "path": "execution.governanceBudgetMinutes", "label": "治理软预算（分钟）", "type": "integer", "default": null, "nullable": true, "required": false, "min": 0, "max": 10080, "secret": false, "workspaceAllowed": true, "description": "留空时使用当前交付模式默认值；安全和 Spec 明确要求不受此软预算跳过。" },
+        { "path": "execution.reviewRunBudget", "label": "可选 Review 次数", "type": "integer", "default": null, "nullable": true, "required": false, "min": 0, "max": 10, "secret": false, "workspaceAllowed": true, "description": "留空时使用当前交付模式默认值；Spec 或安全要求的 Review 仍可覆盖。" },
+        { "path": "execution.evidencePassBudget", "label": "同基线证据轮次", "type": "integer", "default": null, "nullable": true, "required": false, "min": 0, "max": 10, "secret": false, "workspaceAllowed": true, "description": "留空时使用当前交付模式默认值，避免相同基线反复重建证据包。" },
+        { "path": "execution.subagentSpawnBudget", "label": "子 Agent 启动预算", "type": "integer", "default": null, "nullable": true, "required": false, "min": 0, "max": 10, "secret": false, "workspaceAllowed": true, "description": "只用于边界清晰、状态隔离且预计缩短时间的任务。" },
+        { "path": "execution.blockerAttemptBudget", "label": "阻塞尝试预算", "type": "integer", "default": null, "nullable": true, "required": false, "min": 0, "max": 10, "secret": false, "workspaceAllowed": true, "description": "相同 blocker fingerprint 达到预算后停放，等待恢复条件变化。" },
+        { "path": "execution.modelEscalationBudget", "label": "模型升级次数", "type": "integer", "default": null, "nullable": true, "required": false, "min": 0, "max": 10, "secret": false, "workspaceAllowed": true, "description": "单个子任务在失败或风险证据出现后最多提升的模型或推理档位次数。" },
+        { "path": "capabilityRouting.enabled", "label": "启用能力档位路由", "type": "boolean", "default": true, "required": true, "secret": false, "workspaceAllowed": true, "description": "按任务类别建议可替换的模型和推理档位；Runtime 不支持强制参数时会明确标记为 advisory_only。" },
+        { "path": "capabilityRouting.tiers", "label": "能力档位", "type": "object-list", "default": [{ "id": "economy", "model": "gpt-5.6-luna", "reasoningEffort": "medium" }, { "id": "standard", "model": "gpt-5.6-terra", "reasoningEffort": "medium" }, { "id": "advanced", "model": "gpt-5.6-sol", "reasoningEffort": "high" }], "required": true, "secret": false, "workspaceAllowed": true, "description": "JSON 数组。档位 ID 稳定，具体模型可替换；不把模型名写死为永久角色。" },
+        { "path": "capabilityRouting.taskRoutes", "label": "任务档位映射", "type": "object-list", "default": [{ "taskClass": "retrieval", "tier": "economy" }, { "taskClass": "summarization", "tier": "economy" }, { "taskClass": "routine_test", "tier": "economy" }, { "taskClass": "mechanical_edit", "tier": "economy" }, { "taskClass": "cross_module_implementation", "tier": "standard" }], "required": true, "secret": false, "workspaceAllowed": true, "description": "JSON 数组。架构、安全、发布和验收判断由主 Agent 或 advanced 档位保留。" },
+        { "path": "goalPrompt.missingSpecPolicy", "label": "缺失 Spec 时", "type": "enum", "default": "auto_spec", "required": true, "options": ["auto_spec", "ask_to_generate_spec", "inline_goal_prompt"], "secret": false, "workspaceAllowed": true, "description": "Goal Prompt 缺少 decision-complete Spec 时的处理策略。" },
+        { "path": "spec.alignmentDraftPolicy", "label": "需求对齐文档", "type": "enum", "default": "required", "required": true, "options": ["required", "conditional", "disabled"], "secret": false, "workspaceAllowed": true, "description": "正式 Spec 前是否要求需求对齐文档。" },
+        { "path": "hooks.showTrustReminder", "label": "Hook 信任提醒", "type": "boolean", "default": true, "required": true, "secret": false, "workspaceAllowed": false, "description": "安装或升级后是否显示 Hook 信任与 fresh Session 提醒。" }
+      ]
+    },
+    {
+      "moduleId": "analysis",
+      "displayName": "RAVO Analysis",
+      "scope": "user",
+      "target": "user-ravo",
+      "fields": []
+    },
+    {
+      "moduleId": "workstream",
+      "displayName": "RAVO Workstream",
+      "scope": "user",
+      "target": "user-ravo",
+      "fields": []
+    },
+    {
+      "moduleId": "evidence",
+      "displayName": "RAVO Evidence",
+      "scope": "user",
+      "target": "user-ravo",
+      "fields": []
+    },
+    {
+      "moduleId": "acceptance",
+      "displayName": "RAVO Acceptance",
+      "scope": "user",
+      "target": "user-ravo",
+      "workspaceTarget": "workspace-ravo",
+      "fields": [
+        { "path": "acceptance.securityBaseline.enabled", "label": "安全基线", "type": "boolean", "default": true, "required": true, "secret": false, "workspaceAllowed": true, "description": "accepted/release_ready 前要求完整安全证据。" },
+        { "path": "acceptance.requireRealE2EForRelease", "label": "发版要求真实 E2E", "type": "boolean", "default": true, "required": true, "secret": false, "workspaceAllowed": true, "description": "发版结论不能只依赖脚本或 fake evidence。" }
+      ]
+    },
+    {
+      "moduleId": "knowledge",
+      "displayName": "RAVO Knowledge",
+      "scope": "user",
+      "target": "user-ravo",
+      "workspaceTarget": "workspace-ravo",
+      "fields": [
+        { "path": "globalKnowledge.enabled", "label": "用户级全局知识", "type": "boolean", "default": false, "required": true, "secret": false, "workspaceAllowed": true, "description": "允许在数据边界内检索和写入可迁移的用户级知识。" },
+        { "path": "globalKnowledge.path", "label": "全局知识目录", "type": "string", "default": "~/.codex/ravo/knowledge", "required": true, "secret": false, "workspaceAllowed": false, "description": "固定用户级知识目录。SoloDesk 不接受任意路径 override。" },
+        { "path": "globalKnowledge.requireRedaction", "label": "写入前脱敏", "type": "boolean", "default": true, "required": true, "secret": false, "workspaceAllowed": true, "description": "用户级知识写入前执行脱敏和泄漏检查。" }
+      ]
+    },
+    {
+      "moduleId": "dashboard",
+      "displayName": "RAVO SoloDesk",
+      "scope": "user",
+      "target": "user-ravo",
+      "fields": [
+        { "path": "dashboard.enabled", "label": "启用 SoloDesk", "type": "boolean", "default": true, "required": true, "secret": false, "description": "是否启用本地 SoloDesk。" },
+        { "path": "dashboard.startupMode", "label": "启动方式", "type": "enum", "default": "on_demand", "required": true, "options": ["on_demand", "login"], "secret": false, "description": "默认按需启动；切换为 login 后在用户登录时启动。保存后由稳定 controller 重配 LaunchAgent。" },
+        { "path": "dashboard.workspaceRoots", "label": "Workspace Roots", "type": "string-array", "default": [], "required": true, "secret": false, "description": "只扫描这些 allowlist root 本身和直接子目录。" },
+        { "path": "dashboard.workspaceOverrides", "label": "Workspace 偏好", "type": "object-list", "default": {}, "required": true, "secret": false, "description": "按 canonical workspace path 保存显示名、优先级和生命周期。" },
+        { "path": "dashboard.port", "label": "端口", "type": "integer", "default": 4317, "required": true, "min": 1024, "max": 65535, "secret": false, "description": "默认 loopback 监听端口；占用时使用下一个可用端口。" },
+        { "path": "dashboard.staleAfterDays", "label": "停滞天数", "type": "integer", "default": 7, "required": true, "min": 1, "max": 365, "secret": false, "description": "工作区活跃度 stale 阈值。" },
+        { "path": "dashboard.refreshSeconds", "label": "刷新周期", "type": "integer", "default": 60, "required": true, "min": 5, "max": 3600, "secret": false, "description": "内存索引刷新周期。" },
+        { "path": "dashboard.artifactLimitPerWorkspace", "label": "Artifact 上限", "type": "integer", "default": 500, "required": true, "min": 10, "max": 5000, "secret": false, "description": "每个 workspace 默认索引的最新 artifact 数量上限。" },
+        { "path": "dashboard.showPromptSnippets", "label": "显示 Prompt 摘要", "type": "boolean", "default": false, "required": true, "secret": false, "description": "默认关闭，避免读取完整用户 Prompt。" },
+        { "path": "dashboard.includeGitStatus", "label": "读取 Git 状态", "type": "boolean", "default": false, "required": true, "secret": false, "description": "显式启用后才读取 allowlist workspace 的 Git 状态。" },
+        { "path": "dashboard.configIntegrity.enabled", "label": "配置完整性保护", "type": "boolean", "default": true, "required": true, "secret": false, "description": "允许检查和显式修复 Codex marketplace、plugin 与 Hook 注册。" },
+        { "path": "dashboard.configIntegrity.preserveExternalRegistrations", "label": "默认保全第三方注册", "type": "boolean", "default": false, "required": true, "secret": false, "description": "安全默认关闭；第三方 marketplace/plugin/Hook 仍需在 repair preview 中逐项选择。" },
+        { "path": "dashboard.configIntegrity.maxSnapshots", "label": "配置快照上限", "type": "integer", "default": 5, "required": true, "min": 1, "max": 20, "secret": false, "description": "保留的用户级 config-integrity known-good snapshot 数量。" }
+      ]
+    },
+    {
+      "moduleId": "review",
+      "displayName": "RAVO Review",
+      "scope": "user",
+      "target": "review",
+      "fields": [
+        { "path": "rounds", "label": "评审轮次", "type": "integer", "default": 2, "required": true, "min": 1, "max": 3, "secret": false, "description": "独立评审、挑战复审和可选收敛轮次。" },
+        { "path": "requiredModelCount", "label": "必需模型数", "type": "integer", "default": 1, "required": true, "min": 1, "max": 100, "secret": false, "description": "full workflow coverage 至少需要的 primary model 数。" },
+        { "path": "fallbackPairs", "label": "Fallback Pair", "type": "string-array", "default": [], "required": true, "secret": false, "description": "必须在调用预览中明确列出的 provider/model fallback。" },
+        { "path": "retry.maxAttempts", "label": "最大尝试次数", "type": "integer", "default": 2, "required": true, "min": 1, "max": 10, "secret": false, "description": "transport 与 semantic retry 共用的单 pair/round attempt budget。" },
+        { "path": "retry.baseDelayMs", "label": "基础退避", "type": "integer", "default": 1000, "required": true, "min": 0, "max": 300000, "secret": false, "description": "真实等待的指数退避起点。" },
+        { "path": "retry.maxDelayMs", "label": "最大退避", "type": "integer", "default": 8000, "required": true, "min": 0, "max": 900000, "secret": false, "description": "单次 retry 的最大真实等待时间。" },
+        { "path": "retry.retryableStatusCodes", "label": "可重试状态码", "type": "string-array", "default": ["429", "502", "503", "504"], "required": true, "secret": false, "description": "只允许 429/502/503/504。" },
+        { "path": "maxTokensMode", "label": "输出预算模式", "type": "enum", "options": ["auto", "fixed"], "default": "auto", "required": true, "secret": false, "description": "auto 首次请求省略 token 上限；fixed 使用明确数字。" },
+        { "path": "maxTokens", "label": "固定输出 Token", "type": "integer", "default": null, "required": false, "min": 1, "max": 2000000, "secret": false, "description": "仅 fixed 模式生效；已有 numeric 值在没有 mode 时继续解释为 fixed。" },
+        { "path": "autoFallbackMaxTokens", "label": "Auto 补偿 Token", "type": "integer", "default": 48000, "required": true, "min": 0, "max": 2000000, "secret": false, "description": "auto 截断或 Provider 强制要求字段时，在剩余 attempt 内使用；0 表示禁用补偿。" },
+        { "path": "stream", "label": "流式响应", "type": "boolean", "default": true, "required": true, "secret": false, "description": "Provider 支持时使用 SSE。" },
+        { "path": "timeoutMs", "label": "总超时", "type": "integer", "default": 900000, "required": true, "min": 1, "max": 3600000, "secret": false, "description": "每次 Provider attempt 的硬上限。" },
+        { "path": "firstEventTimeoutMs", "label": "首事件超时", "type": "integer", "default": 120000, "required": true, "min": 0, "max": 3600000, "secret": false, "description": "正式 Review 统一等待首个 SSE data event 的最低阈值。" },
+        { "path": "firstContentTimeoutMs", "label": "首正文超时", "type": "integer", "default": 300000, "required": true, "min": 0, "max": 3600000, "secret": false, "description": "正式 Review 统一等待首个可见正文的最低阈值；reasoning-only 不算正文。" },
+        { "path": "idleTimeoutMs", "label": "空闲超时", "type": "integer", "default": 180000, "required": true, "min": 0, "max": 3600000, "secret": false, "description": "正式 Review 统一 substantive event 间的空闲上限。" },
+        { "path": "enableReasoningParams", "label": "Reasoning 参数", "type": "boolean", "default": false, "required": true, "secret": false, "description": "仅在 Provider 明确支持时发送 reasoning hint。" },
+        { "path": "providers", "label": "Provider 与 Model", "type": "object-list", "default": [], "required": true, "secret": false, "description": "Provider 列表；apiKey 子字段必须使用 keep/replace/clear 动作。" }
+      ]
+    }
+  ]
+}

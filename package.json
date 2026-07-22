@@ -1,0 +1,17 @@
+{
+  "name": "ravo-codex-plugin",
+  "version": "0.6.2",
+  "private": true,
+  "description": "A lightweight collaboration framework for product work with Codex.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Mxturl/RAVO.git"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node scripts/run-tracked-suite.js"
+  }
+}

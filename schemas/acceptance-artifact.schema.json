@@ -3,50 +3,267 @@
   "$id": "https://ravo.dev/schemas/acceptance-artifact.schema.json",
   "title": "RAVO Acceptance Artifact",
   "type": "object",
-  "required": ["schemaVersion", "id", "status", "evidenceLevel", "createdAt"],
+  "required": [
+    "schemaVersion",
+    "id",
+    "status",
+    "statusCeiling",
+    "evidenceLevel",
+    "summary",
+    "createdAt",
+    "acceptanceItems",
+    "codexVerificationItemIds",
+    "pmChecklistItemIds",
+    "pmChecklistRef",
+    "sourceRefs",
+    "securityChecklist",
+    "nextStep"
+  ],
+  "$defs": {
+    "verificationTask": {
+      "type": "object",
+      "required": [
+        "id",
+        "claim",
+        "reason",
+        "owner",
+        "preconditions",
+        "steps",
+        "expectedResult",
+        "evidenceRequired",
+        "failureAction",
+        "blocking"
+      ],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "claim": { "type": "string", "minLength": 1 },
+        "reason": { "type": "string", "minLength": 1 },
+        "owner": { "enum": ["codex", "pm", "shared", "external"] },
+        "preconditions": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "expectedResult": { "type": "string", "minLength": 1 },
+        "evidenceRequired": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "failureAction": { "type": "string", "minLength": 1 },
+        "blocking": { "type": "boolean" }
+      },
+      "additionalProperties": true
+    },
+    "acceptanceItem": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "required",
+        "expected",
+        "implementation",
+        "effect",
+        "fulfillmentStatus",
+        "verificationStatus",
+        "verificationOwner",
+        "verificationReason",
+        "verificationTasks",
+        "sourceRefs",
+        "risk",
+        "boundary",
+        "blockingReason",
+        "blockerImpact",
+        "temporaryFallback",
+        "recoveryEntry"
+      ],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "required": { "type": "boolean" },
+        "expected": { "type": "string", "minLength": 1 },
+        "implementation": { "type": "string", "minLength": 1 },
+        "effect": { "type": "string", "minLength": 1 },
+        "fulfillmentStatus": { "enum": ["met", "partial", "not_met", "not_applicable", "unknown"] },
+        "verificationStatus": { "enum": ["verified", "pending_codex", "pending_pm", "blocked", "pending_classification"] },
+        "verificationOwner": { "enum": ["codex", "pm", "shared", "external"] },
+        "verificationReason": { "type": "string" },
+        "verificationTasks": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/verificationTask" }
+        },
+        "sourceRefs": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "risk": { "type": "string" },
+        "boundary": { "type": "string" },
+        "blockingReason": { "type": "string" },
+        "blockerImpact": { "type": "string" },
+        "temporaryFallback": { "type": "string" },
+        "recoveryEntry": { "type": "string" },
+        "dependencyImpact": { "type": "string" },
+        "blockerExecutionStatus": { "enum": ["parked", "blocked_external", "blocked_terminal"] },
+        "externalBlockerSpecRef": { "type": "string" },
+        "externalBlockerSpecAnchor": { "type": "string" },
+        "externalBlockerDecision": { "enum": ["pending_pm", "accepted", "rejected"] },
+        "externalBlockerDecisionRef": { "type": "string" }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": ["required", "verificationStatus"],
+            "properties": {
+              "required": { "const": true },
+              "verificationStatus": { "not": { "const": "verified" } }
+            }
+          },
+          "then": {
+            "properties": {
+              "verificationTasks": { "minItems": 1 }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": ["verificationStatus"],
+            "properties": { "verificationStatus": { "const": "blocked" } }
+          },
+          "then": {
+            "properties": {
+              "blockingReason": { "minLength": 1 },
+              "blockerImpact": { "minLength": 1 },
+              "temporaryFallback": { "minLength": 1 },
+              "recoveryEntry": { "minLength": 1 }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": ["blockerExecutionStatus"],
+            "properties": { "blockerExecutionStatus": { "const": "blocked_external" } }
+          },
+          "then": {
+            "required": ["externalBlockerSpecRef", "externalBlockerSpecAnchor", "externalBlockerDecision"],
+            "properties": {
+              "verificationStatus": { "const": "blocked" },
+              "verificationOwner": { "const": "external" },
+              "externalBlockerSpecRef": { "minLength": 1 },
+              "externalBlockerSpecAnchor": { "minLength": 1 }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": ["externalBlockerDecision"],
+            "properties": { "externalBlockerDecision": { "const": "accepted" } }
+          },
+          "then": {
+            "required": ["externalBlockerDecisionRef"],
+            "properties": { "externalBlockerDecisionRef": { "minLength": 1 } }
+          }
+        }
+      ],
+      "additionalProperties": true
+    }
+  },
   "properties": {
-    "schemaVersion": {
-      "type": "string"
+    "schemaVersion": { "type": "string" },
+    "id": { "type": "string", "minLength": 1 },
+    "status": { "enum": ["in_progress", "code_complete", "pending_acceptance", "accepted", "release_ready", "not_ready"] },
+    "statusCeiling": { "enum": ["not_ready", "code_complete", "pending_acceptance", "accepted"] },
+    "evidenceLevel": { "enum": ["none", "notes", "script", "api", "smoke", "real_e2e", "full_external_review", "partial_external_review"] },
+    "audience": { "enum": ["product_manager", "engineering"] },
+    "technicalDetailLevel": { "type": "integer", "minimum": 1, "maximum": 5 },
+    "outputMode": { "enum": ["product", "balanced", "engineering"] },
+    "pmPresentationVersion": { "type": "integer", "minimum": 1 },
+    "summary": { "type": "string", "minLength": 1 },
+    "pmSummary": { "type": "string" },
+    "createdAt": { "type": "string", "minLength": 1 },
+    "subjectRef": { "type": "string" },
+    "acceptanceScope": { "enum": ["milestone", "release"] },
+    "milestoneRef": { "type": "string" },
+    "baselineRef": { "type": "string" },
+    "specRef": { "type": "string" },
+    "releaseRef": { "type": "string" },
+    "analysisArtifact": { "type": "string" },
+    "workstreamArtifact": { "type": "string" },
+    "quickValidationArtifact": { "type": "string" },
+    "reviewArtifact": { "type": "string" },
+    "knowledgeArtifact": { "type": "string" },
+    "gitBaselineArtifact": { "type": "string" },
+    "gitBaselineStatus": { "type": "string" },
+    "gitBaselineRequired": { "type": "boolean" },
+    "gitBaselineSummary": { "type": "object", "additionalProperties": true },
+    "pmDecision": {
+      "type": ["object", "null"],
+      "required": ["verdict", "decisionText", "sourceRef", "subjectRef", "baselineRef", "decidedAt", "actor"],
+      "properties": {
+        "verdict": { "enum": ["accepted", "rejected"] },
+        "decisionText": { "type": "string", "minLength": 1 },
+        "sourceRef": { "type": "string", "pattern": "^conversation:[^#\\s]+#[^#\\s]+$" },
+        "subjectRef": { "type": "string", "minLength": 1 },
+        "baselineRef": { "type": "string", "minLength": 1 },
+        "decidedAt": { "type": "string", "format": "date-time" },
+        "actor": { "const": "pm" }
+      },
+      "additionalProperties": true
     },
-    "id": {
-      "type": "string"
-    },
-    "status": {
-      "enum": ["in_progress", "code_complete", "pending_acceptance", "accepted", "release_ready", "not_ready"]
-    },
-    "evidenceLevel": {
-      "enum": ["none", "notes", "script", "api", "smoke", "real_e2e", "full_external_review", "partial_external_review"]
-    },
-    "summary": {
-      "type": "string"
-    },
-    "analysisArtifact": {
-      "type": "string"
-    },
-    "evidence": {
+    "pmDecisionRequired": { "type": "boolean" },
+    "sourceRefs": { "type": "array", "items": { "type": "string" } },
+    "evidence": { "type": "array", "items": { "type": "string" } },
+    "knownGaps": { "type": "array", "items": { "type": "string" } },
+    "pmGaps": { "type": "array", "items": { "type": "string" } },
+    "pmChecklistRef": { "type": "string", "minLength": 1 },
+    "realResponseRefs": { "type": "array", "items": { "type": "string" } },
+    "screenshotRefs": { "type": "array", "items": { "type": "string" } },
+    "dataEvidenceRefs": { "type": "array", "items": { "type": "string" } },
+    "acceptanceItems": {
       "type": "array",
-      "items": {
-        "type": "string"
-      }
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/acceptanceItem" }
     },
-    "knownGaps": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
+    "codexVerificationItemIds": { "type": "array", "items": { "type": "string" } },
+    "pmChecklistItemIds": { "type": "array", "items": { "type": "string" } },
+    "unmetItems": { "type": "array", "items": { "type": "string" } },
+    "notApplicableEvidence": { "type": "array", "items": { "type": "string" } },
     "securityChecklist": {
       "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "uniqueItems": true,
       "items": {
         "type": "object",
         "required": ["id", "status"],
         "properties": {
-          "id": { "type": "string" },
+          "id": { "enum": ["data_privacy", "credentials", "permissions", "destructive_actions", "external_calls", "dependencies", "logs_artifacts", "global_knowledge"] },
           "status": { "enum": ["pass", "unknown", "fail"] }
         },
         "additionalProperties": true
       }
-    }
+    },
+    "nextStep": { "type": "string", "minLength": 1 }
   },
+  "allOf": [
+    {
+      "if": { "properties": { "schemaVersion": { "const": "0.5.1" } }, "required": ["schemaVersion"] },
+      "then": { "required": ["acceptanceScope"] }
+    },
+    {
+      "if": { "properties": { "acceptanceScope": { "const": "milestone" } }, "required": ["acceptanceScope"] },
+      "then": {
+        "required": ["milestoneRef", "baselineRef"],
+        "properties": {
+          "milestoneRef": { "minLength": 1 },
+          "baselineRef": { "minLength": 1 },
+          "status": { "enum": ["in_progress", "code_complete", "pending_acceptance", "not_ready"] }
+        }
+      }
+    }
+  ],
   "additionalProperties": true
 }

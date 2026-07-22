@@ -3,86 +3,99 @@
   "$id": "https://ravo.dev/schemas/analysis-artifact.schema.json",
   "title": "RAVO Analysis Artifact",
   "type": "object",
-  "required": ["schemaVersion", "id", "type", "status", "title", "createdAt", "derivedConclusion"],
+  "required": [
+    "schemaVersion",
+    "id",
+    "type",
+    "status",
+    "title",
+    "createdAt",
+    "impactLevel",
+    "reviewRequired",
+    "reviewEvidence",
+    "reviewBlocker",
+    "derivedConclusion"
+  ],
+  "$defs": {
+    "nonEmptyStringArray": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "blindSpot": {
+      "type": "object",
+      "required": ["title", "basis", "impact", "suggestedAction", "specUpdateRequired"],
+      "properties": {
+        "title": { "type": "string", "minLength": 1 },
+        "basis": { "enum": ["fact", "inference", "assumption", "needs_validation"] },
+        "impact": { "enum": ["high", "medium", "low"] },
+        "suggestedAction": { "enum": ["clarify", "proceed_as_assumption", "mark_out_of_scope", "split_milestone", "run_review", "update_spec"] },
+        "specUpdateRequired": { "type": "boolean" }
+      },
+      "additionalProperties": true
+    }
+  },
   "properties": {
-    "schemaVersion": {
-      "type": "string"
-    },
-    "id": {
-      "type": "string"
-    },
-    "type": {
-      "enum": ["requirement", "root-cause", "solution"]
-    },
-    "status": {
-      "enum": ["draft", "complete"]
-    },
-    "title": {
-      "type": "string"
-    },
-    "goal": {
-      "type": "string"
-    },
-    "constraints": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "facts": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "challenge": {
-      "type": "string"
-    },
-    "whyChain": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "alternativeHypotheses": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
+    "schemaVersion": { "type": "string" },
+    "id": { "type": "string", "minLength": 1 },
+    "type": { "enum": ["requirement", "root-cause", "solution"] },
+    "status": { "enum": ["draft", "complete"] },
+    "title": { "type": "string", "minLength": 1 },
+    "createdAt": { "type": "string", "minLength": 1 },
+    "impactLevel": { "enum": ["low", "medium", "high"] },
+    "reviewRequired": { "type": "boolean" },
+    "relatedArtifact": { "type": "string" },
+    "subjectRef": { "type": "string" },
+    "sourceRefs": { "type": "array", "items": { "type": "string" } },
+    "goal": { "type": "string" },
+    "consumer": { "type": "string" },
+    "constraints": { "type": "array", "items": { "type": "string" } },
+    "facts": { "type": "array", "items": { "type": "string" } },
+    "options": { "type": "array", "items": { "type": "string" } },
+    "challenge": { "type": "string" },
+    "whyChain": { "type": "array", "items": { "type": "string" } },
+    "alternativeHypotheses": { "type": "array", "items": { "type": "string" } },
     "rootCause": {
       "type": "object",
+      "required": ["symptom", "proximateCause", "mechanismRootCause"],
       "properties": {
-        "symptom": {
-          "type": "string"
-        },
-        "proximateCause": {
-          "type": "string"
-        },
-        "mechanismRootCause": {
-          "type": "string"
-        }
+        "symptom": { "type": "string" },
+        "proximateCause": { "type": "string" },
+        "mechanismRootCause": { "type": "string" }
       },
       "additionalProperties": true
     },
-    "derivedConclusion": {
-      "type": "string"
-    },
-    "risks": {
+    "boundary": { "type": "string" },
+    "smallestFix": { "type": "string" },
+    "verification": { "type": "array", "items": { "type": "string" } },
+    "analysisMode": { "type": "string" },
+    "clarificationStatus": { "type": "string" },
+    "openQuestions": { "type": "array", "items": { "type": "string" } },
+    "assumptions": { "type": "array", "items": { "type": "string" } },
+    "coCreationDecision": { "type": "string" },
+    "blindSpotFindings": {
       "type": "array",
-      "items": {
-        "type": "string"
-      }
+      "items": { "$ref": "#/$defs/blindSpot" }
     },
-    "nextActions": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    }
+    "validation": { "type": "array", "items": { "type": "string" } },
+    "reviewEvidence": { "enum": ["not_required", "partial", "full", "blocked"] },
+    "reviewArtifact": { "type": "string" },
+    "reviewRunId": { "type": "string" },
+    "reviewBlocker": {
+      "type": "object",
+      "required": ["blockingReason", "blockerImpact", "temporaryFallback", "recoveryEntry"],
+      "properties": {
+        "blockingReason": { "type": "string" },
+        "blockerImpact": { "type": "string" },
+        "temporaryFallback": { "type": "string" },
+        "recoveryEntry": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "derivedConclusion": { "type": "string" },
+    "risks": { "type": "array", "items": { "type": "string" } },
+    "nextActions": { "type": "array", "items": { "type": "string" } }
   },
-  "additionalProperties": true
-  ,
   "allOf": [
     {
       "if": {
@@ -93,22 +106,36 @@
         }
       },
       "then": {
-        "required": ["facts", "challenge", "derivedConclusion"],
+        "required": ["goal", "consumer", "constraints", "facts", "options", "assumptions", "challenge", "blindSpotFindings", "validation", "risks", "nextActions", "derivedConclusion"],
         "properties": {
-          "facts": {
-            "type": "array",
-            "minItems": 1,
-            "items": { "type": "string", "minLength": 1 }
-          },
-          "challenge": {
-            "type": "string",
-            "minLength": 1
-          },
-          "derivedConclusion": {
-            "type": "string",
-            "minLength": 1
-          }
+          "goal": { "type": "string", "minLength": 1 },
+          "consumer": { "type": "string", "minLength": 1 },
+          "constraints": { "$ref": "#/$defs/nonEmptyStringArray" },
+          "facts": { "$ref": "#/$defs/nonEmptyStringArray" },
+          "options": { "$ref": "#/$defs/nonEmptyStringArray" },
+          "assumptions": { "$ref": "#/$defs/nonEmptyStringArray" },
+          "challenge": { "type": "string", "minLength": 1 },
+          "blindSpotFindings": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/blindSpot" } },
+          "validation": { "$ref": "#/$defs/nonEmptyStringArray" },
+          "risks": { "$ref": "#/$defs/nonEmptyStringArray" },
+          "nextActions": { "$ref": "#/$defs/nonEmptyStringArray" },
+          "derivedConclusion": { "type": "string", "minLength": 1 }
         }
+      }
+    },
+    {
+      "if": {
+        "required": ["status", "reviewEvidence"],
+        "properties": {
+          "status": { "const": "complete" },
+          "reviewEvidence": { "enum": ["partial", "full"] }
+        }
+      },
+      "then": {
+        "allOf": [
+          { "anyOf": [{ "required": ["reviewArtifact"] }, { "required": ["reviewRunId"] }] },
+          { "anyOf": [{ "required": ["subjectRef"] }, { "required": ["relatedArtifact"] }] }
+        ]
       }
     },
     {
@@ -120,7 +147,7 @@
         }
       },
       "then": {
-        "required": ["rootCause", "alternativeHypotheses", "whyChain", "derivedConclusion"],
+        "required": ["rootCause", "alternativeHypotheses", "whyChain", "boundary", "smallestFix", "verification", "derivedConclusion"],
         "properties": {
           "rootCause": {
             "type": "object",
@@ -131,22 +158,51 @@
               "mechanismRootCause": { "type": "string", "minLength": 1 }
             }
           },
-          "alternativeHypotheses": {
-            "type": "array",
-            "minItems": 1,
-            "items": { "type": "string", "minLength": 1 }
-          },
-          "whyChain": {
-            "type": "array",
-            "minItems": 1,
-            "items": { "type": "string", "minLength": 1 }
-          },
-          "derivedConclusion": {
-            "type": "string",
-            "minLength": 1
+          "alternativeHypotheses": { "$ref": "#/$defs/nonEmptyStringArray" },
+          "whyChain": { "$ref": "#/$defs/nonEmptyStringArray" },
+          "boundary": { "type": "string", "minLength": 1 },
+          "smallestFix": { "type": "string", "minLength": 1 },
+          "verification": { "$ref": "#/$defs/nonEmptyStringArray" },
+          "derivedConclusion": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    {
+      "if": {
+        "allOf": [
+          { "required": ["status"], "properties": { "status": { "const": "complete" } } },
+          {
+            "anyOf": [
+              { "required": ["impactLevel"], "properties": { "impactLevel": { "const": "high" } } },
+              { "required": ["reviewRequired"], "properties": { "reviewRequired": { "const": true } } }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "properties": {
+          "reviewEvidence": { "enum": ["partial", "full", "blocked"] }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": ["reviewEvidence"],
+        "properties": { "reviewEvidence": { "const": "blocked" } }
+      },
+      "then": {
+        "properties": {
+          "reviewBlocker": {
+            "properties": {
+              "blockingReason": { "minLength": 1 },
+              "blockerImpact": { "minLength": 1 },
+              "temporaryFallback": { "minLength": 1 },
+              "recoveryEntry": { "minLength": 1 }
+            }
           }
         }
       }
     }
-  ]
+  ],
+  "additionalProperties": true
 }

@@ -3,3 +3,4 @@ node_modules/
 *.log
 knowledge/.ravo/
 *.ravo-bak-*
+.tmp/

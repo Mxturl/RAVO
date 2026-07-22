@@ -1,0 +1,20 @@
+{
+  "name": "ravo-workstream",
+  "version": "0.6.2",
+  "description": "Milestone, blocker, next-step, and evidence-index artifacts for long-running RAVO work.",
+  "author": {
+    "name": "RAVO contributors"
+  },
+  "license": "MIT",
+  "keywords": ["ravo", "workstream", "milestone", "goal"],
+  "interface": {
+    "displayName": "RAVO Workstream",
+    "shortDescription": "Coordinate long-running work.",
+    "longDescription": "RAVO Workstream records milestones, next steps, blockers, decisions, and evidence references for long-running Codex work without becoming a scheduler.",
+    "developerName": "RAVO contributors",
+    "category": "Developer Tools",
+    "capabilities": ["Skills", "Hooks", "Workspace artifacts"],
+    "brandColor": "#D97706",
+    "defaultPrompt": "Create or update a RAVO workstream."
+  }
+}

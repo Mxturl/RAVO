@@ -1,6 +1,51 @@
 {
-  "schemaVersion": "0.3.1",
-  "technicalDetailLevel": 3,
+  "schemaVersion": "0.5.4",
+  "deliveryProfile": "rapid",
+  "requestRouting": {
+    "enabled": true,
+    "budgets": {
+      "quick_answer": {
+        "wallClockMinutes": 10,
+        "evidenceAcquisitions": 5,
+        "directEvidence": 3,
+        "officialSources": 1,
+        "modelSteps": 4,
+        "contextCharacters": 40000
+      },
+      "focused_diagnosis": {
+        "wallClockMinutes": 30,
+        "evidenceAcquisitions": 12,
+        "directEvidence": 8,
+        "officialSources": 2,
+        "modelSteps": 10,
+        "contextCharacters": 120000
+      }
+    }
+  },
+  "execution": {
+    "wallClockBudgetMinutes": null,
+    "governanceBudgetMinutes": null,
+    "reviewRunBudget": null,
+    "evidencePassBudget": null,
+    "subagentSpawnBudget": null,
+    "blockerAttemptBudget": null,
+    "modelEscalationBudget": null
+  },
+  "capabilityRouting": {
+    "enabled": true,
+    "tiers": [
+      { "id": "economy", "model": "gpt-5.6-luna", "reasoningEffort": "medium" },
+      { "id": "standard", "model": "gpt-5.6-terra", "reasoningEffort": "medium" },
+      { "id": "advanced", "model": "gpt-5.6-sol", "reasoningEffort": "high" }
+    ],
+    "taskRoutes": [
+      { "taskClass": "retrieval", "tier": "economy" },
+      { "taskClass": "summarization", "tier": "economy" },
+      { "taskClass": "routine_test", "tier": "economy" },
+      { "taskClass": "mechanical_edit", "tier": "economy" },
+      { "taskClass": "cross_module_implementation", "tier": "standard" }
+    ]
+  },
   "globalKnowledge": {
     "enabled": false,
     "path": "~/.codex/ravo/knowledge",

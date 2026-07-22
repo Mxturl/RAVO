@@ -1,0 +1,14 @@
+{
+  "name": "ravo-safety",
+  "version": "0.6.2",
+  "description": "Internal local safety helpers used by RAVO modules.",
+  "author": {
+    "name": "RAVO contributors"
+  },
+  "license": "MIT",
+  "keywords": [
+    "ravo",
+    "safety",
+    "internal"
+  ]
+}

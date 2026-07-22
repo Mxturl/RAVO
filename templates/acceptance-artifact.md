@@ -2,8 +2,27 @@
 
 - schemaVersion:
 - status:
+- statusCeiling:
 - evidenceLevel:
 - summary:
+- subjectRef/specRef/releaseRef:
 - analysisArtifact:
+- workstreamArtifact:
+- quickValidationArtifact:
+- reviewArtifact:
+- sourceRefs:
+- acceptanceItems:
+  - id/name/required
+  - expected/implementation/effect
+  - fulfillmentStatus/verificationStatus/verificationOwner/verificationReason
+  - verificationTasks with preconditions/steps/expectedResult/evidenceRequired/failureAction
+  - sourceRefs/risk/boundary
+  - blockingReason/blockerImpact/temporaryFallback/recoveryEntry
+- codexVerificationItemIds:
+- pmChecklistItemIds:
 - evidence:
 - knownGaps:
+- realResponseRefs:
+- screenshotRefs or notApplicableEvidence:
+- securityChecklist:
+- nextStep:

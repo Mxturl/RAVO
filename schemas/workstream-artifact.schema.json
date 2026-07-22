@@ -4,19 +4,174 @@
   "title": "RAVO Workstream Artifact",
   "type": "object",
   "required": ["schemaVersion", "id", "status", "goal", "createdAt", "updatedAt"],
+  "$defs": {
+    "attemptBudget": {
+      "type": "object",
+      "required": ["default", "standardExtension", "hardCeiling", "used"],
+      "properties": {
+        "default": { "type": "integer", "minimum": 1 },
+        "standardExtension": { "type": "integer", "minimum": 0 },
+        "hardCeiling": { "type": "integer", "minimum": 1 },
+        "used": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "attempt": {
+      "type": "object",
+      "required": ["hypothesis", "changeType", "normalizedDiff", "inputChange", "environmentChange", "expectedInformationGain", "result"],
+      "properties": {
+        "fingerprint": { "type": "string" },
+        "hypothesis": { "type": "string", "minLength": 1 },
+        "changeType": { "enum": ["parameter_change", "tool_or_transport_change", "scope_narrowing", "new_external_state", "new_evidence", "retryable_transport_after_backoff"] },
+        "normalizedDiff": { "type": "string", "minLength": 1 },
+        "inputChange": { "type": "string" },
+        "environmentChange": { "type": "string" },
+        "expectedInformationGain": { "type": "string", "minLength": 1 },
+        "result": { "type": "string", "minLength": 1 },
+        "evidenceRefs": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": true
+    },
+    "executionDecision": {
+      "type": "object",
+      "required": ["sourceLevel", "binding", "mode", "reason", "evidenceRefs", "stopCondition"],
+      "properties": {
+        "id": { "type": "string" },
+        "sourceLevel": { "enum": ["boundary", "spec", "project", "runtime"] },
+        "binding": { "enum": ["prohibited", "confirm_required", "contract_required", "overridable_default"] },
+        "mode": { "enum": ["may_proceed", "proceed_and_log", "must_confirm", "prohibited"] },
+        "authorizationEnvelopeRef": { "type": "string" },
+        "reason": { "type": "string", "minLength": 1 },
+        "evidenceRefs": { "type": "array", "items": { "type": "string" } },
+        "stopCondition": { "type": "string", "minLength": 1 },
+        "supersedes": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": true
+    },
+    "authorizationEnvelope": {
+      "type": "object",
+      "required": ["id", "confirmedBy", "actions", "targets", "accounts", "scope", "dataBoundary", "planFingerprint", "dependentTaskRefs", "authorizedCeilings", "issuedAt", "expiresAt", "sourceRef", "status"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "confirmedBy": { "enum": ["user", "pm", "external_owner"] },
+        "actions": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "targets": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "accounts": { "type": "array", "items": { "type": "string" } },
+        "scope": { "type": "string", "minLength": 1 },
+        "dataBoundary": { "enum": ["local_only", "safe_sanitized", "explicit_external"] },
+        "planFingerprint": { "type": "string", "pattern": "^sha256:" },
+        "dependentTaskRefs": { "type": "array", "items": { "type": "string" } },
+        "authorizedCeilings": {
+          "type": "object",
+          "properties": {
+            "attemptsPerBlocker": { "type": "integer", "minimum": 1 },
+            "recoveryWorkers": { "type": "integer", "minimum": 0 },
+            "developmentLanes": { "type": "integer", "minimum": 1 },
+            "acceptanceLanes": { "type": "integer", "minimum": 1 }
+          },
+          "additionalProperties": false
+        },
+        "issuedAt": { "type": "string", "minLength": 1 },
+        "expiresAt": { "type": "string", "minLength": 1 },
+        "sourceRef": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["active", "expired", "revoked", "drifted"] },
+        "drift": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": true
+    },
+    "blocker": {
+      "type": "object",
+      "required": ["id", "title", "required", "type", "owner", "executionStatus", "affectedMilestones", "attemptBudget", "attempts", "continuationAllowed", "executionDecision", "temporaryFallback", "recoveryEntry", "resumeConditions", "subagent", "nextStep"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "title": { "type": "string", "minLength": 1 },
+        "required": { "type": "boolean" },
+        "type": { "enum": ["technical", "environment", "credential", "permission", "device", "deployment", "human", "external"] },
+        "owner": { "enum": ["main_agent", "subagent", "user", "external_party"] },
+        "executionStatus": { "enum": ["detected", "diagnosed", "attempting", "parked", "resumed", "resolved", "blocked_external", "blocked_terminal"] },
+        "affectedMilestones": { "type": "array", "items": { "type": "string" } },
+        "attemptBudget": { "$ref": "#/$defs/attemptBudget" },
+        "attempts": { "type": "array", "items": { "$ref": "#/$defs/attempt" } },
+        "continuationAllowed": { "type": "boolean" },
+        "executionDecision": { "$ref": "#/$defs/executionDecision" },
+        "temporaryFallback": { "type": "string" },
+        "recoveryEntry": { "type": "string", "minLength": 1 },
+        "resumeConditions": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "subagent": {
+          "type": "object",
+          "required": ["status", "outcome", "scope", "evidenceRefs"],
+          "properties": {
+            "status": { "enum": ["not_started", "running", "stopped", "complete"] },
+            "outcome": { "enum": ["resolved", "unresolved", "blocked", "not_applicable"] },
+            "scope": { "type": "string" },
+            "evidenceRefs": { "type": "array", "items": { "type": "string" } }
+          },
+          "additionalProperties": true
+        },
+        "nextStep": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    }
+  },
   "properties": {
     "schemaVersion": { "type": "string" },
     "id": { "type": "string" },
     "status": { "enum": ["planned", "active", "blocked", "ready_for_acceptance", "closed"] },
     "goal": { "type": "string" },
+    "subjectRef": { "type": "string" },
+    "releaseRef": { "type": "string" },
     "specRef": { "type": "string" },
     "milestones": { "type": "array", "items": { "type": "string" } },
     "currentMilestone": { "type": "string" },
     "nextStep": { "type": "string" },
+    "supersedes": { "type": "array", "items": { "type": "string" } },
     "blockers": { "type": "array", "items": { "type": "string" } },
     "recovery": { "type": "string" },
+    "blockerLedger": { "type": "array", "items": { "$ref": "#/$defs/blocker" } },
+    "executionLanes": {
+      "type": "object",
+      "required": ["development", "acceptance", "recovery"],
+      "properties": {
+        "development": { "type": "object", "additionalProperties": true },
+        "acceptance": { "type": "object", "additionalProperties": true },
+        "recovery": { "type": "object", "additionalProperties": true }
+      },
+      "additionalProperties": false
+    },
+    "executionDecisions": { "type": "array", "items": { "$ref": "#/$defs/executionDecision" } },
+    "authorizationEnvelopes": { "type": "array", "items": { "$ref": "#/$defs/authorizationEnvelope" } },
+    "effectiveDeliveryProfile": { "type": "object", "additionalProperties": true },
+    "timing": {
+      "type": "object",
+      "properties": {
+        "startedAt": { "type": "string" },
+        "candidateReadyAt": { "type": ["string", "null"] },
+        "calendarMinutes": { "type": ["number", "null"], "minimum": 0 },
+        "agentActiveMinutes": { "type": ["number", "null"], "minimum": 0 },
+        "governanceMinutes": { "type": ["number", "null"], "minimum": 0 },
+        "reviewMinutes": { "type": ["number", "null"], "minimum": 0 },
+        "externalWaitMinutes": { "type": ["number", "null"], "minimum": 0 },
+        "pmTouchMinutes": { "type": ["number", "null"], "minimum": 0 },
+        "measurementSource": { "enum": ["runtime", "derived", "unknown"] }
+      },
+      "additionalProperties": false
+    },
+    "capabilityRoutes": { "type": "array", "items": { "type": "object" } },
     "decisions": { "type": "array", "items": { "type": "string" } },
-    "evidenceRefs": { "type": "array", "items": { "type": "string" } }
+    "evidenceRefs": { "type": "array", "items": { "type": "string" } },
+    "roadmapAudit": { "type": "array", "items": { "type": "string" } },
+    "specDeltas": { "type": "array", "items": { "type": "string" } },
+    "workerEvidence": { "type": "array", "items": { "type": "object" } }
   },
+  "allOf": [
+    {
+      "if": { "properties": { "schemaVersion": { "const": "0.5.1" } }, "required": ["schemaVersion"] },
+      "then": { "required": ["blockerLedger", "executionLanes", "executionDecisions", "authorizationEnvelopes"] }
+    },
+    {
+      "if": { "properties": { "status": { "const": "active" } }, "required": ["status"] },
+      "then": { "required": ["nextStep"], "properties": { "nextStep": { "minLength": 1 } } }
+    }
+  ],
   "additionalProperties": true
 }

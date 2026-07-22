@@ -1,0 +1,33 @@
+{
+  "name": "ravo",
+  "version": "0.6.2",
+  "description": "A lightweight collaboration framework for product work with Codex, delivered as one plugin with on-demand Skills.",
+  "author": {
+    "name": "RAVO contributors"
+  },
+  "skills": "./skills/",
+  "hooks": "./hooks/hooks.json",
+  "license": "MIT",
+  "keywords": [
+    "ravo",
+    "codex",
+    "product",
+    "skills",
+    "acceptance"
+  ],
+  "interface": {
+    "displayName": "RAVO",
+    "shortDescription": "Think deeply when it matters.",
+    "longDescription": "RAVO helps product managers and Codex clarify important requirements, find real causes, reuse evidence, and report delivery status without forcing a workflow onto simple work.",
+    "developerName": "RAVO contributors",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Skills",
+      "Hooks",
+      "Workspace artifacts",
+      "Local dashboard"
+    ],
+    "brandColor": "#0F766E",
+    "defaultPrompt": "Help me move this product work forward with the lightest useful RAVO support."
+  }
+}

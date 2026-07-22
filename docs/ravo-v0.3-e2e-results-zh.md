@@ -46,7 +46,7 @@ Prompt：
 Prompt：
 
 ```text
-基于 /Users/apple/Developer/AICODING/RAVO/docs/ravo-v0.3-decision-complete-spec.md，给我一段可以直接放进 Goal 模式的 Prompt。
+基于 <workspace>/RAVO/docs/ravo-v0.3-decision-complete-spec.md，给我一段可以直接放进 Goal 模式的 Prompt。
 ```
 
 预期：
@@ -58,7 +58,7 @@ Prompt：
 实际：
 
 - subagent `019f4106-af10-7a71-8098-f4f6ce69f826` 使用 fresh `codex exec` 验证。
-- 输出了简短 Goal Prompt，明确引用 `/Users/apple/Developer/AICODING/RAVO/docs/ravo-v0.3-decision-complete-spec.md`。
+- 输出了简短 Goal Prompt，明确引用 `<workspace>/RAVO/docs/ravo-v0.3-decision-complete-spec.md`。
 - 未重复完整规格内容。
 
 结论：PASS。

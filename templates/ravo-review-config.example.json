@@ -1,23 +1,27 @@
 {
-  "schemaVersion": "0.3.1",
+  "schemaVersion": "0.5.0",
   "_template": [
     "Copy to ~/.codex/skill-config/ravo-review.json.",
     "Fill provider fields locally only. Do not commit real API keys."
   ],
-  "enableReasoningParams": false,
   "rounds": 2,
+  "requiredModelCount": 1,
+  "fallbackPairs": [],
   "retry": {
     "maxAttempts": 2,
     "baseDelayMs": 1000,
     "maxDelayMs": 8000,
     "retryableStatusCodes": [429, 502, 503, 504]
   },
-  "maxTokens": 48000,
+  "maxTokensMode": "auto",
+  "maxTokens": null,
+  "autoFallbackMaxTokens": 48000,
   "stream": true,
   "timeoutMs": 900000,
   "firstEventTimeoutMs": 30000,
   "firstContentTimeoutMs": 0,
   "idleTimeoutMs": 60000,
+  "enableReasoningParams": false,
   "providers": [
     {
       "id": "provider-a",
@@ -25,8 +29,13 @@
       "enabled": false,
       "apiBase": "https://your-review-api.example.com/v1/responses",
       "apiMode": "responses",
-      "apiKey": "REPLACE_LOCALLY_NEVER_COMMIT",
-      "modelsMode": "manual",
+      "apiKey": "",
+      "timeoutMs": 900000,
+      "firstEventTimeoutMs": 30000,
+      "firstContentTimeoutMs": 0,
+      "idleTimeoutMs": 60000,
+      "enableReasoningParams": false,
+      "stream": true,
       "models": [
         { "id": "model-a", "enabled": true },
         { "id": "model-b", "enabled": false }

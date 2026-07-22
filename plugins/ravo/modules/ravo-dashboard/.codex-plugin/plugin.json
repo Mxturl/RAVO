@@ -1,0 +1,20 @@
+{
+  "name": "ravo-dashboard",
+  "version": "0.6.2",
+  "description": "Local SoloDesk dashboard, configuration center, runtime visibility, and controlled RAVO upgrades.",
+  "author": {
+    "name": "RAVO contributors"
+  },
+  "license": "MIT",
+  "keywords": ["ravo", "dashboard", "solodesk", "configuration", "upgrade"],
+  "interface": {
+    "displayName": "RAVO SoloDesk",
+    "shortDescription": "Inspect and operate RAVO locally.",
+    "longDescription": "RAVO SoloDesk indexes allowlisted workspaces, exposes evidence-backed lifecycle views, manages declared RAVO configuration, and performs controlled plugin updates with backup and recovery evidence.",
+    "developerName": "RAVO contributors",
+    "category": "Developer Tools",
+    "capabilities": ["Skills", "Local dashboard", "Configuration", "Upgrade checks"],
+    "brandColor": "#0F766E",
+    "defaultPrompt": "Open or inspect RAVO SoloDesk."
+  }
+}
