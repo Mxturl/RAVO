@@ -3,25 +3,325 @@
   "$id": "https://ravo.dev/schemas/review-artifact.schema.json",
   "title": "RAVO Review Artifact",
   "type": "object",
-  "required": ["schemaVersion", "id", "domain", "coverage", "summary", "createdAt"],
-  "properties": {
-    "schemaVersion": { "type": "string" },
-    "id": { "type": "string" },
-    "domain": { "type": "string" },
+  "required": [
+    "schemaVersion",
+    "id",
+    "reviewRunId",
+    "artifactKind",
+    "domain",
+    "subjectRef",
+    "inputHash",
+    "dataBoundary",
+    "modelsRequested",
+    "modelsResponded",
+    "modelsUsable",
+    "modelsFailed",
+    "transportCoverage",
+    "invocationCoverage",
+    "workflowCoverage",
+    "coverage",
+    "validResults",
+    "parserStatus",
+    "attempts",
+    "rawFindingCount",
+    "ledgerFindingCount",
+    "deduplicatedCount",
+    "parserErrors",
+    "summary",
+    "createdAt"
+  ],
+  "$defs": {
     "coverage": { "enum": ["none", "partial", "full"] },
-    "modelsRequested": { "type": "array", "items": { "type": "string" } },
-    "modelsCompleted": { "type": "array", "items": { "type": "string" } },
-    "modelsFailed": { "type": "array", "items": { "type": "string" } },
-    "failedModelReasons": { "type": "array", "items": { "type": "string" } },
-    "truncationWarnings": { "type": "array", "items": { "type": "string" } },
-    "summary": { "type": "string" },
-    "risks": { "type": "array", "items": { "type": "string" } },
-    "recommendations": { "type": "array", "items": { "type": "string" } },
-    "rawResultRef": { "type": "string" },
-    "timing": {
+    "timeoutProfile": {
       "type": "object",
+      "required": ["timeoutMs", "firstEventTimeoutMs", "firstContentTimeoutMs", "idleTimeoutMs", "stream"],
+      "properties": {
+        "timeoutMs": { "type": "integer", "minimum": 1 },
+        "firstEventTimeoutMs": { "type": "integer", "minimum": 0 },
+        "firstContentTimeoutMs": { "type": "integer", "minimum": 0 },
+        "idleTimeoutMs": { "type": "integer", "minimum": 0 },
+        "stream": { "type": "boolean" }
+      },
+      "additionalProperties": true
+    },
+    "phaseTiming": {
+      "type": "object",
+      "required": ["requestStartedAt", "responseHeadersAt", "firstByteAt", "firstEventAt", "firstContentAt", "lastEventAt", "lastSubstantiveEventAt", "abortAt", "completedAt"],
+      "properties": {
+        "requestStartedAt": { "type": "string", "minLength": 1 },
+        "responseHeadersAt": { "type": "string" },
+        "firstByteAt": { "type": "string" },
+        "firstEventAt": { "type": "string" },
+        "firstContentAt": { "type": "string" },
+        "lastEventAt": { "type": "string" },
+        "lastSubstantiveEventAt": { "type": "string" },
+        "abortAt": { "type": "string" },
+        "completedAt": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "attempt": {
+      "type": "object",
+      "required": [
+        "reviewRunId",
+        "providerModelKey",
+        "round",
+        "attempt",
+        "attemptType",
+        "reason",
+        "plannedDelayMs",
+        "actualDelayMs",
+        "timeoutMs",
+        "startedAt",
+        "endedAt",
+        "result"
+      ],
+      "properties": {
+        "reviewRunId": { "type": "string", "minLength": 1 },
+        "providerModelKey": { "type": "string", "pattern": "^[^/]+/[^/]+$" },
+        "round": { "type": "integer", "minimum": 1, "maximum": 3 },
+        "attempt": { "type": "integer", "minimum": 1 },
+        "attemptType": { "enum": ["initial", "transport_retry", "semantic_retry", "stream_fallback", "output_budget_fallback", "model_fallback"] },
+        "reason": { "type": "string", "minLength": 1 },
+        "plannedDelayMs": { "type": "integer", "minimum": 0 },
+        "actualDelayMs": { "type": "integer", "minimum": 0 },
+        "timeoutMs": { "type": "integer", "minimum": 1 },
+        "startedAt": { "type": "string", "minLength": 1 },
+        "endedAt": { "type": "string", "minLength": 1 },
+        "result": { "enum": ["responded_unusable", "usable", "retrying", "failed"] },
+        "rawResponseRef": { "type": "string" },
+        "maxTokensMode": { "enum": ["auto", "fixed"] },
+        "requestedMaxTokens": { "type": ["integer", "null"], "minimum": 1 },
+        "tokenField": { "enum": ["omitted", "max_tokens", "max_output_tokens"] },
+        "triggerReason": { "type": "string" },
+        "providerStatus": { "type": "string" },
+        "finishReason": { "type": "string" },
+        "incompleteReason": { "type": "string" },
+        "usage": { "type": "object", "additionalProperties": true }
+      },
+      "additionalProperties": true
+    },
+    "attempt051": {
+      "allOf": [
+        { "$ref": "#/$defs/attempt" },
+        {
+          "type": "object",
+          "required": [
+            "timeoutType",
+            "phaseTiming",
+            "responseBytes",
+            "partialResponseRef",
+            "partialBytes",
+            "requestedTimeoutProfile",
+            "effectiveTimeoutProfile",
+            "remainingAttemptBudget",
+            "attemptBudget",
+            "retryParameterDelta",
+            "jitterPolicy",
+            "jitterRangeMs",
+            "delayStartedAt",
+            "delayEndedAt"
+          ],
+          "properties": {
+            "timeoutType": { "enum": ["", "total_timeout", "first_event_timeout", "first_content_timeout", "idle_timeout"] },
+            "phaseTiming": { "$ref": "#/$defs/phaseTiming" },
+            "responseBytes": { "type": "integer", "minimum": 0 },
+            "partialResponseRef": { "type": "string" },
+            "partialBytes": { "type": "integer", "minimum": 0 },
+            "requestedTimeoutProfile": { "$ref": "#/$defs/timeoutProfile" },
+            "effectiveTimeoutProfile": { "$ref": "#/$defs/timeoutProfile" },
+            "remainingAttemptBudget": { "type": "integer", "minimum": 0 },
+            "attemptBudget": {
+              "type": "object",
+              "required": ["maxAttempts", "attemptNumber", "remainingAfterAttempt"],
+              "properties": {
+                "maxAttempts": { "type": "integer", "minimum": 1 },
+                "attemptNumber": { "type": "integer", "minimum": 1 },
+                "remainingAfterAttempt": { "type": "integer", "minimum": 0 }
+              },
+              "additionalProperties": false
+            },
+            "retryParameterDelta": { "type": "object" },
+            "jitterPolicy": { "type": "string", "minLength": 1 },
+            "jitterRangeMs": {
+              "type": "object",
+              "required": ["min", "max"],
+              "properties": {
+                "min": { "type": "integer", "minimum": 0 },
+                "max": { "type": "integer", "minimum": 0 }
+              },
+              "additionalProperties": false
+            },
+            "delayStartedAt": { "type": "string" },
+            "delayEndedAt": { "type": "string" }
+          }
+        }
+      ]
+    },
+    "callPlan051": {
+      "type": "object",
+      "required": ["requestedPairs", "runClass", "formalEvidenceEligible", "formalTimeoutProfile", "requestedTimeoutProfile", "timeoutProfiles", "maxAttempts", "retryPolicy", "maximumRequests", "maximumRunMs"],
+      "properties": {
+        "requestedPairs": { "type": "array", "minItems": 1, "items": { "type": "string", "pattern": "^[^/]+/[^/]+$" } },
+        "runClass": { "enum": ["formal", "diagnostic"] },
+        "formalEvidenceEligible": { "type": "boolean" },
+        "formalTimeoutProfile": { "$ref": "#/$defs/timeoutProfile" },
+        "requestedTimeoutProfile": { "$ref": "#/$defs/timeoutProfile" },
+        "timeoutProfiles": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["providerModelKey", "requested", "effective"],
+            "properties": {
+              "providerModelKey": { "type": "string", "pattern": "^[^/]+/[^/]+$" },
+              "requested": { "$ref": "#/$defs/timeoutProfile" },
+              "effective": { "$ref": "#/$defs/timeoutProfile" }
+            },
+            "additionalProperties": false
+          }
+        },
+        "maxAttempts": { "type": "integer", "minimum": 1 },
+        "retryPolicy": { "type": "object" },
+        "maximumRequests": { "type": "integer", "minimum": 1 },
+        "maximumRunMs": { "type": "integer", "minimum": 1 }
+      },
       "additionalProperties": true
     }
   },
+  "properties": {
+    "schemaVersion": { "type": "string" },
+    "id": { "type": "string", "minLength": 1 },
+    "reviewRunId": { "type": "string", "minLength": 1 },
+    "artifactKind": { "enum": ["aggregate", "derived_migration", "manual_record"] },
+    "parentReviewRunId": { "type": "string" },
+    "compensationFor": { "type": "string" },
+    "domain": { "type": "string", "minLength": 1 },
+    "subjectRef": { "type": "string", "minLength": 1 },
+    "inputHash": { "type": "string", "pattern": "^sha256:" },
+    "sourceRefs": { "type": "array", "items": { "type": "string" } },
+    "runClass": { "enum": ["formal", "diagnostic"] },
+    "formalEvidenceEligible": { "type": "boolean" },
+    "diagnosticExecutionCoverage": { "enum": ["not_applicable", "none", "partial", "full"] },
+    "reviewTriggerGate": { "type": "object", "additionalProperties": true },
+    "findingDispositionVersion": { "type": "string", "minLength": 1 },
+    "callPlan": { "$ref": "#/$defs/callPlan051" },
+    "dataBoundary": {
+      "type": "object",
+      "required": ["decision", "subjectHash", "redactionSummary", "authorizationSource", "externalCallAllowed"],
+      "properties": {
+        "decision": { "enum": ["safe_sanitized", "sensitive_requires_consent", "prohibited"] },
+        "subjectHash": { "type": "string", "pattern": "^sha256:" },
+        "redactionSummary": { "type": "array", "items": { "type": "string" } },
+        "authorizationSource": { "enum": ["explicit_user_action", "conversation_confirmation", "policy_safe_sanitized", "none"] },
+        "externalCallAllowed": { "type": "boolean" }
+      },
+      "additionalProperties": true
+    },
+    "modelsRequested": { "type": "array", "items": { "type": "string", "pattern": "^[^/]+/[^/]+$" } },
+    "fallbackModelsPlanned": { "type": "array", "items": { "type": "string", "pattern": "^[^/]+/[^/]+$" } },
+    "modelsResponded": { "type": "array", "items": { "type": "string", "pattern": "^[^/]+/[^/]+$" } },
+    "modelsUsable": { "type": "array", "items": { "type": "string", "pattern": "^[^/]+/[^/]+$" } },
+    "modelsCompleted": { "type": "array", "items": { "type": "string" } },
+    "modelsFailed": { "type": "array", "items": { "type": "string", "pattern": "^[^/]+/[^/]+$" } },
+    "failedModelReasons": { "type": "array", "items": { "type": "string" } },
+    "transportCoverage": { "$ref": "#/$defs/coverage" },
+    "invocationCoverage": { "$ref": "#/$defs/coverage" },
+    "workflowCoverage": { "$ref": "#/$defs/coverage" },
+    "computedWorkflowCoverage": { "$ref": "#/$defs/coverage" },
+    "coverage": { "$ref": "#/$defs/coverage" },
+    "validResults": { "type": "boolean" },
+    "parserStatus": { "enum": ["not_run", "pass", "partial", "error", "legacy_unclassified"] },
+    "attempts": { "type": "array", "items": { "$ref": "#/$defs/attempt" } },
+    "rawFindingCount": { "type": "integer", "minimum": 0 },
+    "ledgerFindingCount": { "type": "integer", "minimum": 0 },
+    "deduplicatedCount": { "type": "integer", "minimum": 0 },
+    "parserErrors": { "type": "array", "items": { "type": "string" } },
+    "truncationWarnings": { "type": "array", "items": { "type": "string" } },
+    "outputBudgetWarnings": { "type": "array", "items": { "type": "string" } },
+    "providerBehavior": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+    "issueLedgerRef": { "type": "string" },
+    "roundCoverage": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+    "challengeStatus": { "enum": ["not_requested", "complete", "incomplete"] },
+    "convergenceStatus": { "enum": ["not_requested", "complete", "incomplete"] },
+    "summary": { "type": "string", "minLength": 1 },
+    "risks": { "type": "array", "items": { "type": "string" } },
+    "recommendations": { "type": "array", "items": { "type": "string" } },
+    "blockingReason": { "type": "string" },
+    "blockerImpact": { "type": "string" },
+    "temporaryFallback": { "type": "string" },
+    "recoveryEntry": { "type": "string" },
+    "timing": { "type": "object", "additionalProperties": true },
+    "createdAt": { "type": "string", "minLength": 1 }
+  },
+  "allOf": [
+    {
+      "if": {
+        "required": ["schemaVersion", "artifactKind"],
+        "properties": { "schemaVersion": { "const": "0.5.1" }, "artifactKind": { "const": "aggregate" } }
+      },
+      "then": {
+        "required": ["runClass", "formalEvidenceEligible", "diagnosticExecutionCoverage", "callPlan", "computedWorkflowCoverage"],
+        "properties": { "attempts": { "type": "array", "items": { "$ref": "#/$defs/attempt051" } } }
+      }
+    },
+    {
+      "if": { "required": ["schemaVersion", "runClass"], "properties": { "schemaVersion": { "const": "0.5.1" }, "runClass": { "const": "formal" } } },
+      "then": {
+        "properties": {
+          "formalEvidenceEligible": { "const": true },
+          "diagnosticExecutionCoverage": { "const": "not_applicable" },
+          "callPlan": { "allOf": [{ "$ref": "#/$defs/callPlan051" }, { "properties": { "runClass": { "const": "formal" }, "formalEvidenceEligible": { "const": true } } }] }
+        }
+      }
+    },
+    {
+      "if": { "required": ["schemaVersion", "runClass"], "properties": { "schemaVersion": { "const": "0.5.1" }, "runClass": { "const": "diagnostic" } } },
+      "then": {
+        "properties": {
+          "formalEvidenceEligible": { "const": false },
+          "coverage": { "const": "none" },
+          "workflowCoverage": { "const": "none" }
+        }
+      }
+    },
+    {
+      "if": { "required": ["workflowCoverage"], "properties": { "workflowCoverage": { "const": "full" } } },
+      "then": {
+        "properties": {
+          "parserStatus": { "const": "pass" },
+          "validResults": { "const": true },
+          "modelsUsable": { "minItems": 1 },
+          "ledgerFindingCount": { "minimum": 1 }
+        }
+      }
+    },
+    {
+      "if": { "required": ["dataBoundary"], "properties": { "dataBoundary": { "properties": { "externalCallAllowed": { "const": false } } } } },
+      "then": {
+        "properties": {
+          "workflowCoverage": { "const": "none" },
+          "coverage": { "const": "none" },
+          "validResults": { "const": false },
+          "modelsResponded": { "maxItems": 0 },
+          "modelsUsable": { "maxItems": 0 }
+        }
+      }
+    },
+    {
+      "if": { "required": ["artifactKind"], "properties": { "artifactKind": { "const": "manual_record" } } },
+      "then": {
+        "properties": {
+          "workflowCoverage": { "const": "none" },
+          "coverage": { "const": "none" },
+          "validResults": { "const": false },
+          "modelsUsable": { "maxItems": 0 },
+          "rawFindingCount": { "const": 0 },
+          "ledgerFindingCount": { "const": 0 },
+          "parserStatus": { "enum": ["not_run", "error", "legacy_unclassified"] }
+        }
+      }
+    }
+  ],
   "additionalProperties": true
 }

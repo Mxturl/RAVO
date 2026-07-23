@@ -8,10 +8,68 @@
     "schemaVersion": { "type": "string" },
     "id": { "type": "string" },
     "scope": { "type": "string" },
-    "status": { "enum": ["pass", "warn", "fail", "not_run"] },
+    "subjectRef": { "type": "string" },
+    "releaseRef": { "type": "string" },
+    "kind": { "enum": ["smoke", "runtime_probe"] },
+    "status": { "enum": ["pass", "partial", "warn", "fail", "not_run"] },
     "checks": { "type": "array", "items": { "type": "string" } },
     "evidenceRefs": { "type": "array", "items": { "type": "string" } },
-    "risks": { "type": "array", "items": { "type": "string" } }
+    "risks": { "type": "array", "items": { "type": "string" } },
+    "fingerprint": { "type": "string", "pattern": "^sha256:" },
+    "pluginFingerprint": { "type": "string", "pattern": "^sha256:" },
+    "configFingerprint": { "type": "string", "pattern": "^sha256:" },
+    "expectedHookEvents": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+    "observedEvidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["event", "status", "sessionId", "promptRef", "expectedAdvisory", "responseSummary", "evidenceRef"],
+        "properties": {
+          "event": { "type": "string", "minLength": 1 },
+          "status": { "enum": ["pass", "missing", "fail"] },
+          "sessionId": { "type": "string", "minLength": 1 },
+          "promptRef": { "type": "string", "minLength": 1 },
+          "expectedAdvisory": { "type": "string", "minLength": 1 },
+          "responseSummary": { "type": "string", "minLength": 1 },
+          "evidenceRef": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": true
+      }
+    },
+    "sessionIds": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+    "promptRefs": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+    "coverage": { "enum": ["none", "partial", "full", "not_applicable"] },
+    "coreExpectedEvents": { "type": "array", "minItems": 2, "items": { "type": "string", "minLength": 1 } },
+    "coreCoverage": { "enum": ["none", "partial", "full", "not_applicable"] },
+    "coreRuntimeStatus": { "enum": ["verified", "partial", "missing", "failed"] },
+    "terminalTelemetry": {
+      "type": "object",
+      "required": ["event", "status", "summary", "evidenceRef"],
+      "properties": {
+        "event": { "const": "Stop" },
+        "status": { "enum": ["observed", "unknown", "unsupported", "failed"] },
+        "summary": { "type": "string", "minLength": 1 },
+        "evidenceRef": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "subagentEvidenceStatus": { "enum": ["observed", "missing", "failed", "not_requested"] }
   },
+  "allOf": [
+    {
+      "if": { "required": ["kind"], "properties": { "kind": { "const": "runtime_probe" } } },
+      "then": {
+        "required": ["fingerprint", "expectedHookEvents", "observedEvidence", "sessionIds", "promptRefs", "coverage"],
+        "properties": { "status": { "enum": ["pass", "partial", "fail"] } }
+      }
+    },
+    {
+      "if": { "required": ["coreRuntimeStatus"] },
+      "then": {
+        "required": ["coreExpectedEvents", "coreCoverage", "coreRuntimeStatus", "terminalTelemetry", "subagentEvidenceStatus"]
+      }
+    }
+  ],
   "additionalProperties": true
 }

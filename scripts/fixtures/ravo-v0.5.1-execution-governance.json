@@ -1,0 +1,93 @@
+{
+  "authorizationEnvelope": {
+    "id": "auth-fixture",
+    "confirmedBy": "user",
+    "actions": ["run bounded local verification"],
+    "targets": ["workspace:test"],
+    "accounts": ["local-user"],
+    "scope": "fixture-only",
+    "dataBoundary": "local_only",
+    "planFingerprint": "sha256:fixture-plan",
+    "dependentTaskRefs": ["M2"],
+    "authorizedCeilings": {
+      "attemptsPerBlocker": 4,
+      "recoveryWorkers": 2,
+      "developmentLanes": 1,
+      "acceptanceLanes": 1
+    },
+    "issuedAt": "2026-07-12T00:00:00.000Z",
+    "expiresAt": "session_end",
+    "sourceRef": "fixture:authorization",
+    "status": "active"
+  },
+  "blockers": [
+    {
+      "id": "B-repeat",
+      "title": "Repeated unchanged failure",
+      "required": true,
+      "type": "technical",
+      "owner": "main_agent",
+      "executionStatus": "attempting",
+      "affectedMilestones": ["M2"],
+      "attemptBudget": { "default": 2, "standardExtension": 1, "hardCeiling": 4, "used": 1 },
+      "attempts": [
+        {
+          "fingerprint": "sha256:same-attempt",
+          "hypothesis": "same hypothesis",
+          "changeType": "new_evidence",
+          "normalizedDiff": "none",
+          "inputChange": "none",
+          "environmentChange": "none",
+          "expectedInformationGain": "none",
+          "result": "failed"
+        }
+      ],
+      "continuationAllowed": true,
+      "executionDecision": {
+        "sourceLevel": "runtime",
+        "binding": "overridable_default",
+        "mode": "may_proceed",
+        "authorizationEnvelopeRef": "auth-fixture",
+        "reason": "The first bounded attempt is within the default budget.",
+        "evidenceRefs": [],
+        "stopCondition": "Stop when the attempt produces no new information."
+      },
+      "temporaryFallback": "Continue independent fixture work.",
+      "recoveryEntry": "Provide a materially different hypothesis or environment condition.",
+      "resumeConditions": ["new hypothesis or environment evidence"],
+      "subagent": { "status": "not_started", "outcome": "unresolved", "scope": "", "evidenceRefs": [] },
+      "nextStep": "Continue independent work."
+    },
+    {
+      "id": "B-external",
+      "title": "External credential is unavailable",
+      "required": true,
+      "type": "credential",
+      "owner": "external_party",
+      "executionStatus": "blocked_external",
+      "affectedMilestones": ["M6"],
+      "attemptBudget": { "default": 2, "standardExtension": 1, "hardCeiling": 4, "used": 0 },
+      "attempts": [],
+      "continuationAllowed": true,
+      "executionDecision": {
+        "sourceLevel": "boundary",
+        "binding": "confirm_required",
+        "mode": "must_confirm",
+        "authorizationEnvelopeRef": "",
+        "reason": "External credentials and calls require the external owner.",
+        "evidenceRefs": [],
+        "stopCondition": "Resume only after the credential and authorization conditions are satisfied."
+      },
+      "temporaryFallback": "Run single-Provider local verification without claiming cross-Provider coverage.",
+      "recoveryEntry": "Configure and authorize the second Provider.",
+      "resumeConditions": ["credential configured", "external call authorized"],
+      "subagent": { "status": "not_started", "outcome": "not_applicable", "scope": "External credentials cannot be created by a subagent.", "evidenceRefs": [] },
+      "nextStep": "Proceed with M2-M5."
+    }
+  ],
+  "executionLanes": {
+    "development": { "milestoneRef": "M2", "status": "active" },
+    "acceptance": { "milestoneRef": "M1", "baselineRef": "fixture:baseline", "acceptanceArtifact": "fixture:acceptance", "status": "in_progress" },
+    "recovery": { "blockerId": "B-repeat", "status": "parked" }
+  }
+}

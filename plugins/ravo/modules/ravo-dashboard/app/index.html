@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#202326">
+  <title>SoloDesk</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script defer src="./assets/lucide.js"></script>
+  <script defer src="./app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#app">跳到主内容</a>
+
+  <div id="app" aria-busy="true">
+    <div class="loading-state loading-state--screen" role="status" aria-live="polite">
+      <span class="loading-spinner" aria-hidden="true"></span>
+      <span class="loading-copy">
+        <strong>正在载入 SoloDesk</strong>
+        <span>读取本地 RAVO 状态...</span>
+      </span>
+    </div>
+    <noscript>
+      <div class="error-state" role="alert">
+        <strong>SoloDesk 需要 JavaScript</strong>
+        <span>请启用 JavaScript 后重新打开此页面。</span>
+      </div>
+    </noscript>
+  </div>
+
+  <dialog id="solodesk-dialog" class="dialog-shell" aria-label="SoloDesk 对话框">
+    <div class="dialog-content" data-dialog-content></div>
+  </dialog>
+  <div id="toast-region" role="region" aria-label="通知" aria-live="polite" aria-relevant="additions text"></div>
+</body>
+</html>

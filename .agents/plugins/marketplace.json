@@ -5,82 +5,10 @@
   },
   "plugins": [
     {
-      "name": "ravo-core",
+      "name": "ravo",
       "source": {
         "source": "local",
-        "path": "./plugins/ravo-core"
-      },
-      "policy": {
-        "installation": "AVAILABLE",
-        "authentication": "ON_INSTALL"
-      },
-      "category": "Developer Tools"
-    },
-    {
-      "name": "ravo-analysis",
-      "source": {
-        "source": "local",
-        "path": "./plugins/ravo-analysis"
-      },
-      "policy": {
-        "installation": "AVAILABLE",
-        "authentication": "ON_INSTALL"
-      },
-      "category": "Developer Tools"
-    },
-    {
-      "name": "ravo-workstream",
-      "source": {
-        "source": "local",
-        "path": "./plugins/ravo-workstream"
-      },
-      "policy": {
-        "installation": "AVAILABLE",
-        "authentication": "ON_INSTALL"
-      },
-      "category": "Developer Tools"
-    },
-    {
-      "name": "ravo-quick-validation",
-      "source": {
-        "source": "local",
-        "path": "./plugins/ravo-quick-validation"
-      },
-      "policy": {
-        "installation": "AVAILABLE",
-        "authentication": "ON_INSTALL"
-      },
-      "category": "Developer Tools"
-    },
-    {
-      "name": "ravo-acceptance",
-      "source": {
-        "source": "local",
-        "path": "./plugins/ravo-acceptance"
-      },
-      "policy": {
-        "installation": "AVAILABLE",
-        "authentication": "ON_INSTALL"
-      },
-      "category": "Developer Tools"
-    },
-    {
-      "name": "ravo-knowledge",
-      "source": {
-        "source": "local",
-        "path": "./plugins/ravo-knowledge"
-      },
-      "policy": {
-        "installation": "AVAILABLE",
-        "authentication": "ON_INSTALL"
-      },
-      "category": "Developer Tools"
-    },
-    {
-      "name": "ravo-review",
-      "source": {
-        "source": "local",
-        "path": "./plugins/ravo-review"
+        "path": "./plugins/ravo"
       },
       "policy": {
         "installation": "AVAILABLE",

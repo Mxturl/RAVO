@@ -1,0 +1,98 @@
+{
+  "targetSpecRef": "docs/ravo-v0.5.0-decision-complete-spec-zh.md",
+  "workstreams": [
+    {
+      "file": "knowledge/.ravo/workstream/2026-07-10T22-26-51-213Z-ravo-v0-5-0.json",
+      "updatedAt": 1783722411213,
+      "artifact": {
+        "id": "2026-07-10T22-26-51-213Z-ravo-v0-5-0",
+        "status": "active",
+        "subjectRef": "ravo-v0.5.0",
+        "releaseRef": "ravo-v0.5.0",
+        "specRef": "docs/ravo-v0.5.0-decision-complete-spec-zh.md",
+        "createdAt": "2026-07-10T22:26:51.213Z"
+      }
+    },
+    {
+      "file": "knowledge/.ravo/workstream/2026-07-10T23-13-04-852Z-ravo-v0-5-0-final-implementation.json",
+      "updatedAt": 1783725184852,
+      "artifact": {
+        "id": "2026-07-10T23-13-04-852Z-ravo-v0-5-0-final-implementation",
+        "status": "ready_for_acceptance",
+        "subjectRef": "ravo-v0.5.0-final-implementation",
+        "releaseRef": "ravo-v0.5.0-final-implementation",
+        "specRef": "docs/ravo-v0.5.0-decision-complete-spec-zh.md",
+        "createdAt": "2026-07-10T23:13:04.852Z"
+      }
+    }
+  ],
+  "acceptances": [
+    {
+      "file": "knowledge/.ravo/acceptance/2026-07-10T22-09-09-725Z-ravo-v0-5-0-acceptance-gaps-codex-task-not-ready.json",
+      "updatedAt": 1783721349725,
+      "artifact": {
+        "id": "2026-07-10T22-09-09-725Z-ravo-v0-5-0-acceptance-gaps-codex-task-not-ready",
+        "status": "not_ready",
+        "acceptanceScope": "release",
+        "subjectRef": "ravo-v0.5.0-acceptance-gaps-e2e",
+        "releaseRef": "ravo-v0.5.0",
+        "specRef": "docs/ravo-v0.5.0-decision-complete-spec-zh.md",
+        "createdAt": "2026-07-10T22:09:09.725Z"
+      }
+    },
+    {
+      "file": "knowledge/.ravo/acceptance/2026-07-10T23-16-05-042Z-ravo-v0-5-0-required-18-codex-task-subagent-prov.json",
+      "updatedAt": 1783725365042,
+      "artifact": {
+        "id": "2026-07-10T23-16-05-042Z-ravo-v0-5-0-required-18-codex-task-subagent-prov",
+        "status": "pending_acceptance",
+        "acceptanceScope": "release",
+        "subjectRef": "ravo-v0.5.0-final-implementation",
+        "releaseRef": "ravo-v0.5.0-final-implementation",
+        "specRef": "docs/ravo-v0.5.0-decision-complete-spec-zh.md",
+        "workstreamArtifact": "knowledge/.ravo/workstream/2026-07-10T23-13-04-852Z-ravo-v0-5-0-final-implementation.json",
+        "reviewArtifact": "knowledge/.ravo/review/2026-07-10T22-40-10-099Z-release.json",
+        "createdAt": "2026-07-10T23:16:05.042Z"
+      }
+    },
+    {
+      "file": "knowledge/.ravo/acceptance/2026-07-11T03-00-02-837Z-ravo-ponytail-hook-sessionstart.json",
+      "updatedAt": 1783738802837,
+      "artifact": {
+        "id": "2026-07-11T03-00-02-837Z-ravo-ponytail-hook-sessionstart",
+        "status": "pending_acceptance",
+        "subjectRef": "codex-hook-recovery-2026-07-11",
+        "createdAt": "2026-07-11T03:00:02.837Z"
+      }
+    }
+  ],
+  "reviews": [
+    {
+      "file": "knowledge/.ravo/review/2026-07-10T22-40-10-099Z-release.json",
+      "updatedAt": 1783723210099,
+      "artifact": {
+        "id": "2026-07-10T22-40-10-099Z-release",
+        "subjectRef": "ravo-v0.5.0-final-implementation",
+        "workflowCoverage": "full",
+        "parserStatus": "pass",
+        "validResults": true,
+        "modelsUsable": ["provider/model"],
+        "createdAt": "2026-07-10T22:40:10.099Z"
+      }
+    }
+  ],
+  "analyses": [
+    {
+      "file": "knowledge/.ravo/analysis/open-high-impact.json",
+      "updatedAt": 1783726800000,
+      "artifact": {
+        "id": "open-high-impact",
+        "status": "complete",
+        "impactLevel": "high",
+        "reviewRequired": true,
+        "subjectRef": "independent-high-impact-analysis",
+        "createdAt": "2026-07-10T23:40:00.000Z"
+      }
+    }
+  ]
+}

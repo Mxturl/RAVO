@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "1.0",
+  "scheme": "product-semver",
+  "effectiveAfter": "v0.5.12",
+  "bootstrapVersion": "v0.5.12",
+  "patchAutoAssign": false,
+  "versionAuthority": {
+    "major": "pm",
+    "minor": "pm",
+    "patch": "pm_or_preapproved"
+  },
+  "buildNumberPolicy": "project_defined_monotonic"
+}

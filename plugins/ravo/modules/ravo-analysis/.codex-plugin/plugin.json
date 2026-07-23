@@ -1,0 +1,20 @@
+{
+  "name": "ravo-analysis",
+  "version": "0.6.2",
+  "description": "Requirement analysis and root-cause analysis skills for RAVO lifecycle governance.",
+  "author": {
+    "name": "RAVO contributors"
+  },
+  "license": "MIT",
+  "keywords": ["ravo", "analysis", "requirements", "root-cause"],
+  "interface": {
+    "displayName": "RAVO Analysis",
+    "shortDescription": "Reason from needs and causes.",
+    "longDescription": "RAVO Analysis adds focused requirement-analysis and root-cause-analysis skills that produce reusable analysis artifacts for downstream work and acceptance.",
+    "developerName": "RAVO contributors",
+    "category": "Developer Tools",
+    "capabilities": ["Skills", "Lifecycle hooks", "Workspace artifacts"],
+    "brandColor": "#2563EB",
+    "defaultPrompt": "Analyze this requirement or root cause with RAVO."
+  }
+}

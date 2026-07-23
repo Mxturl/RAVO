@@ -1,337 +1,176 @@
 #!/usr/bin/env node
 
-const assert = require("node:assert");
+"use strict";
+
+const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
-const { spawnSync } = require("node:child_process");
 const path = require("node:path");
+const { spawnSync } = require("node:child_process");
 
 const repo = path.resolve(__dirname, "..");
-
-function runHook(script, prompt, cwd = repo) {
-  return runHookPayload(script, { prompt, cwd });
+const pluginRoot = path.join(repo, "plugins", "ravo");
+const hookManifest = JSON.parse(fs.readFileSync(path.join(pluginRoot, "hooks", "hooks.json"), "utf8"));
+const hookEvents = Object.keys(hookManifest.hooks).sort();
+assert.deepEqual(hookEvents, ["Stop"]);
+for (const forbidden of ["PermissionRequest", "UserPromptSubmit", "SessionStart", "SubagentStart", "SubagentStop", "PreToolUse", "PostToolUse"]) {
+  assert.equal(hookManifest.hooks[forbidden], undefined, `${forbidden} must not inject RAVO context`);
 }
 
-function runHookPayload(script, payload) {
-  const child = spawnSync(process.execPath, [script], {
-    input: JSON.stringify(payload),
-    encoding: "utf8",
-    stdio: ["pipe", "pipe", "pipe"]
-  });
-  assert.equal(child.status, 0, child.stderr);
-  return child.stdout.trim() ? JSON.parse(child.stdout) : {};
-}
+for (const removed of [
+  "modules/ravo-analysis/hooks/ravo-analysis-gate.js",
+  "modules/ravo-workstream/hooks/ravo-workstream-gate.js",
+  "modules/ravo-knowledge/hooks/ravo-knowledge-gate.js",
+  "modules/ravo-acceptance/hooks/ravo-acceptance-gate.js",
+  "modules/ravo-acceptance/hooks/ravo-acceptance-session.js"
+]) assert.equal(fs.existsSync(path.join(pluginRoot, removed)), false, `${removed} must stay removed`);
 
-function readJson(file) {
-  return JSON.parse(fs.readFileSync(file, "utf8"));
-}
+const requirement = fs.readFileSync(path.join(pluginRoot, "skills", "ravo-requirement-analysis", "SKILL.md"), "utf8");
+for (const concept of [
+  "real consumer",
+  "scenario",
+  "pain",
+  "goal",
+  "boundary",
+  "success criteria",
+  "non-goals",
+  "constraints",
+  "risks",
+  "confirmed facts",
+  "reasonable assumptions",
+  "open product decisions"
+]) assert.match(requirement, new RegExp(concept, "i"), `Requirement Analysis must retain ${concept}`);
+assert.match(requirement, /simple factual questions/i);
+assert.match(requirement, /one recommendation-backed question/i);
+assert.match(requirement, /explicit(?:ly)? stated|explicit new requirement/i);
+assert.match(requirement, /confirmed candidate/i);
+assert.match(requirement, /returned `pmBrief`/i);
+assert.match(requirement, /Do not expose Work Item IDs, artifact paths, commands, raw JSON/i);
+assert.match(requirement, /do not scan unrelated history/i);
+assert.match(requirement, /dedicated `--target-user`/i);
+assert.match(requirement, /does not require loading the Workstream Skill/i);
+assert.match(requirement, /needs_triage/i);
+assert.match(requirement, /capture-pool-item\.js/i);
 
-const analysisHook = path.join(repo, "plugins/ravo-analysis/hooks/ravo-analysis-gate.js");
-const acceptanceHook = path.join(repo, "plugins/ravo-acceptance/hooks/ravo-acceptance-gate.js");
-const acceptanceSessionHook = path.join(repo, "plugins/ravo-acceptance/hooks/ravo-acceptance-session.js");
-const acceptanceStopHook = path.join(repo, "plugins/ravo-acceptance/hooks/ravo-acceptance-stop.js");
-const workstreamHook = path.join(repo, "plugins/ravo-workstream/hooks/ravo-workstream-gate.js");
-const knowledgeHook = path.join(repo, "plugins/ravo-knowledge/hooks/ravo-knowledge-gate.js");
-const workspace = fs.mkdtempSync(path.join(os.tmpdir(), "ravo-prompt-"));
+const core = fs.readFileSync(path.join(pluginRoot, "skills", "ravo-core", "SKILL.md"), "utf8");
+assert.match(core, /smallest sufficient mode/i, "Core must choose the minimum execution strength from context");
+assert.match(core, /Work directly for simple questions, read-only checks, clear local fixes/i);
+assert.match(core, /host already started a Goal or the current tool contract authorizes creation/i);
+assert.match(core, /Never synthesize a `\/goal` user message/i);
+assert.match(core, /Reuse an active Goal when the user says to continue/i);
+assert.match(core, /completed, terminally blocked, or explicitly parked Goal does not restart/i);
+assert.match(core, /new, independent objective/i);
+assert.match(core, /ordinary clear multi-turn Goal does not require a Spec/i);
+assert.match(core, /version delivery, Release Slice, acceptance, go-live, or publication Goal still requires a current decision-complete Spec/i);
+assert.match(core, /Goal mode changes the execution container, not authorization/i);
+assert.match(core, /continue directly and describe the real state/i, "Goal unavailability must degrade safely");
 
-const session = spawnSync(process.execPath, [acceptanceSessionHook, "SessionStart"], {
+const quickValidation = fs.readFileSync(path.join(pluginRoot, "skills", "ravo-quick-validation", "SKILL.md"), "utf8");
+for (const tier of ["lightweight", "traceable", "required_evidence"]) assert.match(quickValidation, new RegExp(`\\b${tier}\\b`));
+assert.match(quickValidation, /Run at least one check directly tied to the result/i);
+assert.match(quickValidation, /dedicated evidence would cost more time or tokens/i);
+assert.match(quickValidation, /artifact is optional/i);
+assert.match(quickValidation, /No dedicated artifact does not mean no validation/i);
+assert.match(quickValidation, /Complex, high-impact, data, security, permission, irreversible, acceptance, and release cases cannot use `lightweight` evidence/i);
+assert.match(quickValidation, /cannot support `accepted`, `release_ready`, `live`, or `released`/i);
+
+const acceptanceSkill = fs.readFileSync(path.join(pluginRoot, "skills", "ravo-release-acceptance", "SKILL.md"), "utf8");
+assert.match(acceptanceSkill, /do not invoke it just because a simple low-risk task ended/i);
+assert.match(acceptanceSkill, /simple, local, reversible, low-risk task may close with its actual direct check and no Acceptance artifact/i);
+assert.match(acceptanceSkill, /exception reduces evidence collection, not validation/i);
+assert.match(acceptanceSkill, /Lightweight direct checks may support a bounded simple-task completion statement/i);
+assert.match(acceptanceSkill, /cannot support `pending_acceptance`, `accepted`, `release_ready`, `live`, or `released`/i);
+
+const rootCause = fs.readFileSync(path.join(pluginRoot, "skills", "ravo-root-cause-analysis", "SKILL.md"), "utf8");
+assert.match(rootCause, /Minimal RCA requires only/i);
+assert.match(rootCause, /Full RCA requires/i);
+assert.match(rootCause, /full path takes precedence/i);
+assert.match(rootCause, /one runnable regression check/i);
+assert.match(rootCause, /does not require a Why chain/i);
+assert.match(rootCause, /Issue Pool/i);
+assert.match(rootCause, /no (?:follow-up|recurrence) value|one-off/i);
+
+const knowledge = fs.readFileSync(path.join(pluginRoot, "skills", "ravo-knowledge", "SKILL.md"), "utf8");
+assert.match(knowledge, /reusable (?:lesson|experience|principle)/i);
+assert.match(knowledge, /product (?:principle|decision).{0,80}PM/i);
+
+const dashboard = fs.readFileSync(path.join(pluginRoot, "skills", "ravo-dashboard", "SKILL.md"), "utf8");
+assert.match(dashboard, /next[_ -]version[_ -]candidates/i);
+assert.match(dashboard, /下一版本候选需求有哪些/);
+assert.match(dashboard, /modules\.workstream\.latestArtifact/);
+assert.match(dashboard, /specRef/);
+assert.match(dashboard, /explicit `--version`/);
+assert.match(dashboard, /direct(?:ly)? return|直接返回/i);
+assert.match(dashboard, /unique decision-complete, unreleased Spec version/i);
+assert.match(dashboard, /do not infer a version from file time/i);
+
+const stopHook = path.join(pluginRoot, "modules", "ravo-acceptance", "hooks", "ravo-acceptance-stop.js");
+const benign = spawnSync(process.execPath, [stopHook], {
+  input: JSON.stringify({ cwd: repo, last_assistant_message: "I inspected the setting and found no change." }),
   encoding: "utf8",
-  stdio: ["ignore", "pipe", "pipe"]
+  stdio: ["pipe", "pipe", "pipe"]
 });
-assert.equal(session.status, 0, session.stderr);
-const sessionOutput = JSON.parse(session.stdout);
-assert.equal(sessionOutput.systemMessage, "RAVO_ACCEPTANCE_ACTIVE");
-assert.match(sessionOutput.hookSpecificOutput.additionalContext, /proactively run ravo-release-acceptance/);
-assert.match(sessionOutput.hookSpecificOutput.additionalContext, /completed, done, or 已完成/);
-assert.match(sessionOutput.hookSpecificOutput.additionalContext, /write-acceptance-artifact\.js/);
+assert.equal(benign.status, 0, benign.stderr);
+assert.deepEqual(JSON.parse(benign.stdout), {});
 
-const requirement = runHook(analysisHook, "我们正在做一个 AI 穿搭小程序，用户上传衣服照片后，系统自动生成衣橱标签。现在我想新增旅行场景穿搭推荐：用户输入目的地、天数、天气和行李箱大小，系统推荐每天穿什么。这个需求先别开发，帮我判断真正的用户是谁、目标是什么、有哪些边界和风险，然后给出推荐方案。", workspace);
-assert.equal(requirement.systemMessage, "RAVO_ANALYSIS_GATE:ADVISORY");
-assert.match(requirement.hookSpecificOutput.additionalContext, /requirement/);
-assert.match(requirement.hookSpecificOutput.additionalContext, /ravo-requirement-analysis/);
-assert.match(requirement.hookSpecificOutput.additionalContext, /必需标题：需求共创、目标、真实消费者、约束、事实、方案选项、可能盲区、挑战、推导结论、验证/);
-assert.match(requirement.hookSpecificOutput.additionalContext, /每个字段单独成段或条目/);
-assert.match(requirement.hookSpecificOutput.additionalContext, /继续澄清 \/ 直接进入方案/);
-assert.match(requirement.hookSpecificOutput.additionalContext, /可能盲区必须包含判断和建议动作/);
-assert.match(requirement.hookSpecificOutput.additionalContext, /technicalDetailLevel=3/);
-assert.match(requirement.hookSpecificOutput.additionalContext, /not rigor, safety, evidence/);
-
-const naturalRequirement = runHook(analysisHook, "我们这个 AI 穿搭小程序现在会给衣服打标签，但用户出门旅行前还是不知道该带哪些衣服。我想加一个旅行穿搭推荐：填目的地、天数、天气和箱子大小，然后给每天穿什么。", workspace);
-assert.equal(naturalRequirement.systemMessage, "RAVO_ANALYSIS_GATE:ADVISORY");
-assert.match(naturalRequirement.hookSpecificOutput.additionalContext, /requirement/);
-
-const complexArchitecture = runHook(analysisHook, "我们要设计一个面向多团队的 Codex 插件治理方案，涉及安装、权限、hooks、验收证据和长期维护。先不要实现，先分析目标、约束、风险和推荐架构。", workspace);
-assert.equal(complexArchitecture.systemMessage, "RAVO_ANALYSIS_GATE:ADVISORY");
-assert.match(complexArchitecture.hookSpecificOutput.additionalContext, /ravo-requirement-analysis/);
-
-const goalPromptRequest = runHook(analysisHook, "基于刚才的旅行穿搭推荐需求，给我一个可以放进 Codex Goal 模式里的 Prompt。", workspace);
-assert.equal(goalPromptRequest.systemMessage, "RAVO_ANALYSIS_GATE:ADVISORY");
-assert.match(goalPromptRequest.hookSpecificOutput.additionalContext, /goal-prompt/);
-assert.match(goalPromptRequest.hookSpecificOutput.additionalContext, /ravo-core/);
-assert.match(goalPromptRequest.hookSpecificOutput.additionalContext, /decision-complete spec/);
-assert.match(goalPromptRequest.hookSpecificOutput.additionalContext, /No analysis artifact is written for Goal Prompt preflight/);
-assert.match(goalPromptRequest.hookSpecificOutput.additionalContext, /do not output any runnable Goal Prompt/);
-assert.match(goalPromptRequest.hookSpecificOutput.additionalContext, /missing_spec or stale_spec/);
-assert.match(goalPromptRequest.hookSpecificOutput.additionalContext, /update the Spec, write a spec delta/);
-
-const rootCause = runHook(analysisHook, "我们的验收插件现在能拦截可以验收了吗，但对这个版本是不是能发没有触发。我觉得这可能只是关键词覆盖问题，也可能是设计模式问题。请继续追问为什么，直到找到可验证、可防复发的机制根因。", workspace);
-assert.equal(rootCause.systemMessage, "RAVO_ANALYSIS_GATE:ADVISORY");
-assert.match(rootCause.hookSpecificOutput.additionalContext, /root-cause/);
-assert.match(rootCause.hookSpecificOutput.additionalContext, /ravo-root-cause-analysis/);
-assert.match(rootCause.hookSpecificOutput.additionalContext, /必需标题：现象、近因、备选假设、机制根因、追问链、边界、最小修复、验证/);
-assert.match(rootCause.hookSpecificOutput.additionalContext, /每个字段单独成段或条目/);
-
-const naturalRootCause = runHook(analysisHook, "我有点担心这个功能最后会推荐一堆看着合理、但用户根本不会带的衣服。先别改，分析一下为什么会出现这种问题。", workspace);
-assert.equal(naturalRootCause.systemMessage, "RAVO_ANALYSIS_GATE:ADVISORY");
-assert.match(naturalRootCause.hookSpecificOutput.additionalContext, /root-cause/);
-assert.ok(fs.existsSync(path.join(workspace, "knowledge/.ravo/manifest.json")), "analysis hook writes manifest");
-assert.ok(fs.readdirSync(path.join(workspace, "knowledge/.ravo/analysis")).length >= 2, "analysis hook writes artifacts");
-const analysisManifest = readJson(path.join(workspace, "knowledge/.ravo/manifest.json"));
-const latestAnalysisPath = path.join(workspace, analysisManifest.modules.analysis.latestArtifact);
-assert.equal(readJson(latestAnalysisPath).status, "draft", "analysis hook writes draft artifacts");
-assert.equal(analysisManifest.modules.analysis.latestCompleteArtifact || "", "", "analysis hook should not mark placeholder artifact as complete");
-
-const challengeRootCause = runHook(analysisHook, "这个验收流程遇到挑战了，为什么总是脚本通过但 PM 还是不认可？请分析原因。", workspace);
-assert.equal(challengeRootCause.systemMessage, "RAVO_ANALYSIS_GATE:ADVISORY");
-assert.match(challengeRootCause.hookSpecificOutput.additionalContext, /root-cause/);
-
-const rootCauseAcceptanceBypass = runHook(acceptanceHook, "我们的验收插件现在能拦截可以验收了吗，但对这个版本是不是能发没有触发。请继续追问为什么，直到找到机制根因。", workspace);
-assert.deepEqual(rootCauseAcceptanceBypass, {}, "acceptance fallback must not interfere with root-cause analysis prompts");
-
-const trivial = runHook(analysisHook, "把按钮颜色改成红色。");
-assert.deepEqual(trivial, {});
-
-const conceptExplanation = runHook(analysisHook, "什么是 worktree？");
-assert.deepEqual(conceptExplanation, {}, "simple concept explanations should not trigger RAVO analysis");
-
-const workstreamPrompt = runHook(workstreamHook, "这是一个长时间目标，需要按里程碑持续推进并同步 next step。", workspace);
-assert.equal(workstreamPrompt.systemMessage, "RAVO_WORKSTREAM:ADVISORY");
-assert.match(workstreamPrompt.hookSpecificOutput.additionalContext, /nextStep/);
-
-const workstreamReleaseBypass = runHook(workstreamHook, "这个版本能发版了吗？", workspace);
-assert.deepEqual(workstreamReleaseBypass, {}, "workstream must not interfere with release readiness prompts");
-
-const knowledgePrompt = runHook(knowledgeHook, "之前类似项目踩过什么坑，这次能复用哪些经验？", workspace);
-assert.equal(knowledgePrompt.systemMessage, "RAVO_KNOWLEDGE:ADVISORY");
-assert.match(knowledgePrompt.hookSpecificOutput.additionalContext, /Retrieve workspace knowledge/);
-assert.match(knowledgePrompt.hookSpecificOutput.additionalContext, /Do not modify product\/source\/docs outside RAVO knowledge artifacts/);
-assert.match(knowledgePrompt.hookSpecificOutput.additionalContext, /workspace-local path/);
-
-const complexKnowledgePrompt = runHook(knowledgeHook, "我们接下来要做一个长程插件升级，先帮我判断应该从哪里开始，不要直接写代码。", workspace);
-assert.equal(complexKnowledgePrompt.systemMessage, "RAVO_KNOWLEDGE:ADVISORY");
-assert.match(complexKnowledgePrompt.hookSpecificOutput.additionalContext, /medium\/high-complexity/);
-assert.match(complexKnowledgePrompt.hookSpecificOutput.additionalContext, /state what was applied/);
-
-const simpleKnowledgeBypass = runHook(knowledgeHook, "RAVO Review 是什么？", workspace);
-assert.deepEqual(simpleKnowledgeBypass, {}, "simple explanation should not trigger knowledge governance");
-
-const delegatedSimpleKnowledgeBypass = runHook(knowledgeHook, "<codex_delegation><source_thread_id>abc</source_thread_id><input>RAVO Review 是什么？</input></codex_delegation>", workspace);
-assert.deepEqual(delegatedSimpleKnowledgeBypass, {}, "delegated simple explanation should not trigger knowledge governance");
-
-const knowledgeStop = runHookPayload(knowledgeHook, {
-  cwd: workspace,
-  lastAssistantMessage: "这轮插件升级已经完成，测试通过，下一步可以发版。"
-});
-assert.equal(knowledgeStop.systemMessage, "RAVO_KNOWLEDGE_CLOSEOUT_ADVISORY");
-
-const acceptance = runHook(acceptanceHook, "我刚完成了积分扣减功能，代码已经写完但还没做真实小程序端到端验证。这个功能可以验收了吗?", workspace);
-assert.equal(acceptance.systemMessage, "RAVO_ACCEPTANCE_GATE:ADVISORY");
-assert.match(acceptance.hookSpecificOutput.additionalContext, /Do not block the user message/);
-
-for (const prompt of ["这个版本是不是能发", "这个版本是不是能发版", "这个版本能上线吗"]) {
-  const releaseReadiness = runHook(acceptanceHook, prompt, workspace);
-  assert.equal(releaseReadiness.systemMessage, "RAVO_ACCEPTANCE_GATE:ADVISORY", prompt);
-}
-
-const deliveryConclusion = runHook(acceptanceHook, "我已经把积分扣减功能做完了，代码已经写完，单元测试也过了。请给我一个交付结论和下一步安排。", workspace);
-assert.equal(deliveryConclusion.systemMessage, "RAVO_ACCEPTANCE_GATE:ADVISORY");
-assert.ok(fs.readdirSync(path.join(workspace, "knowledge/.ravo/acceptance")).length >= 2, "acceptance hook writes artifacts");
-
-const stopWorkspace = fs.mkdtempSync(path.join(os.tmpdir(), "ravo-stop-"));
-const nonReadinessStop = runHookPayload(acceptanceStopHook, {
-  cwd: stopWorkspace,
-  last_assistant_message: "我已经整理了问题背景，下一步可以继续分析实现路径。"
-});
-assert.deepEqual(nonReadinessStop, {}, "Stop telemetry ignores non-readiness replies");
-
-const readinessStop = runHookPayload(acceptanceStopHook, {
-  cwd: stopWorkspace,
-  session_id: "session-a",
-  turn_id: "turn-a",
-  lastAssistantMessage: "积分扣减功能已经完成了，单元测试也通过了。"
-});
-assert.match(readinessStop.systemMessage, /^RAVO_STOP_TELEMETRY_RECORDED:/);
-assert.deepEqual(
-  Object.keys(readinessStop).sort(),
-  ["systemMessage"],
-  "Stop hook output stays within Codex stop.command.output schema"
-);
-const continuationDir = path.join(stopWorkspace, "knowledge/.ravo/continuation");
-const continuationFiles = fs.readdirSync(continuationDir).filter((file) => file.endsWith(".json"));
-assert.equal(continuationFiles.length, 1, "Stop telemetry writes one continuation artifact");
-const continuationPath = path.join(continuationDir, continuationFiles[0]);
-assert.equal(readJson(continuationPath).status, "pending", "Stop telemetry artifact starts pending");
-assert.equal(readJson(continuationPath).targetWorkspace, stopWorkspace, "Stop telemetry records target workspace");
-assert.equal(readJson(continuationPath).threadId, "session-a", "Stop telemetry records thread/session affinity");
-assert.equal(readJson(continuationPath).policyReviewStatus, "pending_policy_review", "Stop telemetry records policy review state");
-
-const wrongWorkspace = fs.mkdtempSync(path.join(os.tmpdir(), "ravo-wrong-workspace-"));
-fs.mkdirSync(path.join(wrongWorkspace, "knowledge/.ravo/continuation"), { recursive: true });
-fs.copyFileSync(continuationPath, path.join(wrongWorkspace, "knowledge/.ravo/continuation/copied.json"));
-const wrongContinuation = runHookPayload(acceptanceHook, {
-  cwd: wrongWorkspace,
-  session_id: "session-a",
-  prompt: "继续刚才的 RAVO review。"
-});
-assert.deepEqual(wrongContinuation, {}, "wrong-workspace continuation is not injected");
-assert.equal(readJson(path.join(wrongWorkspace, "knowledge/.ravo/continuation/copied.json")).status, "out_of_scope");
-
-const continuationAdvisory = runHookPayload(acceptanceHook, {
-  cwd: stopWorkspace,
-  session_id: "session-a",
-  prompt: "把刚才的结果整理成简短说明。"
-});
-assert.equal(continuationAdvisory.systemMessage, "RAVO_STOP_TELEMETRY:ADVISORY");
-assert.match(continuationAdvisory.hookSpecificOutput.additionalContext, /pending continuation/);
-assert.equal(readJson(continuationPath).status, "consumed", "next prompt consumes pending Stop telemetry once");
-
-const consumedContinuation = runHook(acceptanceHook, "继续。", stopWorkspace);
-assert.deepEqual(consumedContinuation, {}, "consumed Stop telemetry is not repeated");
-
-const agentsScript = path.join(repo, "plugins/ravo-core/scripts/ravo-agents.js");
-const agentsPreview = spawnSync(process.execPath, [agentsScript, "--file", path.join(workspace, "AGENTS.md")], {
+const active = spawnSync(process.execPath, [stopHook], {
+  input: JSON.stringify({ cwd: repo, stop_hook_active: true, last_assistant_message: "这个功能已完成。" }),
   encoding: "utf8",
-  stdio: ["ignore", "pipe", "pipe"]
+  stdio: ["pipe", "pipe", "pipe"]
 });
-assert.equal(agentsPreview.status, 0, agentsPreview.stderr);
-assert.match(agentsPreview.stdout, /AGENTS\.md decides when to delegate/);
-assert.match(agentsPreview.stdout, /Do not force first-principles structure for simple concept explanations/);
-assert.match(agentsPreview.stdout, /ravo-review/);
-assert.match(agentsPreview.stdout, /ravo-knowledge/);
-assert.match(agentsPreview.stdout, /Do not use ravo-knowledge for simple concept explanations/);
-assert.match(agentsPreview.stdout, /Do not mention legacy review-skill names/);
+assert.equal(active.status, 0, active.stderr);
+assert.deepEqual(JSON.parse(active.stdout), {}, "a Stop continuation must not trigger another continuation");
 
-const existingAgentsPath = path.join(workspace, "existing-AGENTS.md");
-fs.writeFileSync(existingAgentsPath, "# Existing Rules\n\n- Keep this user-specific rule.\n", "utf8");
-const agentsApply = spawnSync(process.execPath, [agentsScript, "--file", existingAgentsPath, "--apply"], {
-  encoding: "utf8",
-  stdio: ["ignore", "pipe", "pipe"]
-});
-assert.equal(agentsApply.status, 0, agentsApply.stderr);
-const updatedAgents = fs.readFileSync(existingAgentsPath, "utf8");
-assert.match(updatedAgents, /Keep this user-specific rule/);
-assert.match(updatedAgents, /<!-- RAVO:BEGIN -->/);
-assert.ok(fs.readdirSync(workspace).some((name) => name.startsWith("existing-AGENTS.md.ravo-bak-")), "AGENTS apply creates a backup");
+const workspace = fs.mkdtempSync(path.join(os.tmpdir(), "ravo-agents-v060-"));
+const agentsScript = path.join(pluginRoot, "modules", "ravo-core", "scripts", "ravo-agents.js");
+const agentsFile = path.join(workspace, "AGENTS.md");
+fs.writeFileSync(agentsFile, "# Existing\n\n- Keep this rule.\n", "utf8");
+const preview = spawnSync(process.execPath, [agentsScript, "--file", agentsFile], { encoding: "utf8" });
+assert.equal(preview.status, 0, preview.stderr);
+const previewBlock = preview.stdout.match(/<!-- RAVO:BEGIN -->([\s\S]*?)<!-- RAVO:END -->/)?.[1] || "";
+const template = fs.readFileSync(path.join(repo, "templates", "agents-snippet.md"), "utf8");
+const templateBlock = template.match(/<!-- RAVO:BEGIN -->([\s\S]*?)<!-- RAVO:END -->/)?.[1] || "";
+assert.equal(previewBlock.trim(), templateBlock.trim(), "AGENTS template and generator must stay identical");
+assert.equal((previewBlock.match(/\n- /g) || []).length, 7);
+assert.match(preview.stdout, /Keep simple questions, read-only checks/);
+assert.match(preview.stdout, /existing Codex Goal for clear multi-turn work/i);
+assert.match(preview.stdout, /reuse an active Goal/i);
+assert.match(preview.stdout, /do not recreate a terminal or parked Goal/i);
+assert.match(preview.stdout, /simple low-risk work to omit a dedicated evidence artifact/i);
+assert.match(preview.stdout, /complex and high-order status claims require traceable evidence/i);
+assert.match(preview.stdout, /Ordinary clear Codex Goals do not require a Spec/i);
+assert.match(preview.stdout, /version-delivery, Release Slice, acceptance, go-live, or publication Goal Prompt requires a current decision-complete Spec/i);
+assert.match(preview.stdout, /systematically shape important or ambiguous requirements/);
+assert.match(preview.stdout, /minimal RCA/);
+assert.match(preview.stdout, /one concrete, owner-assigned next step/);
+assert.match(preview.stdout, /Codex owns that step/);
+assert.match(preview.stdout, /do not ask the user to reconfirm it/);
+assert.match(preview.stdout, /visibly record|显性记录/i);
+assert.match(preview.stdout, /next[- ]version candidates|下一版本候选/i);
+assert.match(preview.stdout, /active Workstream.*specRef/i);
 
-const agentsIdempotent = spawnSync(process.execPath, [agentsScript, "--file", existingAgentsPath], {
-  encoding: "utf8",
-  stdio: ["ignore", "pipe", "pipe"]
-});
-assert.equal(agentsIdempotent.status, 0, agentsIdempotent.stderr);
-assert.match(agentsIdempotent.stdout, /No changes/);
-
-const goalScript = path.join(repo, "plugins/ravo-core/scripts/ravo-goal-prompt.js");
-const goalMissingWorkspace = fs.mkdtempSync(path.join(os.tmpdir(), "ravo-goal-missing-"));
-const missingGoal = spawnSync(process.execPath, [goalScript, "--workspace", goalMissingWorkspace], {
-  encoding: "utf8",
-  stdio: ["ignore", "pipe", "pipe"]
-});
-assert.equal(missingGoal.status, 0, missingGoal.stderr);
-const missingGoalOutput = JSON.parse(missingGoal.stdout);
-assert.equal(missingGoalOutput.status, "spec_draft");
-assert.equal(missingGoalOutput.canGenerateGoalPrompt, false);
-assert.ok(!Object.hasOwn(missingGoalOutput, "goalPrompt"), "missing spec must not output a runnable Goal prompt");
-assert.ok(fs.existsSync(missingGoalOutput.draftSpecPath), "default auto_spec writes a draft spec");
-assert.ok(fs.existsSync(missingGoalOutput.alignmentDraftPath), "default auto_spec writes an alignment draft");
-assert.match(missingGoalOutput.message, /不输出可运行 Goal Prompt/);
-
-const askGoalWorkspace = fs.mkdtempSync(path.join(os.tmpdir(), "ravo-goal-ask-"));
-fs.mkdirSync(path.join(askGoalWorkspace, "knowledge/.ravo"), { recursive: true });
-fs.writeFileSync(path.join(askGoalWorkspace, "knowledge/.ravo/config.json"), JSON.stringify({ goalPrompt: { missingSpecPolicy: "ask_to_generate_spec" } }, null, 2), "utf8");
-const askGoal = spawnSync(process.execPath, [goalScript, "--workspace", askGoalWorkspace], {
-  encoding: "utf8",
-  stdio: ["ignore", "pipe", "pipe"]
-});
-assert.equal(askGoal.status, 0, askGoal.stderr);
-const askGoalOutput = JSON.parse(askGoal.stdout);
-assert.equal(askGoalOutput.status, "missing_spec");
-assert.ok(!Object.hasOwn(askGoalOutput, "goalPrompt"), "ask_to_generate_spec must not output a runnable Goal prompt");
-
-const staleGoalWorkspace = fs.mkdtempSync(path.join(os.tmpdir(), "ravo-goal-stale-"));
-fs.mkdirSync(path.join(staleGoalWorkspace, "docs"), { recursive: true });
-fs.copyFileSync(path.join(repo, "docs/ravo-v0.2-decision-complete-spec.md"), path.join(staleGoalWorkspace, "docs/ravo-v0.2-decision-complete-spec.md"));
-fs.writeFileSync(path.join(staleGoalWorkspace, "docs/new-requirements-alignment.md"), "# New Alignment\n\nUnmerged requirement.\n", "utf8");
-const staleGoal = spawnSync(process.execPath, [goalScript, "--workspace", staleGoalWorkspace, "--spec", "docs/ravo-v0.2-decision-complete-spec.md"], {
-  encoding: "utf8",
-  stdio: ["ignore", "pipe", "pipe"]
-});
-assert.equal(staleGoal.status, 0, staleGoal.stderr);
-const staleGoalOutput = JSON.parse(staleGoal.stdout);
-assert.equal(staleGoalOutput.status, "stale_spec");
-assert.ok(!Object.hasOwn(staleGoalOutput, "goalPrompt"), "stale spec must not output a runnable Goal prompt");
-
-const goalReadyWorkspace = fs.mkdtempSync(path.join(os.tmpdir(), "ravo-goal-ready-"));
-fs.mkdirSync(path.join(goalReadyWorkspace, "docs"), { recursive: true });
-fs.copyFileSync(path.join(repo, "docs/ravo-v0.2-decision-complete-spec.md"), path.join(goalReadyWorkspace, "docs/ravo-v0.2-decision-complete-spec.md"));
-const readyGoal = spawnSync(process.execPath, [goalScript, "--workspace", goalReadyWorkspace], {
-  encoding: "utf8",
-  stdio: ["ignore", "pipe", "pipe"]
-});
-assert.equal(readyGoal.status, 0, readyGoal.stderr);
-const readyGoalOutput = JSON.parse(readyGoal.stdout);
-assert.equal(readyGoalOutput.status, "ok");
-assert.match(readyGoalOutput.goalPrompt, /以规格书为唯一需求来源/);
-
-const readyWorkspace = fs.mkdtempSync(path.join(os.tmpdir(), "ravo-ready-"));
-const writerScript = path.join(repo, "plugins/ravo-acceptance/scripts/write-acceptance-artifact.js");
-const readyArtifact = spawnSync(process.execPath, [
-  writerScript,
-  "--workspace", readyWorkspace,
-  "--status", "pending_acceptance",
-  "--evidence-level", "smoke",
-  "--summary", "ready workspace acceptance evidence"
-], {
-  encoding: "utf8",
-  stdio: ["ignore", "pipe", "pipe"]
-});
-assert.equal(readyArtifact.status, 0, readyArtifact.stderr);
-
-const readyPrompt = runHook(acceptanceHook, "这个版本是不是能发版", readyWorkspace);
-assert.deepEqual(readyPrompt, {}, "acceptance fallback should not poison a ready workspace");
+const apply = spawnSync(process.execPath, [agentsScript, "--file", agentsFile, "--apply"], { encoding: "utf8" });
+assert.equal(apply.status, 0, apply.stderr);
+const applied = fs.readFileSync(agentsFile, "utf8");
+assert.match(applied, /Keep this rule/);
+assert.equal((applied.match(/\n- /g) || []).length, 8, "seven RAVO rules plus the existing user rule");
+assert.ok(fs.readdirSync(workspace).some((name) => name.startsWith("AGENTS.md.ravo-bak-")));
+fs.rmSync(workspace, { recursive: true, force: true });
 
 console.log(JSON.stringify({
   status: "pass",
   checks: [
-    "requirement prompt -> ravo-requirement-analysis advisory",
-    "natural product prompt -> ravo-requirement-analysis advisory",
-    "complex architecture prompt -> ravo-requirement-analysis advisory",
-    "Goal prompt request -> decision-complete spec contract advisory",
-    "root-cause prompt -> ravo-root-cause-analysis advisory",
-    "natural concern prompt -> ravo-root-cause-analysis advisory",
-    "challenge prompt -> ravo-root-cause-analysis advisory",
-    "root-cause prompt with release wording -> acceptance fallback bypass",
-    "trivial prompt -> no advisory",
-    "simple concept explanation -> no analysis advisory",
-    "long-running prompt -> workstream advisory",
-    "release prompt -> workstream bypass",
-    "knowledge reuse prompt -> knowledge advisory",
-    "medium complexity prompt -> knowledge retrieval advisory",
-    "simple explanation -> no knowledge advisory",
-    "delegated simple explanation -> no knowledge advisory",
-    "Stop closeout -> knowledge closeout advisory",
-    "session start -> proactive acceptance context",
-    "acceptance prompt without evidence -> advisory",
-    "release-readiness variants without evidence -> advisory",
-    "delivery conclusion prompt without evidence -> advisory",
-    "Stop non-readiness reply -> no telemetry",
-    "Stop readiness claim without evidence -> pending continuation artifact",
-    "next normal prompt -> consumes Stop continuation advisory once",
-    "AGENTS preview -> delegated when/how boundary",
-    "AGENTS apply -> preserves existing rules and is idempotent",
-    "Goal prompt missing spec -> auto draft without runnable prompt",
-    "Goal prompt ask_to_generate_spec -> missing_spec without runnable prompt",
-    "Goal prompt stale spec -> stale_spec without runnable prompt",
-    "Goal prompt existing spec -> concise Goal prompt",
-    "ready workspace prompt -> no fallback interference"
+    "only-stop-hook",
+    "simple-prompt-empty-stop-output",
+    "systematic-requirement-outcomes",
+    "minimal-and-full-rca",
+    "context-driven-direct-analysis-goal-governed-contract",
+    "active-goal-reuse-and-terminal-goal-no-recreate",
+    "ordinary-goal-vs-release-spec-boundary",
+    "risk-and-cost-proportional-evidence-tiers",
+    "lightweight-check-without-artifact",
+    "one-stop-continuation-cap",
+    "seven-line-agents-recall-with-pool-and-next-version-scenario",
+    "agents-preview-apply-and-backup"
   ]
 }, null, 2));

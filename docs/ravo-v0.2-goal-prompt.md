@@ -2,11 +2,11 @@
 
 Use only after accepting:
 
-- `/Users/apple/Developer/AICODING/RAVO/docs/ravo-v0.2-decision-complete-spec.md`
+- `<workspace>/RAVO/docs/ravo-v0.2-decision-complete-spec.md`
 
 ```text
 目标：
-在仓库 /Users/apple/Developer/AICODING/RAVO 中，严格按照 /Users/apple/Developer/AICODING/RAVO/docs/ravo-v0.2-decision-complete-spec.md 完成 RAVO v0.2 的全部开发、验证、文档、评审、验收、提交和推送工作。
+在仓库 <workspace>/RAVO 中，严格按照 <workspace>/RAVO/docs/ravo-v0.2-decision-complete-spec.md 完成 RAVO v0.2 的全部开发、验证、文档、评审、验收、提交和推送工作。
 
 完成标准：
 1. 规格书中标记为 required 的能力全部实现。

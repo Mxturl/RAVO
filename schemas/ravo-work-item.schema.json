@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ravo.dev/schemas/ravo-work-item.schema.json",
+  "title": "RAVO Requirement or Issue Work Item",
+  "type": "object",
+  "required": ["schemaVersion", "id", "title", "itemType", "decisionStatus", "deliveryStatus", "pmAcceptanceStatus", "releaseStatus", "sourceRefs", "revision", "createdAt", "updatedAt"],
+  "properties": {
+    "schemaVersion": { "type": "string" },
+    "id": { "type": "string", "minLength": 1 },
+    "legacyIds": { "type": "array", "items": { "type": "string" } },
+    "itemType": { "enum": ["feature", "improvement", "bug", "hotfix", "experiment", "technical_debt", "governance", "release_ops", "environment"] },
+    "title": { "type": "string", "minLength": 1 },
+    "summary": { "type": "string" },
+    "description": { "type": "string" },
+    "sourceRefs": { "type": "array", "items": { "type": "string" } },
+    "captureMode": { "type": "string" },
+    "confirmationStatus": { "type": "string" },
+    "decisionStatus": { "type": "string" },
+    "deliveryStatus": { "type": "string" },
+    "pmAcceptanceStatus": { "type": "string" },
+    "releaseStatus": { "type": "string" },
+    "priority": { "enum": ["P0", "P1", "P2", "P3"] },
+    "candidateVersions": { "type": "array", "items": { "type": "string" } },
+    "estimatedTokens": { "type": "object" },
+    "actualTokens": { "type": ["number", "null"] },
+    "revision": { "type": "integer", "minimum": 1 },
+    "createdAt": { "type": "string" },
+    "updatedAt": { "type": "string" }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/modules/ravo-acceptance/hooks/ravo-acceptance-stop.js\"",
+            "commandWindows": "if (Get-Command node -ErrorAction SilentlyContinue) { node \"$env:CLAUDE_PLUGIN_ROOT\\modules\\ravo-acceptance\\hooks\\ravo-acceptance-stop.js\" }",
+            "timeout": 10,
+            "statusMessage": "Checking delivery status evidence..."
+          }
+        ]
+      }
+    ]
+  }
+}

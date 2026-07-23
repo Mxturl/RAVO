@@ -523,7 +523,7 @@ Expected:
 Prompt style:
 
 ```text
-基于 /Users/apple/Developer/AICODING/RAVO/docs/ravo-v0.3-decision-complete-spec.md，给我一段可以直接放进 Goal 模式的 Prompt。
+基于 <workspace>/RAVO/docs/ravo-v0.3-decision-complete-spec.md，给我一段可以直接放进 Goal 模式的 Prompt。
 ```
 
 Expected:
@@ -624,7 +624,7 @@ RAVO v0.3 implementation is not acceptable unless:
 
 ```text
 目标：
-在仓库 /Users/apple/Developer/AICODING/RAVO 中，严格按照 /Users/apple/Developer/AICODING/RAVO/docs/ravo-v0.3-decision-complete-spec.md 完成 RAVO v0.3 的全部开发、验证、文档、评审、验收、提交和推送工作。
+在仓库 <workspace>/RAVO 中，严格按照 <workspace>/RAVO/docs/ravo-v0.3-decision-complete-spec.md 完成 RAVO v0.3 的全部开发、验证、文档、评审、验收、提交和推送工作。
 
 完成标准：
 1. 规格书中标记为 required 的能力全部实现。

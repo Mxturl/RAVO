@@ -2,7 +2,7 @@
 
 Date: 2026-07-08
 
-Scope: fresh Codex local threads against `/Users/apple/Developer/AICODING/RAVO` after reinstalling RAVO plugins to `0.3.1`.
+Scope: fresh Codex local threads against `<workspace>/RAVO` after reinstalling RAVO plugins to `0.3.1`.
 
 ## Summary
 
