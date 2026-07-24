@@ -22,7 +22,7 @@ const {
   recoverConfig
 } = require("./ravo-upgrade");
 
-const SERVICE_VERSION = "0.6.2";
+const SERVICE_VERSION = "0.6.3";
 
 const DEFAULTS = Object.freeze({
   host: "127.0.0.1",

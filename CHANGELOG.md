@@ -2,6 +2,41 @@
 
 All notable public changes to RAVO are documented here.
 
+## [0.6.3] - 2026-07-24
+
+Repository: https://github.com/Mxturl/RAVO
+
+License: MIT
+
+Install: `codex plugin add ravo@ravo`
+
+### Changed
+
+- Acceptance conclusions now bind to the current task's explicit or uniquely matched evidence instead of the workspace's latest artifact, so concurrent tasks cannot overwrite each other's status.
+- RCA, Review, smoke, and Acceptance guidance now checks for reusable Knowledge when stable facts emerge; phase closeout classifies lessons, Pool items, unfinished work, and Spec changes without adding a Stop Hook ceremony to simple work.
+- PM-facing replies use structured state as factual input while leaving prose, lists, tables, and steps to the model's judgment for the current question.
+- Clear implementation requests now default to continuing through validation and reversible local integration. The model may create or reuse the host Codex Goal from full context when continuity is useful, without keywords, scoring, or a new router.
+
+### Compatibility
+
+- The unified `ravo@ravo` plugin, nine Skills, one read-only Stop Hook, workspace artifacts, legacy `0.5.5` migration, and `0.6.2` installation path remain compatible.
+- Goal remains a host-provided continuity container. It does not add a Spec, Review, Acceptance, or evidence requirement and does not expand authorization.
+
+### Known Limitations
+
+- Natural Goal choice and Knowledge recall are semantic model judgments, so behavior may vary by host, model, and context. RAVO intentionally does not replace them with keyword triggers or a routing Hook.
+- When a host does not expose a unique task identifier, high-order acceptance or release claims must reference the matching workspace-local Acceptance explicitly.
+
+### Validation
+
+- All 49 tracked checks pass on the v0.6.3 candidate, including repository validation, prompt regression, version alignment, architecture, Stop Hook isolation, migration, runtime delivery, and acceptance contracts.
+- The locally installed `0.6.3` plugin passed fresh-session checks for concurrent Acceptance isolation, complex Knowledge recall, simple-task silence, PM-readable responses, and natural Goal behavior. The PM accepted the scoped product experience before release preparation.
+
+### Rollback
+
+- Check out the audited `v0.6.2` tag and reinstall `ravo@ravo` from that checkout. Preserve `knowledge/.ravo/` and user Review configuration.
+- Do not delete successful GitHub objects automatically; diagnose a partial publication and resume only from a newly audited release plan.
+
 ## [0.6.2] - 2026-07-22
 
 Repository: https://github.com/Mxturl/RAVO

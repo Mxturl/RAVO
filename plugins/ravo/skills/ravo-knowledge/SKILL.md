@@ -1,11 +1,11 @@
 ---
 name: ravo-knowledge
-description: Write, retrieve, and apply reusable lessons, experiences, principles, facts, and decisions in RAVO workspace knowledge; optionally create redacted user-level transferable lessons after explicit opt-in.
+description: Write, retrieve, apply, and classify reusable lessons, facts, decisions, and unfinished work. Use for non-trivial history-sensitive work, after RCA/Review/smoke/Acceptance establishes a stable fact, or at Goal, phase, and user-requested closeout when durable candidates exist.
 ---
 
 # RAVO Knowledge
 
-Use for non-trivial tasks where previous project facts, decisions, lessons, principles, or evidence may affect the result.
+Use for non-trivial tasks where previous project facts, decisions, lessons, principles, or evidence may affect the result, and for durable-candidate classification at meaningful closeout points.
 
 ## Workflow
 
@@ -36,6 +36,20 @@ node "$RAVO_PLUGIN_ROOT/modules/ravo-knowledge/scripts/retrieve-knowledge.js" --
 ```
 
 Set `RAVO_PLUGIN_ROOT` to the directory two levels above this `SKILL.md`.
+
+## Closeout Inventory
+
+Run one lightweight inventory at Goal, phase, or user-requested closeout, and when RCA, Review, smoke, or Acceptance has already established a stable reusable fact. Classify only durable content:
+
+- reusable facts, lessons, principles, and confirmed decisions -> Knowledge;
+- new requirements, issues, rejection reasons, and deferrals -> Requirement/Issue Pool;
+- unfinished work, blockers, recovery entries, and the next action -> Goal/Workstream/Continuation;
+- changes to current scope, acceptance meaning, or required evidence -> Spec Delta;
+- temporary, duplicate, low-value, or unsupported observations -> do not persist.
+
+Do not use the Stop Hook for this inventory and do not create an empty artifact. For simple work or when there is no durable candidate, stay silent and end normally.
+
+When the current environment is read-only, still state the intended destination for each durable candidate instead of silently omitting the classification. Do not claim it was saved.
 
 ## Rules
 

@@ -2,7 +2,7 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
-const PRODUCT_VERSION = "0.6.2";
+const PRODUCT_VERSION = "0.6.3";
 
 function resolvePmBriefModulePath(scriptDir = __dirname, productVersion = PRODUCT_VERSION) {
   const workspaceModule = path.resolve(scriptDir, "../../ravo-core/scripts/ravo-pm-brief.js");
@@ -170,24 +170,17 @@ function checkPmDocument(checks, cwd, acceptance, specText = "") {
   }
   const markdown = fs.readFileSync(pmPath, "utf8");
   if (!acceptance.pmBrief) {
-    addCheck(checks, "pmAcceptancePackage", "skip", false, "Historical acceptance package has no fixed PM projection to validate.");
+    addCheck(checks, "pmAcceptancePackage", "skip", false, "Historical acceptance package has no structured PM facts to validate.");
     addCheck(checks, "pmTaskPlacement", "skip", false, "Historical acceptance package keeps its original PM task layout.");
     return pmPath;
   }
-  const requiredLines = ["结论：", "当前可用：", "影响：", "PM 行动：", "状态边界：", "下一步：", "风险："];
-  const missing = requiredLines.filter((line) => !markdown.includes(line));
-  const pmErrors = validatePmMarkdown(markdown, { kind: "acceptance", actionRequired: acceptance.pmBrief?.actionRequired || "none" });
-  if (acceptance.pmBrief?.actionRequired !== "none") {
-    if (!markdown.includes("## 体验步骤")) missing.push("PM experience document is missing its steps.");
-    if (!markdown.includes("## 需要你决定")) missing.push("PM experience document is missing its single decision.");
-  }
-  missing.push(...pmErrors);
+  const missing = validatePmMarkdown(markdown, { kind: "acceptance", actionRequired: acceptance.pmBrief?.actionRequired || "none" });
   addCheck(
     checks,
     "pmAcceptancePackage",
     missing.length ? "fail" : "pass",
     needsPackage,
-    missing.length ? "PM acceptance package is incomplete." : "PM acceptance package follows the fixed product-facing projection.",
+    missing.length ? "PM acceptance package is incomplete." : "PM acceptance facts are available without enforcing a response layout.",
     missing
   );
   const pendingPm = needsPackage && (acceptance.acceptanceItems || []).some((item) => item.verificationStatus === "pending_pm" || needsExternalBlockerPmDecision(item, acceptance.specRef));

@@ -6,7 +6,7 @@ const path = require("node:path");
 
 const repo = path.resolve(__dirname, "..");
 const modules = ["ravo-core", "ravo-analysis", "ravo-workstream", "ravo-quick-validation", "ravo-acceptance", "ravo-knowledge", "ravo-review", "ravo-dashboard", "ravo-safety"];
-const version = "0.6.2";
+const version = "0.6.3";
 
 function readJson(file) {
   return JSON.parse(fs.readFileSync(file, "utf8"));
@@ -232,14 +232,23 @@ const reviewMigrationE2e = fs.readFileSync(path.join(repo, "scripts/review-confi
 assert.ok(reviewMigrationE2e.includes('saveConfig("review"'), "Review config migration E2E must use the config center mutation path");
 assert.ok(reviewMigrationE2e.includes("FORMAL_TIMEOUT_PROFILE"), "Review config migration E2E must verify the canonical timeout profile");
 assert.ok(reviewMigrationE2e.includes("0o600"), "Review config migration E2E must verify secret file permissions");
-const publicReadme = fs.readFileSync(path.join(repo, "README_ZH.md"), "utf8");
-assert.ok(!publicReadme.includes("Wanted"), "public product documentation must use SoloDesk terminology, not the retired Wanted definition");
-assert.ok(publicReadme.includes("结构化 Pool") && publicReadme.includes("候选版本不会自动变成版本承诺"), "public documentation must retain the Pool and Release Slice boundary");
+const currentRequirementPool = fs.readFileSync(path.join(repo, "docs/ravo-requirement-pool-zh.md"), "utf8");
+assert.ok(!currentRequirementPool.includes("Wanted"), "current requirement pool must use SoloDesk terminology, not the retired Wanted definition");
+assert.ok(currentRequirementPool.includes("RAVO 向 SoloDesk 输出 Pool、Slice、验证和状态数据"), "current requirement pool must retain the SoloDesk product boundary");
 
-for (const relative of ["README.md", "README_ZH.md", "CHANGELOG.md", "docs/launch/index.html"]) {
-  const currentPublicDoc = fs.readFileSync(path.join(repo, relative), "utf8");
-  assert.ok(!/\bWanted\b/i.test(currentPublicDoc), `${relative} must use current SoloDesk terminology`);
+function markdownFiles(dir, files = []) {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const target = path.join(dir, entry.name);
+    if (entry.isDirectory()) markdownFiles(target, files);
+    else if (/\.(md|txt)$/i.test(entry.name)) files.push(target);
+  }
+  return files;
 }
+
+const retiredDeskReferences = markdownFiles(path.join(repo, "docs"))
+  .filter((file) => /\bWanted\b/i.test(fs.readFileSync(file, "utf8")))
+  .map((file) => path.relative(repo, file));
+assert.deepEqual(retiredDeskReferences, [], "product documentation must use SoloDesk terminology consistently");
 
 const skillsDir = path.join(repo, "plugins/ravo/skills");
 for (const entry of fs.readdirSync(skillsDir, { withFileTypes: true })) {

@@ -8,7 +8,7 @@ const os = require("node:os");
 const path = require("node:path");
 const { execFileSync } = require("node:child_process");
 
-const PRODUCT_VERSION = "0.6.2";
+const PRODUCT_VERSION = "0.6.3";
 const CLASSIFICATIONS = new Set(["task_owned", "pre_existing", "mixed_or_unknown"]);
 
 function sha(value) {

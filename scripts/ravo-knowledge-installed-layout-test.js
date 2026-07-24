@@ -10,8 +10,8 @@ const { spawnSync } = require("node:child_process");
 
 const repo = path.resolve(__dirname, "..");
 const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "ravo-knowledge-installed-")));
-const knowledgeRoot = path.join(root, "cache", "ravo", "ravo", "0.6.2", "modules", "ravo-knowledge");
-const coreScripts = path.join(root, "cache", "ravo", "ravo", "0.6.2", "modules", "ravo-core", "scripts");
+const knowledgeRoot = path.join(root, "cache", "ravo", "ravo", "0.6.3", "modules", "ravo-knowledge");
+const coreScripts = path.join(root, "cache", "ravo", "ravo", "0.6.3", "modules", "ravo-core", "scripts");
 const workspace = path.join(root, "workspace");
 
 fs.mkdirSync(path.join(knowledgeRoot, "scripts"), { recursive: true });

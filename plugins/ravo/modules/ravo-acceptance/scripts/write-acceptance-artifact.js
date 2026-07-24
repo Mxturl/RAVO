@@ -15,7 +15,7 @@ const {
 } = require("./acceptance-model");
 
 const SCHEMA_VERSION = "0.5.1";
-const PRODUCT_VERSION = "0.6.2";
+const PRODUCT_VERSION = "0.6.3";
 
 function loadPmBriefModule() {
   const candidates = [
@@ -315,7 +315,25 @@ function statusBoundary(artifact) {
   const implementationComplete = required.every((item) => ["met", "not_applicable"].includes(item.fulfillmentStatus));
   const automaticComplete = required.every((item) => ["verified", "pending_pm"].includes(item.verificationStatus));
   const locallyAvailable = automaticComplete && ["pending_acceptance", "accepted", "release_ready"].includes(artifact.status);
-  return `实现${implementationComplete ? "已完成" : "未完成"}；自动验证${automaticComplete ? "已通过" : "未完成"}；本机体验${locallyAvailable ? "已可用" : "未确认"}；PM 已接受${["accepted", "release_ready"].includes(artifact.status) ? "是" : "否"}；发布条件${artifact.status === "release_ready" ? "已具备" : "未具备"}；已发布否`;
+  const progress = !implementationComplete
+    ? "实现还有缺口"
+    : !automaticComplete
+      ? "实现已完成，自动验证还未完成"
+      : locallyAvailable
+        ? "实现和自动验证已完成，本机可以体验"
+        : "实现和自动验证已完成，本机体验尚未确认";
+  const acceptance = ["accepted", "release_ready"].includes(artifact.status)
+    ? "你已接受当前体验"
+    : artifact.status === "pending_acceptance"
+      ? "现在等待你的体验判断"
+      : "尚未进入产品体验结论";
+  const released = artifact.releaseRecord?.releaseStatus === "released";
+  const release = released
+    ? "当前版本已经发布"
+    : artifact.status === "release_ready"
+      ? "已经具备发布条件，但尚未发布"
+      : "尚未具备发布条件，也没有发布";
+  return `${progress}；${acceptance}；${release}。`;
 }
 
 function pmRisk(artifact) {
@@ -331,8 +349,7 @@ function pmExperienceSteps(artifact) {
     .flatMap((item) => item.verificationTasks || [])
     .flatMap((task) => task.steps || [])
     .map((step) => String(step || "").trim())
-    .filter(Boolean)
-    .slice(0, 3);
+    .filter(Boolean);
   if (steps.length) return steps;
   return ["查看当前产品结果和影响。", "确认当前效果符合本轮目标，或记录需要继续优化的地方。"];
 }
@@ -340,19 +357,33 @@ function pmExperienceSteps(artifact) {
 function pmDocFor(artifact) {
   const pm = artifact.pmBrief;
   const lines = [
-    `# ${pm.actionRequired === "none" ? "PM 验收结论" : "PM 体验验收"}`,
-    `- 结论：${pm.headline}`,
-    `- 当前可用：${productStateLabel(pm.productState)}`,
-    `- 影响：${pm.userImpact}`,
-    `- PM 行动：${pm.actionRequired === "none" ? "无需行动，Codex 会继续。" : "需要完成下面的体验并给出一个结论。"}`,
-    `- 状态边界：${statusBoundary(artifact)}`,
-    `- 下一步：${pm.nextStep}`,
-    `- 风险：${pmRisk(artifact)}`
+    `# ${pm.actionRequired === "none" ? "当前验收结论" : "请体验当前成果"}`,
+    "",
+    pm.headline,
+    "",
+    pm.userImpact,
+    "",
+    statusBoundary(artifact),
+    "",
+    pm.actionRequired === "none" ? "目前不需要你操作。" : "接下来需要你的产品体验判断。",
+    "",
+    pm.nextStep,
+    "",
+    pmRisk(artifact)
   ];
   if (pm.actionRequired !== "none") {
     const card = pm.decisionCard;
-    lines.push("## 体验步骤", ...pmExperienceSteps(artifact).map((step, index) => `${index + 1}. ${step}`));
-    if (card) lines.push("## 需要你决定", card.question, `- 推荐：${card.recommendation}`, `- 暂不决定的影响：${card.waitingImpact}`);
+    lines.push("", "## 建议体验", "", ...pmExperienceSteps(artifact).map((step, index) => `${index + 1}. ${step}`));
+    if (card) lines.push(
+      "",
+      "## 需要你的判断",
+      "",
+      card.question,
+      "",
+      `建议：${card.recommendation}`,
+      ...card.options.map((option) => `- ${option.label}：${option.outcome}`),
+      `暂不决定的影响：${card.waitingImpact}`
+    );
   }
   const markdown = `${lines.join("\n")}\n`;
   const errors = validatePmMarkdown(markdown, { kind: "acceptance", actionRequired: pm.actionRequired });

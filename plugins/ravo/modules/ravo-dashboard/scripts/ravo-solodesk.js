@@ -7,7 +7,7 @@ const os = require("node:os");
 const path = require("node:path");
 const { execFile, execFileSync, spawn } = require("node:child_process");
 
-const SERVICE_VERSION = "0.6.2";
+const SERVICE_VERSION = "0.6.3";
 const LABEL = "com.ravo.solodesk";
 const PRIVATE_DIR_MODE = 0o700;
 const PRIVATE_FILE_MODE = 0o600;

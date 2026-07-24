@@ -12,7 +12,7 @@ const { validatePmBrief } = require("../plugins/ravo/modules/ravo-core/scripts/r
 
 const repo = path.resolve(__dirname, "..");
 const reviewValidatorPath = path.join(repo, "plugins/ravo/modules/ravo-review/scripts/review-config.js");
-const VERSION = "0.6.2";
+const VERSION = "0.6.3";
 
 function writeJson(file, value) {
   fs.mkdirSync(path.dirname(file), { recursive: true });

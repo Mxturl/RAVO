@@ -350,7 +350,7 @@ const acceptance = run(writeAcceptance, [
 assert.ok(fs.existsSync(acceptance.artifactPath), "code_complete acceptance artifact exists");
 const codexPmDocument = fs.readFileSync(acceptance.pmChecklistPath, "utf8");
 assert.doesNotMatch(codexPmDocument, /Run the representative flow\./, "Codex verification steps stay out of the PM document");
-assert.equal(codexPmDocument.split(/\r?\n/).filter((line) => line.trim()).length, 8, "code-complete PM document stays concise");
+assert.match(codexPmDocument, /目前不需要你操作/, "code-complete PM document states the relevant action naturally");
 const codeCompleteCheck = runStatus(checkAcceptance);
 assert.equal(codeCompleteCheck.status, 2, "code_complete remains below acceptance-ready status");
 assert.ok(JSON.parse(codeCompleteCheck.stdout).checks.some((check) => check.id === "pmAcceptancePackage" && check.status === "pass"), "concise PM document is valid while Codex work remains structured evidence");
@@ -511,10 +511,10 @@ const pendingPmPackage = run(writeAcceptance, [
 ]);
 assert.equal(run(checkAcceptance).gate.decision, "pass", "complete pending_pm package passes before PM execution");
 const pmDocument = fs.readFileSync(pendingPmPackage.pmChecklistPath, "utf8");
-fs.writeFileSync(pendingPmPackage.pmChecklistPath, pmDocument.replace("## 体验步骤", "[removed experience steps]"), "utf8");
+fs.writeFileSync(pendingPmPackage.pmChecklistPath, "", "utf8");
 const tamperedPmPackage = runStatus(checkAcceptance);
 assert.equal(tamperedPmPackage.status, 2, "tampered PM task package is blocked");
-assert.ok(JSON.parse(tamperedPmPackage.stdout).checks.some((check) => check.id === "pmAcceptancePackage" && check.status === "fail"), "checker verifies the concise PM experience structure");
+assert.ok(JSON.parse(tamperedPmPackage.stdout).checks.some((check) => check.id === "pmAcceptancePackage" && check.status === "fail"), "checker rejects a missing PM explanation without enforcing its layout");
 fs.writeFileSync(pendingPmPackage.pmChecklistPath, pmDocument, "utf8");
 
 const duplicateAcceptanceIds = runStatus(writeAcceptance, [
@@ -949,9 +949,10 @@ assert.equal(acceptedArtifact.acceptanceItems[0].fulfillmentStatus, "met", "acce
 assert.equal(acceptedArtifact.acceptanceItems[0].verificationStatus, "verified", "acceptance artifact stores verification status");
 const acceptedPmDoc = fs.readFileSync(acceptedWithSecurity.pmChecklistPath, "utf8");
 assert.doesNotMatch(acceptedPmDoc, /基本满足/, "PM document does not emit the legacy basic-satisfaction label");
-assert.equal(acceptedPmDoc.split(/\r?\n/).filter((line) => line.trim()).length, 8, "completed PM document stays concise");
-assert.match(acceptedPmDoc, /^# PM 验收结论/m);
-assert.match(acceptedPmDoc, /实现.*自动验证.*本机体验.*PM 已接受.*发布条件.*已发布/);
+assert.match(acceptedPmDoc, /^# 当前验收结论/m);
+assert.match(acceptedPmDoc, /实现和自动验证已完成/);
+assert.match(acceptedPmDoc, /你已接受当前体验/);
+assert.match(acceptedPmDoc, /尚未具备发布条件，也没有发布/);
 assert.doesNotMatch(acceptedPmDoc, /技术证据附录|Git 验收基线|\| 验收项 \|/);
 
 const acceptedArtifactText = fs.readFileSync(acceptedWithSecurity.artifactPath, "utf8");

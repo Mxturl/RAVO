@@ -21,10 +21,10 @@ function manifest(root, name, version) {
 }
 
 const cache = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "ravo-plugin-resolver-cache-")));
-const dashboardRoot = path.join(cache, "ravo", "ravo", "0.6.2", "modules", "ravo-dashboard");
-const reviewRoot = path.join(cache, "ravo", "ravo", "0.6.2", "modules", "ravo-review");
-manifest(dashboardRoot, "ravo-dashboard", "0.6.2");
-manifest(reviewRoot, "ravo-review", "0.6.2");
+const dashboardRoot = path.join(cache, "ravo", "ravo", "0.6.3", "modules", "ravo-dashboard");
+const reviewRoot = path.join(cache, "ravo", "ravo", "0.6.3", "modules", "ravo-review");
+manifest(dashboardRoot, "ravo-dashboard", "0.6.3");
+manifest(reviewRoot, "ravo-review", "0.6.3");
 fs.mkdirSync(path.join(dashboardRoot, "scripts"), { recursive: true });
 fs.mkdirSync(path.join(reviewRoot, "scripts"), { recursive: true });
 fs.writeFileSync(path.join(reviewRoot, "scripts", "review-config.js"), "module.exports = {};\n", "utf8");
@@ -36,9 +36,9 @@ assert.equal(cacheResolved, reviewRoot, "installed cache resolution uses the cur
 
 const home = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "ravo-plugin-resolver-home-")));
 const oldRoot = path.join(home, ".codex", "plugins", "cache", "ravo", "ravo", "0.5.5", "modules", "ravo-review");
-const latestRoot = path.join(home, ".codex", "plugins", "cache", "ravo", "ravo", "0.6.2", "modules", "ravo-review");
+const latestRoot = path.join(home, ".codex", "plugins", "cache", "ravo", "ravo", "0.6.3", "modules", "ravo-review");
 manifest(oldRoot, "ravo-review", "0.5.5");
-manifest(latestRoot, "ravo-review", "0.6.2");
+manifest(latestRoot, "ravo-review", "0.6.3");
 const latest = resolvePluginRoot("ravo-review", {
   fromDir: path.join(home, "no-plugin-root"),
   home,

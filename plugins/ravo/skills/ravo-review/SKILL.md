@@ -48,12 +48,14 @@ Manual records cannot claim `partial` or `full`. Those states must come from the
 node "$RAVO_PLUGIN_ROOT/modules/ravo-review/scripts/migrate-review-artifact.js" --workspace "<workspace>" --source "<legacy-review.json>"
 ```
 
+When usable Review evidence establishes a stable reusable fact with a clear boundary, run one Knowledge candidate check. Findings that remain uncertain stay in the Review or Issue Pool rather than becoming confirmed Knowledge.
+
 Set `RAVO_PLUGIN_ROOT` to the directory two levels above this `SKILL.md`.
 
 ## Product Manager Communication
 
 - Report which product assumption or user outcome is at risk, the recommended response, the remaining risk, and what Codex will do next before provider, parser, coverage, or retry details.
-- Legacy configuration never changes this fixed PM projection or the complete Review artifact.
+- Legacy configuration never changes the underlying facts or complete Review artifact; the visible PM response may be organized naturally for the current question.
 - Missing or partial external review is an evidence boundary, not automatically a PM decision. Ask the PM only when accepting the residual risk or changing scope is genuinely a product choice.
 - External review never substitutes for actual local usability, product acceptance, or release evidence.
 

@@ -8,7 +8,7 @@ const { execFileSync } = require("node:child_process");
 const { buildPmBrief } = require("./ravo-pm-brief");
 const { resolveDeliveryProfile } = require("./ravo-delivery-profile");
 
-const PRODUCT_VERSION = "0.6.2";
+const PRODUCT_VERSION = "0.6.3";
 const REQUIRED_PLUGINS = Object.freeze(["ravo"]);
 const HOOK_TRUST_RECOVERY = "In ChatGPT Desktop, open Settings > Hooks and trust the pending RAVO Stop hook; in Codex CLI, run /hooks.";
 

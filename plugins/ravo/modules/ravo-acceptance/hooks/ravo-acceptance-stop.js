@@ -2,6 +2,7 @@
 
 "use strict";
 
+const fs = require("node:fs");
 const path = require("node:path");
 const { spawnSync } = require("node:child_process");
 
@@ -120,9 +121,121 @@ function claimSupported(level, result) {
   return level === "completion";
 }
 
-function runChecker(cwd) {
+function inside(root, file) {
+  const relative = path.relative(root, file);
+  return Boolean(relative) && !relative.startsWith("..") && !path.isAbsolute(relative);
+}
+
+function explicitAcceptanceRefs(message) {
+  const text = String(message || "");
+  const refs = [];
+  const patterns = [
+    /\]\((?:<)?([^)>\r\n]*?knowledge[\\/]\.ravo[\\/]acceptance[\\/][^)>\r\n]*?\.json)(?:>)?\)/gi,
+    /`([^`\r\n]*?knowledge[\\/]\.ravo[\\/]acceptance[\\/][^`\r\n]*?\.json)`/gi,
+    /(?:^|[\s(\[<{"'：:])((?:[A-Za-z]:[\\/]|\/)?[^\s)\]}>"'`]*?knowledge[\\/]\.ravo[\\/]acceptance[\\/][^\s)\]}>"'`]*?\.json)/gim
+  ];
+  for (const pattern of patterns) {
+    for (const match of text.matchAll(pattern)) refs.push(match[1]);
+  }
+  return [...new Set(refs.map((ref) => ref.trim()).filter(Boolean))];
+}
+
+function safeAcceptanceRef(cwd, ref) {
+  const workspace = path.resolve(cwd);
+  const acceptanceDir = path.join(workspace, "knowledge", ".ravo", "acceptance");
+  const candidate = path.isAbsolute(ref) ? path.resolve(ref) : path.resolve(workspace, ref);
+  try {
+    const realWorkspace = fs.realpathSync(workspace);
+    const realAcceptanceDir = fs.realpathSync(acceptanceDir);
+    const realCandidate = fs.realpathSync(candidate);
+    if (!inside(realAcceptanceDir, realCandidate) || path.extname(realCandidate).toLowerCase() !== ".json") return "";
+    if (!fs.statSync(realCandidate).isFile()) return "";
+    return path.relative(realWorkspace, realCandidate).split(path.sep).join("/");
+  } catch (_error) {
+    return "";
+  }
+}
+
+function taskIds(data) {
+  return [...new Set([
+    data.session_id,
+    data.sessionId,
+    data.thread_id,
+    data.threadId,
+    data.conversation_id,
+    data.conversationId,
+    data.task_id,
+    data.taskId
+  ].filter((value) => typeof value === "string" && value.trim()).map((value) => value.trim()))];
+}
+
+function artifactRefs(artifact) {
+  return [
+    ...(Array.isArray(artifact?.sourceRefs) ? artifact.sourceRefs : []),
+    ...(Array.isArray(artifact?.realResponseRefs) ? artifact.realResponseRefs : []),
+    artifact?.pmDecision?.sourceRef,
+    ...(Array.isArray(artifact?.acceptanceItems)
+      ? artifact.acceptanceItems.flatMap((item) => [
+        ...(Array.isArray(item?.sourceRefs) ? item.sourceRefs : []),
+        ...(Array.isArray(item?.realResponseRefs) ? item.realResponseRefs : [])
+      ])
+      : [])
+  ].filter((value) => typeof value === "string" && value.trim());
+}
+
+function refMatchesTask(ref, id) {
+  return ref === id
+    || ref.startsWith(`conversation:${id}#`)
+    || ref === `task:${id}`
+    || ref.startsWith(`task:${id}#`)
+    || ref === `codex-task:${id}`
+    || ref.startsWith(`codex-task:${id}#`);
+}
+
+function taskBoundAcceptanceRefs(cwd, ids) {
+  if (!ids.length) return [];
+  const dir = path.join(cwd, "knowledge", ".ravo", "acceptance");
+  let files = [];
+  try {
+    files = fs.readdirSync(dir).filter((name) => name.endsWith(".json"));
+  } catch (_error) {
+    return [];
+  }
+  return files.flatMap((name) => {
+    const file = path.join(dir, name);
+    let artifact = null;
+    try {
+      artifact = JSON.parse(fs.readFileSync(file, "utf8"));
+    } catch (_error) {
+      return [];
+    }
+    return artifactRefs(artifact).some((ref) => ids.some((id) => refMatchesTask(ref, id)))
+      ? [safeAcceptanceRef(cwd, file)]
+      : [];
+  }).filter(Boolean);
+}
+
+function acceptanceBinding(data, message, cwd) {
+  const explicit = explicitAcceptanceRefs(message);
+  if (explicit.length) {
+    const valid = [...new Set(explicit.map((ref) => safeAcceptanceRef(cwd, ref)).filter(Boolean))];
+    if (valid.length === 1 && valid.length === explicit.length) return { status: "bound", ref: valid[0], source: "explicit" };
+    return { status: valid.length > 1 ? "ambiguous" : "invalid", ref: "", source: "explicit" };
+  }
+  const matched = [...new Set(taskBoundAcceptanceRefs(cwd, taskIds(data)))];
+  if (matched.length === 1) return { status: "bound", ref: matched[0], source: "task" };
+  return { status: matched.length > 1 ? "ambiguous" : "missing", ref: "", source: "task" };
+}
+
+function bindingFailure(binding) {
+  if (binding.status === "ambiguous") return "Multiple task-local RAVO Acceptance artifacts match this response; cite the intended current-task artifact explicitly.";
+  if (binding.status === "invalid") return "The explicitly referenced RAVO Acceptance artifact is invalid, missing, or outside the current workspace acceptance directory.";
+  return "No task-local RAVO Acceptance artifact is uniquely bound to this response; cite or create the current-task artifact before making a high-order status claim.";
+}
+
+function runChecker(cwd, acceptanceArtifact) {
   const script = path.join(__dirname, "..", "scripts", "check-ravo-acceptance.js");
-  const child = spawnSync(process.execPath, [script], {
+  const child = spawnSync(process.execPath, [script, "--acceptance-artifact", acceptanceArtifact], {
     cwd,
     encoding: "utf8",
     stdio: ["ignore", "pipe", "ignore"]
@@ -143,11 +256,17 @@ function handle(data, options = {}) {
   const poolDispositionMissing = hasUndisposedPoolSignal(message);
   const mismatches = [];
   if (claimLevel !== "none") {
-    const checker = options.runChecker || runChecker;
-    const result = checker(data.cwd || data.workspace || process.cwd());
-    if (!claimSupported(claimLevel, result)) mismatches.push(result?.gate?.decision === "pass"
-      ? `The ${claimLevel} claim exceeds acceptanceScope=${result.acceptanceScope || "unknown"}, acceptanceStatus=${result.acceptanceStatus || "unknown"}, releaseEligible=${result.releaseEligible === true}.`
-      : result?.gate?.reason || "Required RAVO acceptance evidence is incomplete.");
+    const cwd = path.resolve(data.cwd || data.workspace || process.cwd());
+    const binding = acceptanceBinding(data, message, cwd);
+    if (binding.status !== "bound") {
+      if (claimLevel !== "completion") mismatches.push(bindingFailure(binding));
+    } else {
+      const checker = options.runChecker || runChecker;
+      const result = checker(cwd, binding.ref);
+      if (!claimSupported(claimLevel, result)) mismatches.push(result?.gate?.decision === "pass"
+        ? `The ${claimLevel} claim exceeds acceptanceScope=${result.acceptanceScope || "unknown"}, acceptanceStatus=${result.acceptanceStatus || "unknown"}, releaseEligible=${result.releaseEligible === true}.`
+        : result?.gate?.reason || "Required RAVO acceptance evidence is incomplete.");
+    }
   }
   if (poolDispositionMissing) mismatches.push("The response states a new requirement, follow-up issue, reusable lesson, or product decision without saying whether it was recorded, merged, updated, moved to Spec Delta, or intentionally not persisted.");
   if (!mismatches.length) return {};
@@ -164,6 +283,7 @@ if (require.main === module) {
 }
 
 module.exports = {
+  acceptanceBinding,
   affirmativeMatch,
   claimSupported,
   handle,

@@ -6,7 +6,7 @@ const os = require("node:os");
 const path = require("node:path");
 const { resolvePluginScript } = require("./ravo-plugin-resolver");
 const { classifyReview, selectArtifactLineage } = require("./ravo-lineage");
-const PRODUCT_VERSION = "0.6.2";
+const PRODUCT_VERSION = "0.6.3";
 
 function coreFunction(scriptName, exportName, options = {}) {
   const script = resolvePluginScript("ravo-core", `scripts/${scriptName}`, {

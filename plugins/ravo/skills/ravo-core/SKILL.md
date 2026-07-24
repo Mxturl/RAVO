@@ -11,14 +11,15 @@ Use this skill for explicit RAVO setup and maintenance. Ordinary product work do
 
 Choose the smallest sufficient mode from the current context. This is an internal judgment, not a status label or decision matrix to show the user:
 
+- A clear implementation, change, or fix request carries a default delivery commitment: complete the authorized scope through implementation, validation, and reversible local integration unless a real blocker or PM product decision stops it. The user does not need to say "finish everything". Discussion, explanation, analysis, planning, and brainstorming requests do not become implementation requests under this rule.
 - Work directly for simple questions, read-only checks, clear local fixes, and short reversible tasks.
 - Use RAVO Analysis when missing product meaning, scope, or success criteria could change the direction.
-- Use an existing Codex Goal when the outcome and completion condition are clear, several reliable steps or turns remain, and the already-authorized local work can continue without PM supervision.
+- Create or reuse one Codex Goal when the full conversation context shows a clear implementation outcome, enough authorization to continue without PM supervision, and that continuity would materially help complete the work. Several reliable steps, likely multi-turn progress, and meaningful recovery value are contextual signals, not required conditions or a scoring checklist. Infer usefulness from intent, prior decisions, remaining commitments, and boundaries; do not use keywords or require the user to mention Goal.
 - Add the relevant governance Skill only for actual data, credentials, permissions, production, shared-service, irreversible-action, acceptance, or release boundaries.
 
 Do not initialize RAVO, create artifacts, or announce the mode merely to classify a clear bounded task.
 
-Use Codex Goal capability only when the host already started a Goal or the current tool contract authorizes creation. Never synthesize a `/goal` user message, bypass tool authority, or block ordinary work because Goal capability is unavailable; continue directly and describe the real state.
+When the user-level RAVO AGENTS block is installed, its standing instruction explicitly delegates semantic Goal selection, so no per-task Goal phrase is required. Still use Codex Goal capability only when the host already started a Goal or the current tool contract authorizes creation. Never synthesize a `/goal` user message, bypass tool authority, or block ordinary work because Goal capability is unavailable; for clearly long-running work, continue the default delivery commitment and describe the real fallback once.
 
 For Goal lifecycle:
 
@@ -26,6 +27,7 @@ For Goal lifecycle:
 - A completed, terminally blocked, or explicitly parked Goal does not restart because the user says only “continue”. Continue ordinary discussion or report that no work remains.
 - Reconsider Goal mode only for a new, independent objective that still meets the eligibility conditions.
 - An ordinary clear multi-turn Goal does not require a Spec. A version delivery, Release Slice, acceptance, go-live, or publication Goal still requires a current decision-complete Spec.
+- Goal selection alone does not add a Spec, Review, Acceptance, Evidence artifact, or other RAVO process. Those remain proportional to the task's actual ambiguity, risk, and status claim.
 - Goal mode changes the execution container, not authorization. It never expands data, credential, permission, remote, production, destructive-action, or release boundaries.
 
 ## Workflow
@@ -66,7 +68,7 @@ node "$RAVO_PLUGIN_ROOT/modules/ravo-core/scripts/capture-pool-item.js" --worksp
 
 Approval does not set a committed version or Release Slice. A missing rejection reason is recorded honestly rather than forcing the PM to fill a form.
 
-For PM-visible capture or decision replies, use the returned `pmBrief`. Show the product result and boundary without Work Item IDs, paths, commands, raw JSON, or internal status fields unless the PM explicitly requests technical evidence.
+For PM-visible capture or decision replies, use the returned `pmBrief` as the factual source, not as a response template. Answer the current product question naturally and show the relevant result and boundary without Work Item IDs, paths, commands, raw JSON, or internal status fields unless the PM explicitly requests technical evidence.
 
 4. For opt-in Codex global `AGENTS.md` integration, preview first:
 
@@ -90,7 +92,7 @@ node "$RAVO_PLUGIN_ROOT/modules/ravo-core/scripts/ravo-goal-prompt.js" --workspa
 
 If the script returns `missing_spec`, do not create a runnable RAVO release Goal Prompt, including short, temporary, or draft versions. This guard does not make a Spec mandatory for an ordinary clear host Goal. If the user asked for a version delivery, acceptance, publication, or Release Slice Goal Prompt, explain that the Spec is needed first and offer to generate it. A runnable RAVO release Goal Prompt is generated only after a decision-complete, non-draft Spec exists and is checked again.
 
-7. Preview the supported eight-plugin `0.5.5` to unified `0.6.2` migration before applying it:
+7. Preview the supported eight-plugin `0.5.5` to unified `0.6.3` migration before applying it:
 
 ```bash
 node "$RAVO_PLUGIN_ROOT/modules/ravo-core/scripts/ravo-migrate.js" --preview
@@ -109,9 +111,9 @@ Before requesting PM acceptance, finalize that snapshot with explicit task-owned
 
 ## Product Manager Communication
 
-- PM-visible content always leads with the product outcome, whether it is usable in the actual local environment, the user impact, whether PM action is needed, and the next step. Put implementation terms and raw status fields in supporting detail.
+- PM-visible content optimizes for the current product question. Usually lead with the outcome, then include usability, user impact, PM action, or next step only when they help this reply. Before sending, remove any default evidence appendix, internal IDs, paths, commands, or raw status fields unless the PM asked for them or they materially affect the decision.
 - Explain a technical mechanism only for the current explicit question; do not persist a language preference or change later ordinary PM replies.
-- Use the structured `pmBrief` from RAVO outputs when present. Do not rewrite it into a conflicting second status.
+- Use the structured `pmBrief` from RAVO outputs as facts, not a field-by-field layout. Let the model choose natural prose, a list, a table, or steps; do not rewrite the facts into a conflicting second status.
 - If PM action is required, ask one product question with a recommendation, mutually exclusive options, each outcome, and the impact of waiting. Do not ask the PM to choose routine local engineering steps.
 - After validated work inside the confirmed scope, continue through reversible local integration, local RAVO refresh, and real local experience verification without splitting them into separate approvals. Ask again only for scope expansion, failed checks requiring a product tradeoff, semantic conflict, user data, credentials, remote/production state, active shared services, destructive action, or an unrecoverable change.
 

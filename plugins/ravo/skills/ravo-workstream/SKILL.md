@@ -57,12 +57,14 @@ For milestone closeout, add Roadmap Audit and worker evidence:
 node "$RAVO_PLUGIN_ROOT/modules/ravo-workstream/scripts/write-workstream-artifact.js" --status active --goal "<goal>" --spec-ref "<spec>" --current-milestone "<phase>" --next-step "<next step>" --roadmap-audit "<what changed / what remains / blockers>" --worker-evidence '{"did":"...","changed":"...","learned":"...","evidence":"...","blockers":"...","next":"..."}'
 ```
 
+At milestone closeout, run one Knowledge candidate check for stable reusable facts, then route unfinished work and blockers back to Workstream/Continuation. Skip the inventory when the milestone produced no durable candidate.
+
 Set `RAVO_PLUGIN_ROOT` to the directory two levels above this `SKILL.md`.
 
 ## Product Manager Communication
 
 - Visible progress starts with the product outcome, current usability, user impact, PM action, and next step. Milestone ids, lanes, fingerprints, attempts, and ownership internals remain supporting evidence.
-- Legacy configuration never changes this fixed PM projection or shortens the underlying Agent record.
+- Legacy configuration never changes the underlying facts or shortens the Agent record; the visible PM response may be organized naturally for the current question.
 - A blocked engineering step stays owned by Codex or the recorded technical owner. Only an explicitly PM-owned product decision may set a PM action, and it must include a complete decision card.
 - Do not turn local integration or local environment alignment inside the confirmed scope into a PM blocker.
 

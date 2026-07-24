@@ -17,7 +17,7 @@ const workspace = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "ravo-ru
 const env = { ...process.env, GIT_AUTHOR_NAME: "RAVO Test", GIT_AUTHOR_EMAIL: "ravo@example.invalid", GIT_COMMITTER_NAME: "RAVO Test", GIT_COMMITTER_EMAIL: "ravo@example.invalid" };
 execFileSync("git", ["init", "-q"], { cwd: workspace, env });
 fs.mkdirSync(path.join(workspace, "plugins/ravo/.codex-plugin"), { recursive: true });
-fs.writeFileSync(path.join(workspace, "plugins/ravo/.codex-plugin/plugin.json"), JSON.stringify({ name: "ravo", version: "0.6.2" }));
+fs.writeFileSync(path.join(workspace, "plugins/ravo/.codex-plugin/plugin.json"), JSON.stringify({ name: "ravo", version: "0.6.3" }));
 fs.mkdirSync(path.join(workspace, "plugins/ravo/modules/ravo-dashboard/scripts"), { recursive: true });
 fs.writeFileSync(path.join(workspace, "plugins/ravo/modules/ravo-dashboard/scripts/runtime.js"), "runtime\n");
 execFileSync("git", ["add", "."], { cwd: workspace, env });
@@ -32,7 +32,10 @@ assert.equal(hasPmActionRequest("产品经理现在只需确认该决策进入�
 assert.equal(hasPmActionRequest("产品经理现在应确认该决定进入当前版本范围。"), true);
 assert.deepEqual(pmStatusViolations("结论：本机可体验。当前可用：是。影响：回复更易判断。PM 行动：无需。下一步：Codex 继续验证。"), []);
 assert.deepEqual(pmStatusViolations("日常使用会更安静，下一步由 Codex 继续处理。"), []);
-assert.ok(pmStatusViolations("我会核对 Runtime 缓存和 Hook 状态。").includes("internal_evidence_in_pm_status"));
+assert.deepEqual(pmStatusViolations("我会核对 Runtime 缓存和 Hook 状态。"), [], "relevant technical language remains a model judgment");
+assert.deepEqual(pmStatusViolations("这是一段很长但按当前问题自然组织的说明。".repeat(100)), [], "length is not a delivery gate");
+assert.ok(pmStatusViolations("当前状态为 pending_pm。").includes("raw_internal_status"));
+assert.deepEqual(pmStatusViolations("证据在 knowledge/.ravo/acceptance/example.json。"), [], "evidence links are reviewed semantically rather than rejected lexically");
 const continued = parseEvents([
   JSON.stringify({ type: "thread.started", thread_id: "thread-1" }),
   JSON.stringify({ type: "item.completed", item: { type: "agent_message", text: "续写前回答" } }),
@@ -45,12 +48,12 @@ const alignedCheck = {
   marketplaceStatus: "present",
   sourceFingerprint: "sha256:source",
   runtimeFingerprint: "sha256:runtime",
-  plugins: [{ pluginId: "ravo", sourceVersion: "0.6.2", installedVersion: "0.6.2", cacheVersion: "0.6.2", sourceContentFingerprint: sourceBaseline(workspace, { productVersion: "0.6.2" }).plugins.find((entry) => entry.name === "ravo").contentFingerprint, cacheContentFingerprint: "sha256:source-file", aligned: true }]
+  plugins: [{ pluginId: "ravo", sourceVersion: "0.6.3", installedVersion: "0.6.3", cacheVersion: "0.6.3", sourceContentFingerprint: sourceBaseline(workspace, { productVersion: "0.6.3" }).plugins.find((entry) => entry.name === "ravo").contentFingerprint, cacheContentFingerprint: "sha256:source-file", aligned: true }]
 };
 const alignedDesk = {
   status: "healthy",
-  runtime: { pluginVersion: "0.6.2", pluginFingerprint: "sha256:runtime", installedRoot: "/tmp/cache/ravo/0.6.2/modules/ravo-dashboard", actualEntrypoint: "/tmp/cache/ravo/0.6.2/modules/ravo-dashboard/scripts/ravo-dashboard.js", resolutionSource: "installed_cache", controllerVersion: "0.6.2" },
-  currentPlugin: { version: "0.6.2", fingerprint: "sha256:runtime", installedRoot: "/tmp/cache/ravo/0.6.2/modules/ravo-dashboard", actualEntrypoint: "/tmp/cache/ravo/0.6.2/modules/ravo-dashboard/scripts/ravo-dashboard.js", resolutionSource: "installed_cache", controllerVersion: "0.6.2" }
+  runtime: { pluginVersion: "0.6.3", pluginFingerprint: "sha256:runtime", installedRoot: "/tmp/cache/ravo/0.6.3/modules/ravo-dashboard", actualEntrypoint: "/tmp/cache/ravo/0.6.3/modules/ravo-dashboard/scripts/ravo-dashboard.js", resolutionSource: "installed_cache", controllerVersion: "0.6.3" },
+  currentPlugin: { version: "0.6.3", fingerprint: "sha256:runtime", installedRoot: "/tmp/cache/ravo/0.6.3/modules/ravo-dashboard", actualEntrypoint: "/tmp/cache/ravo/0.6.3/modules/ravo-dashboard/scripts/ravo-dashboard.js", resolutionSource: "installed_cache", controllerVersion: "0.6.3" }
 };
 const checkOptions = { runChecks: async () => ({ versionAlignment: { status: "pass" }, hookRegression: { status: "pass" } }), updateCheck: alignedCheck, solodeskStatus: alignedDesk };
 let e2eCalls = 0;
@@ -77,7 +80,7 @@ const defaultLocal = await preflight({
   changedPaths: ["plugins/ravo/modules/ravo-dashboard/scripts/runtime.js"],
   updateCheck: driftCheck,
   solodeskStatus: driftDesk,
-  createPlan: (check) => ({ planId: "default-local", sourceFingerprint: check.sourceFingerprint, targetVersion: "0.6.2", requiredPlugins: ["ravo"], pluginActions: [] }),
+  createPlan: (check) => ({ planId: "default-local", sourceFingerprint: check.sourceFingerprint, targetVersion: "0.6.3", requiredPlugins: ["ravo"], pluginActions: [] }),
   applyUpgrade: async () => { defaultUpgradeCalls += 1; return { status: "succeeded" }; },
   updateCheckAfterUpgrade: alignedCheck,
   solodeskStatusAfterUpgrade: alignedDesk,
@@ -96,7 +99,7 @@ const failedDefault = await preflight({
   changedPaths: ["plugins/ravo/modules/ravo-dashboard/scripts/runtime.js"],
   updateCheck: driftCheck,
   solodeskStatus: driftDesk,
-  createPlan: (check) => ({ planId: "failed-default", sourceFingerprint: check.sourceFingerprint, targetVersion: "0.6.2", requiredPlugins: ["ravo"], pluginActions: [] }),
+  createPlan: (check) => ({ planId: "failed-default", sourceFingerprint: check.sourceFingerprint, targetVersion: "0.6.3", requiredPlugins: ["ravo"], pluginActions: [] }),
   applyUpgrade: async () => ({ status: "failed" }),
   forceNewAttempt: true,
   freshSessionE2E: async () => ({ result: "pass" })
@@ -113,7 +116,7 @@ const upgraded = await preflight({
   solodeskStatus: driftDesk,
   requireAuthorization: true,
   authorized: true,
-  createPlan: (check) => ({ planId: "plan-1", sourceFingerprint: check.sourceFingerprint, targetVersion: "0.6.2", requiredPlugins: ["ravo"], pluginActions: [] }),
+  createPlan: (check) => ({ planId: "plan-1", sourceFingerprint: check.sourceFingerprint, targetVersion: "0.6.3", requiredPlugins: ["ravo"], pluginActions: [] }),
   applyUpgrade: async () => { upgradeCalls += 1; return { status: "succeeded" }; },
   updateCheckAfterUpgrade: alignedCheck,
   solodeskStatusAfterUpgrade: alignedDesk,
@@ -129,7 +132,7 @@ const idempotent = await preflight({
   changedPaths: ["plugins/ravo/modules/ravo-dashboard/scripts/runtime.js"],
   updateCheck: driftCheck,
   solodeskStatus: driftDesk,
-  createPlan: (check) => ({ planId: "plan-1", sourceFingerprint: check.sourceFingerprint, targetVersion: "0.6.2", requiredPlugins: ["ravo"], pluginActions: [] }),
+  createPlan: (check) => ({ planId: "plan-1", sourceFingerprint: check.sourceFingerprint, targetVersion: "0.6.3", requiredPlugins: ["ravo"], pluginActions: [] }),
   freshSessionE2E: async () => { throw new Error("same attempt must not rerun E2E"); }
 });
 assert.equal(idempotent.status, "passed");

@@ -1,6 +1,6 @@
 {
   "name": "ravo-knowledge",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "description": "Workspace-local knowledge write/retrieve/apply and opt-in transferable lessons for RAVO.",
   "author": {
     "name": "RAVO contributors"

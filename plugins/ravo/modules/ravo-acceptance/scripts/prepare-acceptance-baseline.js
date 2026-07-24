@@ -5,7 +5,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 
-const PRODUCT_VERSION = "0.6.2";
+const PRODUCT_VERSION = "0.6.3";
 
 function resolveGitBaselineModulePath(scriptDir = __dirname, productVersion = PRODUCT_VERSION) {
   const workspaceModule = path.resolve(scriptDir, "../../ravo-core/scripts/ravo-git-baseline.js");
@@ -46,8 +46,8 @@ function main() {
     const startup = JSON.parse(fs.readFileSync(startupRef, "utf8"));
     const baseline = finalizeGitBaseline(startup, {
       taskOwnedPaths: argValues("--task-path"),
-      releaseSlice: argValue("--release-slice", "ravo-v0.6.2-context-driven-execution-and-evidence"),
-      requirementRange: argValue("--requirement-range", "R602-001..006"),
+      releaseSlice: argValue("--release-slice", "ravo-v0.6.3-reliable-closeout"),
+      requirementRange: argValue("--requirement-range", "R603-001..005"),
       commitMessage: argValue("--commit-message", "")
     });
     const cleanup = cleanWorktrees(captureGitBaseline(workspace), { ownedWorktrees: argValues("--owned-worktree") });

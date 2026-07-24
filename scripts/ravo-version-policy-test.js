@@ -142,9 +142,8 @@ const pmDoc = pmDocFor({
   acceptanceItems: [],
   sourceRefs: [], evidence: [], realResponseRefs: [], screenshotRefs: [], dataEvidenceRefs: [], notApplicableEvidence: [], unmetItems: [], knownGaps: [], pmGaps: []
 });
-assert.match(pmDoc, /状态边界：/, "V18 status boundary");
-assert.match(pmDoc, /发布条件未具备/, "V18 release readiness separation");
-assert.match(pmDoc, /已发布否/, "V18 release separation");
+assert.match(pmDoc, /尚未具备发布条件/, "V18 release readiness separation");
+assert.match(pmDoc, /没有发布/, "V18 release separation");
 
 function acceptanceItem() {
   return {

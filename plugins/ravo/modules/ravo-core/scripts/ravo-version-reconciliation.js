@@ -386,6 +386,9 @@ function stateFor(group, root, mainHead, scans, deadline) {
   const conflicts = [];
   for (let index = 0; index < decisions.length; index += 1) {
     for (let other = index + 1; other < decisions.length; other += 1) {
+      if (decisions[index].status === decisions[other].status
+        && decisions[index].scope.releaseSlice
+        && decisions[index].scope.releaseSlice === decisions[other].scope.releaseSlice) continue;
       if (scopesConflict(decisions[index].scope, decisions[other].scope)) {
         conflicts.push({ type: "status_conflict", version: group.version, evidenceRefs: [decisions[index].ref, decisions[other].ref], reason: "pm_scope_mismatch" });
       }

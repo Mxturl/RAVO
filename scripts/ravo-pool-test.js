@@ -292,7 +292,7 @@ scenarioItem({ title: "待确认问题", itemType: "bug", priority: "P2", confir
 scenarioItem({ title: "拒绝需求", decisionStatus: "rejected", candidateVersions: ["v0.7.0"] });
 scenarioItem({ title: "已发布需求", decisionStatus: "approved", candidateVersions: ["v0.7.0"], releaseStatus: "released" });
 
-const scenario = pool.nextVersionCandidates(scenarioWorkspace, { version: "v0.7.0", productVersion: "v0.6.2" });
+const scenario = pool.nextVersionCandidates(scenarioWorkspace, { version: "v0.7.0", productVersion: "v0.6.3" });
 assert.equal(scenario.status, "ok");
 assert.deepEqual(scenario.summary, { total: 3, locked: 1, candidates: 1, needsConfirmation: 1 });
 assert.deepEqual(scenario.sections.map((section) => section.key), ["locked", "candidates", "needsConfirmation"]);
@@ -305,19 +305,19 @@ assert.deepEqual(Object.keys(scenario.chat.items[0]).sort(), ["owner", "nextStep
 assert.match(scenario.chat.text, /v0\.7\.0 当前 3 项/);
 assert.match(scenario.chat.text, /候选不等于 Release Slice/);
 
-const autoScenario = pool.nextVersionCandidates(scenarioWorkspace, { productVersion: "v0.6.2" });
+const autoScenario = pool.nextVersionCandidates(scenarioWorkspace, { productVersion: "v0.6.3" });
 assert.equal(autoScenario.targetVersion, "v0.7.0");
-const emptyScenario = pool.nextVersionCandidates(scenarioWorkspace, { version: "v0.9.0", productVersion: "v0.6.2" });
+const emptyScenario = pool.nextVersionCandidates(scenarioWorkspace, { version: "v0.9.0", productVersion: "v0.6.3" });
 assert.equal(emptyScenario.status, "empty");
-const invalidScenario = pool.nextVersionCandidates(scenarioWorkspace, { version: "next-release", productVersion: "v0.6.2" });
+const invalidScenario = pool.nextVersionCandidates(scenarioWorkspace, { version: "next-release", productVersion: "v0.6.3" });
 assert.equal(invalidScenario.status, "needs_version_choice");
 assert.equal(invalidScenario.targetVersion, null);
 scenarioItem({ title: "另一版本候选", candidateVersions: ["v0.8.0"] });
-const ambiguousScenario = pool.nextVersionCandidates(scenarioWorkspace, { productVersion: "v0.6.2" });
+const ambiguousScenario = pool.nextVersionCandidates(scenarioWorkspace, { productVersion: "v0.6.3" });
 assert.equal(ambiguousScenario.status, "needs_version_choice");
 assert.deepEqual(ambiguousScenario.versionOptions, ["v0.7.0", "v0.8.0"]);
 for (let index = 0; index < 12; index += 1) scenarioItem({ title: `大列表候选 ${index}`, candidateVersions: ["v0.10.0"], priority: `P${index % 4}` });
-const largeScenario = pool.nextVersionCandidates(scenarioWorkspace, { version: "v0.10.0", productVersion: "v0.6.2" });
+const largeScenario = pool.nextVersionCandidates(scenarioWorkspace, { version: "v0.10.0", productVersion: "v0.6.3" });
 assert.equal(largeScenario.summary.total, 12);
 assert.equal(largeScenario.sections.flatMap((section) => section.items).length, 12);
 assert.equal(largeScenario.chat.items.length, 10);
@@ -330,7 +330,7 @@ const specScenarioWorkspace = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir
 store.createWorkItem(specScenarioWorkspace, { title: "无版本候选", itemType: "feature", sourceRefs: ["scenario:spec"], captureMode: "explicit", confirmationStatus: "confirmed", decisionStatus: "candidate" });
 fs.mkdirSync(path.join(specScenarioWorkspace, "docs"), { recursive: true });
 fs.writeFileSync(path.join(specScenarioWorkspace, "docs", "ravo-v0.11.0-decision-complete-spec-zh.md"), "# RAVO v0.11.0\n\nStatus: decision-complete\n");
-const specResolved = pool.nextVersionCandidates(specScenarioWorkspace, { productVersion: "v0.6.2" });
+const specResolved = pool.nextVersionCandidates(specScenarioWorkspace, { productVersion: "v0.6.3" });
 assert.equal(specResolved.targetVersion, "v0.11.0");
 assert.equal(specResolved.status, "empty");
 fs.rmSync(specScenarioWorkspace, { recursive: true, force: true });

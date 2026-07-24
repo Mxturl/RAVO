@@ -45,6 +45,7 @@ assert.match(requirement, /one recommendation-backed question/i);
 assert.match(requirement, /explicit(?:ly)? stated|explicit new requirement/i);
 assert.match(requirement, /confirmed candidate/i);
 assert.match(requirement, /returned `pmBrief`/i);
+assert.match(requirement, /facts, not as a response template/i);
 assert.match(requirement, /Do not expose Work Item IDs, artifact paths, commands, raw JSON/i);
 assert.match(requirement, /do not scan unrelated history/i);
 assert.match(requirement, /dedicated `--target-user`/i);
@@ -54,7 +55,14 @@ assert.match(requirement, /capture-pool-item\.js/i);
 
 const core = fs.readFileSync(path.join(pluginRoot, "skills", "ravo-core", "SKILL.md"), "utf8");
 assert.match(core, /smallest sufficient mode/i, "Core must choose the minimum execution strength from context");
+assert.match(core, /clear implementation, change, or fix request carries a default delivery commitment/i);
+assert.match(core, /user does not need to say "finish everything"/i);
 assert.match(core, /Work directly for simple questions, read-only checks, clear local fixes/i);
+assert.match(core, /full conversation context shows a clear implementation outcome/i);
+assert.match(core, /continuity would materially help complete the work/i);
+assert.match(core, /contextual signals, not required conditions or a scoring checklist/i);
+assert.match(core, /do not use keywords or require the user to mention Goal/i);
+assert.match(core, /user-level RAVO AGENTS block.{0,160}explicitly delegates semantic Goal selection/i);
 assert.match(core, /host already started a Goal or the current tool contract authorizes creation/i);
 assert.match(core, /Never synthesize a `\/goal` user message/i);
 assert.match(core, /Reuse an active Goal when the user says to continue/i);
@@ -62,8 +70,12 @@ assert.match(core, /completed, terminally blocked, or explicitly parked Goal doe
 assert.match(core, /new, independent objective/i);
 assert.match(core, /ordinary clear multi-turn Goal does not require a Spec/i);
 assert.match(core, /version delivery, Release Slice, acceptance, go-live, or publication Goal still requires a current decision-complete Spec/i);
+assert.match(core, /Goal selection alone does not add a Spec, Review, Acceptance, Evidence artifact/i);
 assert.match(core, /Goal mode changes the execution container, not authorization/i);
-assert.match(core, /continue directly and describe the real state/i, "Goal unavailability must degrade safely");
+assert.match(core, /continue the default delivery commitment and describe the real fallback once/i, "Goal unavailability must degrade safely");
+assert.match(core, /facts, not a field-by-field layout/i);
+assert.match(core, /natural prose, a list, a table, or steps/i);
+assert.match(core, /Before sending, remove any default evidence appendix, internal IDs, paths, commands, or raw status fields/i);
 
 const quickValidation = fs.readFileSync(path.join(pluginRoot, "skills", "ravo-quick-validation", "SKILL.md"), "utf8");
 for (const tier of ["lightweight", "traceable", "required_evidence"]) assert.match(quickValidation, new RegExp(`\\b${tier}\\b`));
@@ -73,6 +85,7 @@ assert.match(quickValidation, /artifact is optional/i);
 assert.match(quickValidation, /No dedicated artifact does not mean no validation/i);
 assert.match(quickValidation, /Complex, high-impact, data, security, permission, irreversible, acceptance, and release cases cannot use `lightweight` evidence/i);
 assert.match(quickValidation, /cannot support `accepted`, `release_ready`, `live`, or `released`/i);
+assert.match(quickValidation, /stable reusable fact.{0,120}Knowledge candidate/i);
 
 const acceptanceSkill = fs.readFileSync(path.join(pluginRoot, "skills", "ravo-release-acceptance", "SKILL.md"), "utf8");
 assert.match(acceptanceSkill, /do not invoke it just because a simple low-risk task ended/i);
@@ -80,6 +93,16 @@ assert.match(acceptanceSkill, /simple, local, reversible, low-risk task may clos
 assert.match(acceptanceSkill, /exception reduces evidence collection, not validation/i);
 assert.match(acceptanceSkill, /Lightweight direct checks may support a bounded simple-task completion statement/i);
 assert.match(acceptanceSkill, /cannot support `pending_acceptance`, `accepted`, `release_ready`, `live`, or `released`/i);
+assert.match(acceptanceSkill, /stable reusable fact.{0,120}Knowledge candidate/i);
+assert.match(acceptanceSkill, /closeout also contains confirmed reusable facts.{0,160}use RAVO Knowledge once/i);
+assert.match(acceptanceSkill, /Acceptance status alone does not complete that classification/i);
+assert.match(acceptanceSkill, /check-ravo-acceptance\.js" --acceptance-artifact <path>/i);
+assert.match(acceptanceSkill, /Never substitute the workspace latest Acceptance/i);
+assert.match(acceptanceSkill, /authoritative facts, not a response template/i);
+assert.match(acceptanceSkill, /Choose prose, a list, a table, or steps only when it improves comprehension/i);
+assert.match(acceptanceSkill, /Keep full evidence, internal IDs, paths, commands, and raw status fields in the Agent artifact unless the PM asks/i);
+assert.match(acceptanceSkill, /not a Hook, Artifact, fixed section list, or line-count gate/i);
+assert.doesNotMatch(acceptanceSkill, /5-8 visible lines|at most three steps|fixed PM projection/i);
 
 const rootCause = fs.readFileSync(path.join(pluginRoot, "skills", "ravo-root-cause-analysis", "SKILL.md"), "utf8");
 assert.match(rootCause, /Minimal RCA requires only/i);
@@ -89,10 +112,24 @@ assert.match(rootCause, /one runnable regression check/i);
 assert.match(rootCause, /does not require a Why chain/i);
 assert.match(rootCause, /Issue Pool/i);
 assert.match(rootCause, /no (?:follow-up|recurrence) value|one-off/i);
+assert.match(rootCause, /stable reusable fact.{0,120}Knowledge candidate/i);
 
 const knowledge = fs.readFileSync(path.join(pluginRoot, "skills", "ravo-knowledge", "SKILL.md"), "utf8");
 assert.match(knowledge, /reusable (?:lesson|experience|principle)/i);
 assert.match(knowledge, /product (?:principle|decision).{0,80}PM/i);
+assert.match(knowledge, /Goal, phase, or user-requested closeout/i);
+assert.match(knowledge, /read-only.{0,120}intended destination/i);
+for (const destination of ["Requirement/Issue Pool", "Goal/Workstream/Continuation", "Spec Delta", "do not persist"]) {
+  assert.match(knowledge, new RegExp(destination.replace("/", "\\/"), "i"));
+}
+assert.match(knowledge, /Do not use the Stop Hook/i);
+assert.match(knowledge, /simple.{0,100}no durable candidate.{0,100}(?:silent|quiet)/i);
+
+const review = fs.readFileSync(path.join(pluginRoot, "skills", "ravo-review", "SKILL.md"), "utf8");
+assert.match(review, /stable reusable fact.{0,120}Knowledge candidate/i);
+
+const workstream = fs.readFileSync(path.join(pluginRoot, "skills", "ravo-workstream", "SKILL.md"), "utf8");
+assert.match(workstream, /milestone closeout.{0,160}Knowledge candidate/i);
 
 const dashboard = fs.readFileSync(path.join(pluginRoot, "skills", "ravo-dashboard", "SKILL.md"), "utf8");
 assert.match(dashboard, /next[_ -]version[_ -]candidates/i);
@@ -105,6 +142,12 @@ assert.match(dashboard, /unique decision-complete, unreleased Spec version/i);
 assert.match(dashboard, /do not infer a version from file time/i);
 
 const stopHook = path.join(pluginRoot, "modules", "ravo-acceptance", "hooks", "ravo-acceptance-stop.js");
+const stopHookText = fs.readFileSync(stopHook, "utf8");
+assert.doesNotMatch(stopHookText, /knowledgeCandidates|Closeout Inventory/i, "Knowledge closeout must not move into the Stop Hook");
+const freshSessionText = fs.readFileSync(path.join(pluginRoot, "modules", "ravo-dashboard", "scripts", "ravo-fresh-session-e2e.js"), "utf8");
+assert.doesNotMatch(freshSessionText, /pm_status_too_long|must_lead_with_product_result|internal_evidence_in_pm_status/, "Fresh Session must not turn PM writing style into a hard gate");
+assert.match(freshSessionText, /raw_internal_status/);
+assert.doesNotMatch(freshSessionText, /raw_evidence_reference/);
 const benign = spawnSync(process.execPath, [stopHook], {
   input: JSON.stringify({ cwd: repo, last_assistant_message: "I inspected the setting and found no change." }),
   encoding: "utf8",
@@ -132,12 +175,22 @@ const template = fs.readFileSync(path.join(repo, "templates", "agents-snippet.md
 const templateBlock = template.match(/<!-- RAVO:BEGIN -->([\s\S]*?)<!-- RAVO:END -->/)?.[1] || "";
 assert.equal(previewBlock.trim(), templateBlock.trim(), "AGENTS template and generator must stay identical");
 assert.equal((previewBlock.match(/\n- /g) || []).length, 7);
-assert.match(preview.stdout, /Keep simple questions, read-only checks/);
-assert.match(preview.stdout, /existing Codex Goal for clear multi-turn work/i);
+assert.match(preview.stdout, /clear implementation, change, and fix requests as authorization to carry the in-scope work through validation by default/i);
+assert.match(preview.stdout, /user need not say “finish everything”/i);
+assert.match(preview.stdout, /This user configuration authorizes Codex to create or reuse one Goal/i);
+assert.match(preview.stdout, /full context shows that continuity would materially help complete a clear implementation outcome/i);
+assert.match(preview.stdout, /contextual signals, not a required checklist or scoring rule/i);
+assert.match(preview.stdout, /Judge usefulness semantically, not from keywords/i);
+assert.match(preview.stdout, /Keep simple bounded work direct/i);
 assert.match(preview.stdout, /reuse an active Goal/i);
 assert.match(preview.stdout, /do not recreate a terminal or parked Goal/i);
+assert.match(preview.stdout, /Goal is only a continuity container/i);
+assert.match(preview.stdout, /does not add Spec, Review, Acceptance, or evidence requirements or expand authorization/i);
 assert.match(preview.stdout, /simple low-risk work to omit a dedicated evidence artifact/i);
 assert.match(preview.stdout, /complex and high-order status claims require traceable evidence/i);
+assert.match(preview.stdout, /structured RAVO fields as facts rather than a response template/i);
+assert.match(preview.stdout, /choosing prose, a list, a table, or steps only when useful/i);
+assert.match(preview.stdout, /Before sending, remove any default evidence appendix, internal IDs, paths, commands, and raw status fields/i);
 assert.match(preview.stdout, /Ordinary clear Codex Goals do not require a Spec/i);
 assert.match(preview.stdout, /version-delivery, Release Slice, acceptance, go-live, or publication Goal Prompt requires a current decision-complete Spec/i);
 assert.match(preview.stdout, /systematically shape important or ambiguous requirements/);
@@ -148,6 +201,12 @@ assert.match(preview.stdout, /do not ask the user to reconfirm it/);
 assert.match(preview.stdout, /visibly record|显性记录/i);
 assert.match(preview.stdout, /next[- ]version candidates|下一版本候选/i);
 assert.match(preview.stdout, /active Workstream.*specRef/i);
+assert.match(preview.stdout, /RCA, Review, smoke, or Acceptance produces a stable reusable fact/i);
+assert.match(preview.stdout, /Use RAVO Knowledge once when RCA/i);
+assert.match(preview.stdout, /Goal, phase, or user-requested closeout/i);
+assert.match(preview.stdout, /read-only environment, state the intended disposition/i);
+assert.match(preview.stdout, /Skip this for simple work or no durable candidate/i);
+assert.match(preview.stdout, /do not use the Stop Hook or write empty artifacts/i);
 
 const apply = spawnSync(process.execPath, [agentsScript, "--file", agentsFile, "--apply"], { encoding: "utf8" });
 assert.equal(apply.status, 0, apply.stderr);
@@ -165,12 +224,19 @@ console.log(JSON.stringify({
     "systematic-requirement-outcomes",
     "minimal-and-full-rca",
     "context-driven-direct-analysis-goal-governed-contract",
+    "default-implementation-delivery-without-special-phrase",
+    "semantic-goal-delegation-without-keyword-trigger",
+    "goal-continuity-does-not-escalate-governance",
     "active-goal-reuse-and-terminal-goal-no-recreate",
     "ordinary-goal-vs-release-spec-boundary",
     "risk-and-cost-proportional-evidence-tiers",
     "lightweight-check-without-artifact",
+    "stable-fact-and-closeout-knowledge-routing",
+    "simple-or-empty-closeout-stays-silent",
+    "knowledge-closeout-does-not-enter-stop-hook",
+    "fresh-session-checks-facts-not-writing-style",
     "one-stop-continuation-cap",
-    "seven-line-agents-recall-with-pool-and-next-version-scenario",
+    "seven-line-agents-recall-with-model-led-pm-communication",
     "agents-preview-apply-and-backup"
   ]
 }, null, 2));

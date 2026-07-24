@@ -17,7 +17,7 @@ function loadPmBriefModule() {
 const { buildPmBrief } = loadPmBriefModule();
 
 const SCHEMA_VERSION = "0.5.0";
-const PRODUCT_VERSION = "0.6.2";
+const PRODUCT_VERSION = "0.6.3";
 const STATUSES = new Set(["pass", "partial", "warn", "fail", "not_run"]);
 const KINDS = new Set(["smoke", "runtime_probe"]);
 const CORE_RUNTIME_EVENTS = [];

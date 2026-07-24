@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RAVO v0.6.2 · 更轻，但不失真</title>
+<title>RAVO v0.6.3 · 更轻，但不失真</title>
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1153,6 +1153,7 @@
   .split-half > .half.b-grey{background:var(--grey-1)}
   .split-half > .half.b-accent{background:var(--accent);color:var(--accent-on)}
   .split-half > .half.b-ink{background:var(--ink);color:var(--paper)}
+  .mobile-only-break{display:none}
 
   /* 极简页眉 — t-meta 风格 (Carbon productive label-01) */
   .canvas-card .chrome-min{
@@ -1203,6 +1204,50 @@
     .pipeline{grid-template-columns:repeat(2,1fr)}
     .grid-2-7-5,.grid-2-6-6,.grid-2-8-4,.grid-2-4-8{grid-template-columns:1fr}
     .grid-12{grid-template-columns:repeat(6,1fr)}
+
+    .release-cover .chrome-min{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .release-cover .chrome-min .r{text-align:right}
+    .release-cover [data-anim="kicker"]{font-size:10px;line-height:1.5;letter-spacing:.12em;overflow-wrap:anywhere}
+    .release-cover h1{font-size:min(15vw,9vh)!important;line-height:.98!important}
+    .release-cover [data-anim="bottom"]{min-width:0;max-width:100%}
+    .release-cover .lead{max-width:100%!important;font-size:13px;line-height:1.5;overflow-wrap:anywhere}
+    .release-cover .cover-meta{max-width:100%;font-size:9px;line-height:1.5;letter-spacing:.08em;overflow-wrap:anywhere;word-break:break-word}
+
+    .architecture-slide .architecture-head{grid-template-columns:1fr!important;gap:1.5vh!important}
+    .architecture-slide .architecture-head h2{font-size:min(12vw,6.5vh)!important}
+    .architecture-slide .architecture-head .lead{max-width:100%!important;font-size:13px;line-height:1.4}
+    .architecture-slide .architecture-body{grid-template-columns:1fr!important;gap:2vh!important;align-items:start!important}
+    .architecture-slide .architecture-body > div:first-child{display:grid!important;grid-template-columns:1fr;gap:7px!important}
+    .architecture-slide .architecture-body > div:first-child > div{min-width:0;padding:.8vh 2.5vw!important;display:grid;grid-template-columns:7.5ch 1fr;align-items:center;gap:8px}
+    .architecture-slide .architecture-body > div:first-child .t-meta{grid-column:1 / -1}
+    .architecture-slide .t-h-prod{font-size:14px;line-height:1.25;overflow-wrap:anywhere}
+    .architecture-slide .architecture-diagram{min-height:18vh!important}
+
+    .release-evidence .evidence-grid{grid-template-columns:1fr!important;grid-template-rows:auto repeat(3,auto);gap:1.4vh!important}
+    .release-evidence .evidence-copy{grid-column:auto;display:grid;grid-template-columns:1fr;gap:1vh;align-items:start}
+    .release-evidence .evidence-copy > div{min-width:0}
+    .release-evidence .evidence-copy [style*="font-size:min(5.4vw"]{font-size:min(9vw,4.8vh)!important}
+    .release-evidence .evidence-copy .t-body-sm{margin-top:0!important;max-width:100%!important}
+    .release-evidence .evidence-metric{min-width:0;display:grid;grid-template-columns:1fr auto;grid-template-rows:auto auto;column-gap:5vw;align-items:end;border-top:1px solid var(--ink);padding-top:.8vh}
+    .release-evidence .evidence-metric > div:first-child{display:none}
+    .release-evidence .evidence-metric .t-meta{grid-column:1;grid-row:1}
+    .release-evidence .evidence-metric [style*="font-size:min(4.8vw"]{grid-column:2;grid-row:1 / span 2;font-size:min(9vw,4.8vh)!important}
+    .release-evidence .evidence-metric .t-body-sm{grid-column:1;grid-row:2}
+    .release-evidence .release-evidence-footer{grid-template-columns:1fr 2fr!important;gap:4vw!important;align-items:end!important}
+    .release-evidence .release-version{font-size:min(13vw,7vh)!important}
+    .release-evidence .release-bars{display:none!important}
+
+    .release-closing .split-half{grid-template-columns:1fr;grid-template-rows:45% 55%}
+    .release-closing .split-half > .half{min-width:0;padding:3vh 5vw!important}
+    .release-closing .split-half > .half:first-child h2{font-size:min(10vw,5.6vh)!important;line-height:.96!important}
+    .release-closing .split-half > .half:first-child p{font-size:13px!important;line-height:1.45!important}
+    .release-closing .mobile-only-break{display:block}
+    .release-closing .closing-actions .chrome-min{margin-bottom:16px}
+    .release-closing .closing-actions [style*="padding:2.6vh"]{padding:1.2vh 0!important}
+    .release-closing .closing-actions [style*="font-size:min(4.4vw"]{font-size:min(9vw,4.8vh)!important}
+    .release-closing .closing-actions h3{font-size:16px!important;margin-bottom:4px!important}
+    .release-closing .closing-actions p{font-size:13px!important;line-height:1.4!important;overflow-wrap:anywhere}
+    .release-closing .closing-end{text-align:left!important;font-size:9px;line-height:1.4;overflow-wrap:anywhere}
   }
 </style>
 </head>
@@ -1266,12 +1311,12 @@
      - canvas-card 内首位插入 <canvas class="ascii-bg" aria-hidden="true">,本文件底部 IIFE 自动启动
      - 主标题反白 weight 200,强调字用斜体而非 var(--accent)(底已是蓝,蓝压蓝看不见)
      - 不要再放编号大字"01"——chrome-min 已经标 01/NN -->
-<section class="slide accent" data-layout="SWISS-COVER-ASCII" data-animate="hero">
+<section class="slide accent release-cover" data-layout="SWISS-COVER-ASCII" data-animate="hero">
   <div class="canvas-card">
     <canvas class="ascii-bg" aria-hidden="true"></canvas>
     <div class="chrome-min">
-      <div class="l">RAVO v0.6.2 · Product Release</div>
-      <div class="r">RAVO · 26.07.22 · 01 / 09</div>
+      <div class="l">RAVO v0.6.3 · Product Release</div>
+      <div class="r">RAVO · 26.07.24 · 01 / 09</div>
     </div>
     <div style="flex:1;padding:0;display:grid;grid-template-rows:auto 1fr auto;gap:2.6vh">
       <div data-anim="kicker" class="t-meta" style="color:rgba(255,255,255,.78);letter-spacing:.22em">LIGHTWEIGHT COLLABORATION FOR CODEX</div>
@@ -1319,7 +1364,7 @@
     <div class="four-cards" data-anim="up" style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:7vh;border-top:1px solid var(--border-subtle);border-bottom:1px solid var(--border-subtle)">
       <article class="fc-col" style="padding:2.4vh 1.5vw 3vh 0;border-right:1px solid var(--border-subtle);min-height:29vh"><div class="t-meta">— 01 / DIRECT</div><h3 style="font-size:min(3vw,5.4vh);font-weight:300;margin:4vh 0 2vh">直接做</h3><p class="t-body-sm">问答、只读检查和清晰的小改动，不创建流程负担。</p></article>
       <article class="fc-col" style="padding:2.4vh 1.5vw 3vh;border-right:1px solid var(--border-subtle);min-height:29vh"><div class="t-meta">— 02 / ANALYSIS</div><h3 style="font-size:min(3vw,5.4vh);font-weight:300;margin:4vh 0 2vh">先想清</h3><p class="t-body-sm">重要或模糊需求系统化补齐，允许明确的合理假设。</p></article>
-      <article class="fc-col" style="padding:2.4vh 1.5vw 3vh;border-right:1px solid var(--border-subtle);min-height:29vh"><div class="t-meta">— 03 / GOAL</div><h3 style="font-size:min(3vw,5.4vh);font-weight:300;margin:4vh 0 2vh">持续推进</h3><p class="t-body-sm">复用 Codex 已有 Goal，减少 PM 看护，不另造状态机。</p></article>
+      <article class="fc-col" style="padding:2.4vh 1.5vw 3vh;border-right:1px solid var(--border-subtle);min-height:29vh"><div class="t-meta">— 03 / GOAL</div><h3 style="font-size:min(3vw,5.4vh);font-weight:300;margin:4vh 0 2vh">持续推进</h3><p class="t-body-sm">模型按完整语境选择 Codex Goal，不要求关键词，也不增加治理强度。</p></article>
       <article class="fc-col" style="padding:2.4vh 0 3vh 1.5vw;min-height:29vh"><div class="t-meta" style="color:var(--accent)">— 04 / GOVERNED</div><h3 style="font-size:min(3vw,5.4vh);font-weight:300;margin:4vh 0 2vh;color:var(--accent)">守住边界</h3><p class="t-body-sm">数据、权限、不可逆和发布结论保留显式治理与证据。</p></article>
     </div>
   </div>
@@ -1360,10 +1405,10 @@
     <div class="timeline-h" data-anim="up" style="margin-top:4vh;min-height:46vh">
       <div class="tl-row">
         <div class="th-node up"><span class="dot"></span><div class="label"><span class="yr">01</span><span class="name">自然表达目标</span><span class="desc">不用先选模块</span></div></div>
-        <div class="th-node down"><span class="dot"></span><div class="label"><span class="yr">02</span><span class="name">选择最小模式</span><span class="desc">direct / analysis / goal</span></div></div>
-        <div class="th-node up"><span class="dot"></span><div class="label"><span class="yr">03</span><span class="name">按需读取 Skill</span><span class="desc">方法留在模块内</span></div></div>
-        <div class="th-node down"><span class="dot"></span><div class="label"><span class="yr">04</span><span class="name">执行实际检查</span><span class="desc">证据与风险相称</span></div></div>
-        <div class="th-node up"><span class="dot"></span><div class="label"><span class="yr">05</span><span class="name">用产品语言收口</span><span class="desc">结果、影响、下一步</span></div></div>
+        <div class="th-node down"><span class="dot"></span><div class="label"><span class="yr">02</span><span class="name">理解完整语境</span><span class="desc">范围、承诺与边界</span></div></div>
+        <div class="th-node up"><span class="dot"></span><div class="label"><span class="yr">03</span><span class="name">按需进入 Goal</span><span class="desc">只解决连续执行</span></div></div>
+        <div class="th-node down"><span class="dot"></span><div class="label"><span class="yr">04</span><span class="name">完成实际验证</span><span class="desc">证据与风险相称</span></div></div>
+        <div class="th-node up"><span class="dot"></span><div class="label"><span class="yr">05</span><span class="name">自然组织回复</span><span class="desc">让 PM 看懂下一步</span></div></div>
       </div>
     </div>
   </div>
@@ -1387,7 +1432,7 @@
   </div>
 </section>
 
-<section class="slide dark" data-layout="S17" data-animate="system-diagram">
+<section class="slide dark architecture-slide" data-layout="S17" data-animate="system-diagram">
   <div class="canvas-card">
     <div class="chrome-min"><div class="l">Architecture · Central Package, Soft Recall</div><div class="r">07 / 09</div></div>
     <div data-anim="head" class="architecture-head" style="display:grid;grid-template-columns:5fr 7fr;gap:4vw;align-items:start"><div><div class="t-meta">THREE CONTROL LAYERS</div><h2 style="font-family:var(--sans),var(--sans-zh);font-weight:200;font-size:min(5.2vw,9.2vh);line-height:1.02;margin-top:1.4vh">集中安装，<br/>分层负责</h2></div><p class="lead" style="font-weight:300;color:rgba(255,255,255,.72);max-width:40ch">架构集中不等于流程集中。安装只有一个入口，Skills 保留各自方法，Artifacts 只连接需要复用的事实与证据。</p></div>
@@ -1398,24 +1443,24 @@
   </div>
 </section>
 
-<section class="slide" data-layout="S21" data-animate="tech-spec">
+<section class="slide release-evidence" data-layout="S21" data-animate="tech-spec">
   <div class="canvas-card">
-    <div class="chrome-min"><div class="l">Release Evidence · v0.6.2</div><div class="r">08 / 09</div></div>
-    <div data-anim="main" style="display:grid;grid-template-columns:4fr 2.4fr 2.4fr 2.4fr;gap:2vw;align-items:start;flex:1">
-      <div><div class="t-meta">TESTED RELEASE CANDIDATE</div><div style="font-family:var(--sans),var(--sans-zh);font-weight:200;font-size:min(5.4vw,9.4vh);line-height:1;margin-top:2vh">Evidence<br/>matches<br/>the claim.</div><p class="t-body-sm" style="margin-top:2vh;max-width:28ch">自动验证、本机可用、PM 接受与发布状态分别记录，不相互替代。</p></div>
-      <div><div style="height:1px;background:var(--ink);margin-bottom:1.2vh"></div><div class="t-meta">TRACKED TESTS</div><div style="font-family:var(--sans);font-weight:200;font-size:min(4.8vw,8vh);line-height:.95">49</div><p class="t-body-sm">候选树完整回归</p></div>
-      <div><div style="height:1px;background:var(--ink);margin-bottom:1.2vh"></div><div class="t-meta">STOP HOOKS</div><div style="font-family:var(--sans);font-weight:200;font-size:min(4.8vw,8vh);line-height:.95">1</div><p class="t-body-sm">无权限与 Prompt 路由</p></div>
-      <div><div style="height:1px;background:var(--ink);margin-bottom:1.2vh"></div><div class="t-meta">NEW ROUTERS</div><div style="font-family:var(--sans);font-weight:200;font-size:min(4.8vw,8vh);line-height:.95;color:var(--accent)">0</div><p class="t-body-sm">复用 Codex Goal</p></div>
+    <div class="chrome-min"><div class="l">Release Evidence · v0.6.3</div><div class="r">08 / 09</div></div>
+    <div data-anim="main" class="evidence-grid" style="display:grid;grid-template-columns:4fr 2.4fr 2.4fr 2.4fr;gap:2vw;align-items:start;flex:1">
+      <div class="evidence-copy"><div><div class="t-meta">TESTED RELEASE CANDIDATE</div><div style="font-family:var(--sans),var(--sans-zh);font-weight:200;font-size:min(5.4vw,9.4vh);line-height:1;margin-top:2vh">Evidence<br/>matches<br/>the claim.</div></div><p class="t-body-sm" style="margin-top:2vh;max-width:28ch">自动验证、本机可用、PM 接受与发布状态分别记录，不相互替代。</p></div>
+      <div class="evidence-metric"><div style="height:1px;background:var(--ink);margin-bottom:1.2vh"></div><div class="t-meta">TRACKED TESTS</div><div style="font-family:var(--sans);font-weight:200;font-size:min(4.8vw,8vh);line-height:.95">49</div><p class="t-body-sm">候选树完整回归</p></div>
+      <div class="evidence-metric"><div style="height:1px;background:var(--ink);margin-bottom:1.2vh"></div><div class="t-meta">STOP HOOKS</div><div style="font-family:var(--sans);font-weight:200;font-size:min(4.8vw,8vh);line-height:.95">1</div><p class="t-body-sm">任务证据隔离</p></div>
+      <div class="evidence-metric"><div style="height:1px;background:var(--ink);margin-bottom:1.2vh"></div><div class="t-meta">NEW ROUTERS</div><div style="font-family:var(--sans);font-weight:200;font-size:min(4.8vw,8vh);line-height:.95;color:var(--accent)">0</div><p class="t-body-sm">语境选择 Goal</p></div>
     </div>
-    <div data-anim="hero" style="display:grid;grid-template-columns:4fr 5fr 3fr;gap:2vw;align-items:end;border-top:1px solid var(--border-subtle);padding-top:2vh" class="nav-safe-bottom-tight"><div style="font-family:var(--sans);font-weight:200;font-size:min(7vw,11.4vh);line-height:.9;color:var(--accent)">0.6.2</div><div><div class="t-meta">STATUS BOUNDARY</div><p class="t-body-sm">本机已验证且 PM 已接受；只有远端 Tag 与 Release 可查询后才称已发布。</p></div><div style="display:flex;align-items:end;gap:8px;height:12vh;justify-content:flex-end"><span style="width:10px;height:32%;background:var(--grey-2)"></span><span style="width:10px;height:54%;background:var(--grey-2)"></span><span style="width:10px;height:82%;background:var(--accent)"></span><span style="width:10px;height:66%;background:var(--ink)"></span></div></div>
+    <div data-anim="hero" style="display:grid;grid-template-columns:4fr 5fr 3fr;gap:2vw;align-items:end;border-top:1px solid var(--border-subtle);padding-top:2vh" class="nav-safe-bottom-tight release-evidence-footer"><div class="release-version" style="font-family:var(--sans);font-weight:200;font-size:min(7vw,11.4vh);line-height:.9;color:var(--accent)">0.6.3</div><div><div class="t-meta">STATUS BOUNDARY</div><p class="t-body-sm">实现、自动验证、本机可用、PM 验收与 GitHub 发布分别记录，不相互替代。</p></div><div class="release-bars" style="display:flex;align-items:end;gap:8px;height:12vh;justify-content:flex-end"><span style="width:10px;height:32%;background:var(--grey-2)"></span><span style="width:10px;height:54%;background:var(--grey-2)"></span><span style="width:10px;height:82%;background:var(--accent)"></span><span style="width:10px;height:66%;background:var(--ink)"></span></div></div>
   </div>
 </section>
 
-<section class="slide split" data-layout="SWISS-CLOSING-ASCII" data-animate="split-statement">
+<section class="slide split release-closing" data-layout="SWISS-CLOSING-ASCII" data-animate="split-statement">
   <div class="canvas-card">
     <div class="split-half">
-      <div class="half b-accent" style="padding:5.6vh 3.6vw 4.4vh;justify-content:space-between;position:relative;overflow:hidden"><canvas class="ascii-bg" aria-hidden="true"></canvas><div class="chrome-min" style="margin-bottom:0;position:relative;z-index:1"><div class="l">09 / 09</div><div class="r">CLOSING</div></div><div style="display:flex;flex-direction:column;gap:2vh;position:relative;z-index:1"><div class="t-meta" style="color:rgba(255,255,255,.78);letter-spacing:.22em">RAVO v0.6.2</div><h2 style="font-family:var(--sans),var(--sans-zh);font-size:min(7.4vw,13vh);line-height:.94;font-weight:200;color:#fff">Think deeply<br/>when it <span style="font-style:italic;font-weight:300">matters</span>.</h2><p style="font-size:max(16px,1vw);line-height:1.6;color:rgba(255,255,255,.82);font-weight:400;max-width:38ch">把模型的灵活性留给工作，把不可绕过的边界留给结果。</p></div><div style="border-top:1px solid rgba(255,255,255,.22);padding-top:2vh;position:relative;z-index:1" class="t-meta closing-license">MIT · github.com/Mxturl/RAVO</div></div>
-      <div class="half" style="padding:5.6vh 3.6vw 4.4vh;justify-content:space-between"><div class="chrome-min"><div class="l">START HERE</div><div class="r">03 STEPS</div></div><div style="display:flex;flex-direction:column;gap:0"><div style="display:grid;grid-template-columns:auto 1fr;gap:2vw;padding:2.6vh 0;border-top:1px solid var(--border-subtle)"><div style="font-size:min(4.4vw,7.8vh);font-weight:200">01</div><div><h3 style="font-size:max(18px,1.8vw);font-weight:400;margin-bottom:1vh">安装一个插件</h3><p style="font-size:max(16px,.94vw);line-height:1.6;color:var(--text-secondary)">codex plugin add ravo@ravo</p></div></div><div style="display:grid;grid-template-columns:auto 1fr;gap:2vw;padding:2.6vh 0;border-top:1px solid var(--border-subtle)"><div style="font-size:min(4.4vw,7.8vh);font-weight:200">02</div><div><h3 style="font-size:max(18px,1.8vw);font-weight:400;margin-bottom:1vh">正常使用 Codex</h3><p style="font-size:max(16px,.94vw);line-height:1.6;color:var(--text-secondary)">不选流程，不记模块名。</p></div></div><div style="display:grid;grid-template-columns:auto 1fr;gap:2vw;padding:2.6vh 0;border-top:1px solid var(--border-subtle);border-bottom:2px solid var(--accent)"><div style="font-size:min(4.4vw,7.8vh);font-weight:200;color:var(--accent)">03</div><div><h3 style="font-size:max(18px,1.8vw);font-weight:400;margin-bottom:1vh;color:var(--accent)">在关键处追问证据</h3><p style="font-size:max(16px,.94vw);line-height:1.6;color:var(--text-secondary)">人类判断仍是产品控制的一部分。</p></div></div></div><div class="t-meta" style="text-align:right">END · RAVO 0.6.2</div></div>
+      <div class="half b-accent" style="padding:5.6vh 3.6vw 4.4vh;justify-content:space-between;position:relative;overflow:hidden"><canvas class="ascii-bg" aria-hidden="true"></canvas><div class="chrome-min" style="margin-bottom:0;position:relative;z-index:1"><div class="l">09 / 09</div><div class="r">CLOSING</div></div><div style="display:flex;flex-direction:column;gap:2vh;position:relative;z-index:1"><div class="t-meta" style="color:rgba(255,255,255,.78);letter-spacing:.22em">RAVO v0.6.3</div><h2 style="font-family:var(--sans),var(--sans-zh);font-size:min(7.4vw,13vh);line-height:.94;font-weight:200;color:#fff">Think deeply<br/>when it<br class="mobile-only-break"/> <span style="font-style:italic;font-weight:300">matters</span>.</h2><p style="font-size:max(16px,1vw);line-height:1.6;color:rgba(255,255,255,.82);font-weight:400;max-width:38ch">把模型的灵活性留给工作，把不可绕过的边界留给结果。</p></div><div style="border-top:1px solid rgba(255,255,255,.22);padding-top:2vh;position:relative;z-index:1" class="t-meta closing-license">MIT · github.com/Mxturl/RAVO</div></div>
+      <div class="half closing-actions" style="padding:5.6vh 3.6vw 4.4vh;justify-content:space-between"><div class="chrome-min"><div class="l">START HERE</div><div class="r">03 STEPS</div></div><div style="display:flex;flex-direction:column;gap:0"><div style="display:grid;grid-template-columns:auto 1fr;gap:2vw;padding:2.6vh 0;border-top:1px solid var(--border-subtle)"><div style="font-size:min(4.4vw,7.8vh);font-weight:200">01</div><div><h3 style="font-size:max(18px,1.8vw);font-weight:400;margin-bottom:1vh">安装一个插件</h3><p style="font-size:max(16px,.94vw);line-height:1.6;color:var(--text-secondary)">codex plugin add ravo@ravo</p></div></div><div style="display:grid;grid-template-columns:auto 1fr;gap:2vw;padding:2.6vh 0;border-top:1px solid var(--border-subtle)"><div style="font-size:min(4.4vw,7.8vh);font-weight:200">02</div><div><h3 style="font-size:max(18px,1.8vw);font-weight:400;margin-bottom:1vh">正常使用 Codex</h3><p style="font-size:max(16px,.94vw);line-height:1.6;color:var(--text-secondary)">不选流程，不记模块名。</p></div></div><div style="display:grid;grid-template-columns:auto 1fr;gap:2vw;padding:2.6vh 0;border-top:1px solid var(--border-subtle);border-bottom:2px solid var(--accent)"><div style="font-size:min(4.4vw,7.8vh);font-weight:200;color:var(--accent)">03</div><div><h3 style="font-size:max(18px,1.8vw);font-weight:400;margin-bottom:1vh;color:var(--accent)">在关键处追问证据</h3><p style="font-size:max(16px,.94vw);line-height:1.6;color:var(--text-secondary)">人类判断仍是产品控制的一部分。</p></div></div></div><div class="t-meta closing-end" style="text-align:right">END · RAVO 0.6.3</div></div>
     </div>
   </div>
 </section>

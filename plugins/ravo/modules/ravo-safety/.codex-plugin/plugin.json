@@ -1,6 +1,6 @@
 {
   "name": "ravo-safety",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "description": "Internal local safety helpers used by RAVO modules.",
   "author": {
     "name": "RAVO contributors"
