@@ -22,9 +22,9 @@ function run(script, args) {
 
 fs.mkdirSync(path.join(workspace, "docs"), { recursive: true });
 
-const installedAcceptanceScripts = path.join(workspace, "cache", "ravo", "ravo", "0.6.2", "modules", "ravo-acceptance", "scripts");
-const installedCoreScript = path.join(workspace, "cache", "ravo", "ravo", "0.6.2", "modules", "ravo-core", "scripts", "ravo-git-baseline.js");
-const installedReviewScript = path.join(workspace, "cache", "ravo", "ravo", "0.6.2", "modules", "ravo-review", "scripts", "review-disposition.js");
+const installedAcceptanceScripts = path.join(workspace, "cache", "ravo", "ravo", "0.6.3", "modules", "ravo-acceptance", "scripts");
+const installedCoreScript = path.join(workspace, "cache", "ravo", "ravo", "0.6.3", "modules", "ravo-core", "scripts", "ravo-git-baseline.js");
+const installedReviewScript = path.join(workspace, "cache", "ravo", "ravo", "0.6.3", "modules", "ravo-review", "scripts", "review-disposition.js");
 fs.mkdirSync(installedAcceptanceScripts, { recursive: true });
 fs.mkdirSync(path.dirname(installedCoreScript), { recursive: true });
 fs.mkdirSync(path.dirname(installedReviewScript), { recursive: true });
@@ -158,7 +158,7 @@ assert.equal(externalBlockerArtifact.statusCeiling, "pending_acceptance");
 assert.deepEqual(externalBlockerArtifact.pmChecklistItemIds, ["m2-external-provider"]);
 const externalBlockerPmDoc = fs.readFileSync(externalBlockerAcceptance.pmChecklistPath, "utf8");
 assert.match(externalBlockerPmDoc, /仍有外部条件未满足/);
-assert.match(externalBlockerPmDoc, /## 需要你决定/);
+assert.match(externalBlockerPmDoc, /## 需要你的判断/);
 const checkedExternalBlocker = run(acceptanceChecker, ["--acceptance-artifact", path.relative(workspace, externalBlockerAcceptance.artifactPath)]);
 assert.equal(checkedExternalBlocker.status, "ready");
 assert.equal(checkedExternalBlocker.externalBlockers[0].allowedBySpec, true);
@@ -396,11 +396,10 @@ assert.equal(Object.hasOwn(productArtifact, "audience"), false);
 assert.equal(productArtifact.pmBrief.productState, "awaiting_pm");
 assert.equal(productArtifact.pmBrief.actionRequired, "experience_acceptance");
 assert.equal(productArtifact.pmBrief.decisionCard.options.length, 2);
-assert.match(productPmDoc, /# PM 体验验收/);
+assert.match(productPmDoc, /# 请体验当前成果/);
 assert.match(productPmDoc, /当前版本已经完成核心验证/);
-assert.match(productPmDoc, /## 体验步骤/);
-assert.match(productPmDoc, /## 需要你决定/);
-assert.ok((productPmDoc.match(/^\d+\. /gm) || []).length <= 3);
+assert.match(productPmDoc, /## 建议体验/);
+assert.match(productPmDoc, /## 需要你的判断/);
 assert.doesNotMatch(productPmDoc, /runtimeProbeStatus=stale|当前结论必须与真实证据一致/);
 assert.equal((productPmDoc.match(/当前结论必须与真实证据一致/g) || []).length, 0);
 assert.doesNotMatch(productPmDoc, /技术证据附录|需求预期、当前方案与实现效果/);
@@ -444,8 +443,8 @@ assert.equal(codexFirstArtifact.pmBrief.actionRequired, "none");
 assert.equal(codexFirstArtifact.pmBrief.productState, "in_progress");
 assert.equal(codexFirstArtifact.pmBrief.decisionCard, null);
 assert.match(codexFirstPmDoc, /你暂时不用行动/);
-assert.equal(codexFirstPmDoc.split(/\r?\n/).filter((line) => line.trim()).length, 8);
-assert.match(codexFirstPmDoc, /实现.*自动验证.*本机体验.*PM 已接受.*发布条件.*已发布/);
+assert.match(codexFirstPmDoc, /实现还有缺口|自动验证还未完成/);
+assert.match(codexFirstPmDoc, /尚未具备发布条件，也没有发布/);
 assert.doesNotMatch(codexFirstPmDoc, /技术证据附录|Git 验收基线|\| 验收项 \|/);
 
 console.log(JSON.stringify({

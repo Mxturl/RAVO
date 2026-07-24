@@ -2,7 +2,7 @@
 
 const fs = require("node:fs");
 const { normalizeReviewConfig } = require("./review-config");
-const PRODUCT_VERSION = "0.6.2";
+const PRODUCT_VERSION = "0.6.3";
 
 function fail(message) {
   process.stderr.write(`${message}\n`);

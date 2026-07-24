@@ -8,7 +8,7 @@ English | [中文](README_ZH.md)
 
 </div>
 
-Current development version: `v0.6.2`. A version number does not imply acceptance, release readiness, or publication.
+Current development version: `v0.6.3`. A version number does not imply acceptance, release readiness, or publication.
 
 ## What RAVO Is
 
@@ -18,9 +18,9 @@ One `ravo@ravo` plugin installs nine on-demand Skills. `AGENTS.md` provides scen
 
 ## How To Use It
 
-Use Codex normally. You do not need to choose a workflow or remember module names. Clear small tasks, factual questions, read-only checks, and low-risk local work should be handled directly; RAVO stays quiet when it is not useful.
+Use Codex normally. You do not need to choose a workflow or remember module names. A clear implementation, change, or fix request defaults to completing the authorized implementation, validation, and reversible local integration; you do not need to add “finish everything.” Discussion, explanation, analysis, planning, and brainstorming requests still answer only the current question. Clear small tasks, factual questions, read-only checks, and low-risk local work stay direct; RAVO stays quiet when it is not useful.
 
-For a clear task that needs several turns or reliable steps, Codex may use the host's existing Goal capability when it is available and authorized. You do not need to type a special Goal prompt. “Continue” reuses an active Goal; it does not recreate a completed, terminally blocked, or parked Goal unless you introduce a new independent objective. If Goal capability is unavailable, Codex continues normally instead of blocking the work.
+After you apply RAVO's user-level `AGENTS.md` guidance, you give Codex standing authorization to create or reuse a Goal from the full semantic context; no per-task Goal phrase is required. The model judges whether continuity would materially help complete the implementation from current intent, prior scope, remaining commitments, and operation boundaries. Reliable steps, likely multi-turn progress, and recovery value are contextual signals, not a required checklist, score, or keyword trigger. A Goal is only a continuity container and does not add Spec, Review, Acceptance, or evidence requirements. “Continue” reuses an active Goal; it does not recreate a completed, terminally blocked, or parked Goal unless you introduce a new independent objective. If the host lacks Goal capability or its tool contract still disallows creation, Codex keeps the default delivery commitment and describes the real fallback once for clearly long-running work.
 
 For an important or ambiguous requirement, ask Codex to shape it systematically. RAVO covers the consumer, scenario, pain, goal, boundary, success criteria, non-goals, constraints, and risks, while separating confirmed facts, reasonable assumptions, and open product decisions. Only decisions that change direction, scope, or success criteria should interrupt the PM.
 
@@ -65,7 +65,7 @@ Start a fresh Codex task after installation.
 
 ### Migrate From v0.5.5
 
-v0.6.2 supports the eight legacy `0.5.5` plugins from the same marketplace. Install the unified plugin, then preview and apply migration:
+v0.6.3 supports the eight legacy `0.5.5` plugins from the same marketplace. Install the unified plugin, then preview and apply migration:
 
 ```bash
 node plugins/ravo/modules/ravo-core/scripts/ravo-migrate.js --preview
@@ -89,19 +89,19 @@ node plugins/ravo/modules/ravo-core/scripts/ravo-agents.js
 node plugins/ravo/modules/ravo-core/scripts/ravo-agents.js --apply
 ```
 
-The marked block is limited to seven rules: direct work and existing Goal lifecycle, requirement and RCA depth, proportional evidence and risk-based Skill recall, release Goal/Spec and Pool boundaries, next-version candidate projection, hard safety/status boundaries, and one owner-assigned next step for non-trivial work.
+The marked block is limited to seven rules: default delivery and semantic Goal lifecycle, requirement and RCA depth, proportional evidence and risk-based Skill recall, release Goal/Spec and Pool boundaries, next-version candidate projection, hard safety/status boundaries, and one owner-assigned next step for non-trivial work.
 
 ## Hooks
 
 The unified plugin registers only:
 
-- `Stop`: read-only checks positive completion/acceptance/release claims and explicit requirement, issue, lesson, or product-decision statements that omit their Pool disposition. Both checks produce at most one continuation per user turn and write no artifact or telemetry. Quotes, negations, brainstorming, mechanism explanations, ordinary Q&A, and read-only candidate lists pass through.
+- `Stop`: read-only checks high-order acceptance/release claims against an explicitly referenced or task-bound Acceptance, and checks explicit requirement, issue, lesson, or product-decision statements that omit their Pool disposition. It never borrows another task's latest Acceptance; bounded completion with a direct check does not require an Acceptance artifact. Both checks produce at most one continuation per user turn and write no artifact or telemetry.
 
-v0.6.2 does not register permission-request, prompt, session, subagent, pre-tool, or post-tool routing Hooks. Skill descriptions and `AGENTS.md` provide recall.
+v0.6.3 does not register permission-request, prompt, session, subagent, pre-tool, or post-tool routing Hooks. Skill descriptions and `AGENTS.md` provide recall.
 
 ## Goals And Release Goal Prompts
 
-An ordinary clear multi-turn Codex Goal does not require a Spec. RAVO uses the host capability when available and never simulates an active Goal when it is not.
+An ordinary clear multi-turn Codex Goal does not require a Spec. The installed user-level RAVO AGENTS guidance gives the model standing authorization to choose Goal from the full context; Goal only improves continuity and changes neither the default delivery commitment nor governance strength. RAVO never simulates an active Goal when the host has not started or allowed one.
 
 A RAVO version-delivery, Release Slice, acceptance, go-live, or publication Goal Prompt is a stricter execution contract. It requires a current decision-complete Spec and commits only the current Release Slice.
 
@@ -120,7 +120,7 @@ SoloDesk binds only to loopback, reuses one user instance, and reads explicitly 
 The next-version scenario does not require the SoloDesk service:
 
 ```bash
-node plugins/ravo/modules/ravo-dashboard/scripts/ravo-pool.js --scenario next_version_candidates --workspace "$(pwd)" [--version v0.6.2]
+node plugins/ravo/modules/ravo-dashboard/scripts/ravo-pool.js --scenario next_version_candidates --workspace "$(pwd)" [--version v0.6.3]
 ```
 
 ## Review And Knowledge
@@ -134,7 +134,7 @@ node plugins/ravo/modules/ravo-knowledge/scripts/retrieve-knowledge.js --query "
 
 Raw project facts and evidence remain workspace-local by default. Transferable user knowledge requires explicit opt-in, redaction, scope, sensitivity, and applicability.
 
-Known limitation in v0.6.2: after RCA, Review, or smoke validation establishes a reusable fact, Codex may continue solving the task without proactively capturing that fact in RAVO Knowledge. For an important lesson, explicitly ask Codex to record it; unverified solution candidates should remain marked as candidates rather than conclusions.
+When RCA, Review, smoke, or Acceptance establishes a stable reusable fact, the producing Skill checks it as a Knowledge candidate immediately. Goal, phase, and user-requested closeout perform one lightweight classification across Knowledge, Pool, unfinished work, Spec Delta, or no persistence. Simple work and empty inventories stay silent; this does not use the Stop Hook or claim perfect recall.
 
 ## Artifact Protocol
 
@@ -152,7 +152,7 @@ knowledge/.ravo/
 └── review/
 ```
 
-Existing `0.5.x` artifact, config, and schema versions remain compatibility protocol versions under product `0.6.2`.
+Existing `0.5.x` artifact, config, and schema versions remain compatibility protocol versions under product `0.6.3`.
 
 ## Local Validation
 

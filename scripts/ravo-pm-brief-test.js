@@ -3,7 +3,7 @@
 "use strict";
 
 const assert = require("node:assert/strict");
-const { buildPmBrief, validatePmBrief, validatePmMarkdown } = require("../plugins/ravo/modules/ravo-core/scripts/ravo-pm-brief");
+const { buildPmBrief, plainLanguageFindings, validatePmBrief, validatePmMarkdown } = require("../plugins/ravo/modules/ravo-core/scripts/ravo-pm-brief");
 
 const noAction = buildPmBrief({
   headline: "本机已经可以体验这项能力",
@@ -47,25 +47,29 @@ const decision = buildPmBrief({
 });
 assert.equal(decision.decisionCard.options.length, 2);
 
-assert.throws(() => buildPmBrief({ ...noAction, headline: "Runtime update complete" }), /internal term/);
+assert.doesNotThrow(() => buildPmBrief({ ...noAction, headline: "Runtime update complete" }));
+assert.deepEqual(plainLanguageFindings("Runtime update complete"), ["Runtime"], "term findings remain advisory rather than a delivery gate");
 assert.throws(() => buildPmBrief({ ...noAction, productState: "awaiting_pm" }), /requires PM action/);
 assert.throws(() => buildPmBrief({ ...decision, decisionCard: null }), /decisionCard is required/);
 assert.ok(validatePmBrief({ ...noAction, evidenceBoundary: { proves: [], doesNotProve: [] } }).length >= 2);
 assert.ok(validatePmBrief({ ...noAction, nextStep: "请确认是否继续。" }).some((error) => /cannot request PM confirmation/.test(error)));
 assert.ok(validatePmBrief({ ...decision, decisionCard: { ...decision.decisionCard, question: "是否接受？是否继续优化？" } }).some((error) => /only one product question/.test(error)));
-assert.deepEqual(validatePmMarkdown("# PM 验收结论\n- 结论：GitHub Release 已准备\n- 当前可用：本机可用\n- 影响：可以体验\n- PM 行动：无需行动\n- 状态边界：实现已完成\n- 下一步：Codex 继续\n- 风险：无\n", { kind: "acceptance", actionRequired: "none" }), []);
-assert.ok(validatePmMarkdown("# PM 体验验收\n## 空章节\n## 体验步骤\n1. 一\n2. 二\n3. 三\n4. 四\n", { kind: "acceptance", actionRequired: "experience_acceptance" }).length >= 2);
+assert.deepEqual(validatePmMarkdown("# 当前结果\n\n本机已经可以体验。\n\n接下来请判断核心流程是否符合预期。\n", { kind: "acceptance", actionRequired: "experience_acceptance" }), []);
+assert.deepEqual(validatePmMarkdown("# 自由组织\n\n1. 一\n2. 二\n3. 三\n4. 四\n", { kind: "acceptance", actionRequired: "experience_acceptance" }), [], "layout and step count are not hard gates");
+assert.deepEqual(validatePmMarkdown("# PM 体验验收\n## 空章节\n## 下一节\n内容\n"), [], "layout quality remains a model judgment");
+assert.ok(validatePmMarkdown("").some((error) => /empty/.test(error)));
+assert.deepEqual(validatePmMarkdown("# 结果\n路径：knowledge/.ravo/example.json\n"), [], "supporting detail is a model judgment, not a lexical gate");
 
 console.log(JSON.stringify({
   status: "pass",
   checks: [
     "no-action-brief",
     "decision-card-brief",
-    "internal-term-rejection",
+    "advisory-term-finding",
     "action-state-consistency",
     "evidence-boundary-required",
     "no-action-confirmation-rejected",
     "single-decision-question",
-    "pm-markdown-projection"
+    "model-led-pm-markdown"
   ]
 }, null, 2));

@@ -17,6 +17,8 @@ If a one-off local problem is fixed in scope and has no recurrence or follow-up 
 
 Full RCA requires symptom, proximate cause, mechanism root cause, plausible alternatives, recurrence mechanism, root-level fix, prevention validation, and residual risk. Use a concise natural conclusion unless the user or the impact needs a full report. For PM audiences, lead with user impact, safe current use, next action, and whether a decision is required.
 
+When RCA confirms a stable reusable fact with sufficient evidence and a clear applicability boundary, run one Knowledge candidate check immediately. Do not wait for the whole delivery to finish, and do not turn a one-off fix into Knowledge.
+
 Persist an RCA only for a downstream Alignment, Spec, or decision, cross-task reuse, `governed_change`, a direct recording request, or an explicit Spec requirement. Use `$RAVO_PLUGIN_ROOT/modules/ravo-analysis/scripts/write-analysis-artifact.js` only then.
 
 ## Boundaries

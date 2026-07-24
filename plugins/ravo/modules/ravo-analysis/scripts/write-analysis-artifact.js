@@ -17,7 +17,7 @@ function loadPmBriefModule() {
 const { buildPmBrief } = loadPmBriefModule();
 
 const SCHEMA_VERSION = "0.5.0";
-const PRODUCT_VERSION = "0.6.2";
+const PRODUCT_VERSION = "0.6.3";
 const TYPES = new Set(["requirement", "root-cause", "solution"]);
 const STATUSES = new Set(["draft", "complete"]);
 const IMPACT_LEVELS = new Set(["low", "medium", "high"]);

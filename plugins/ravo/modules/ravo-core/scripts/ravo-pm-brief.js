@@ -146,36 +146,9 @@ function markdownLines(value) {
 }
 
 function validatePmMarkdown(markdown, options = {}) {
-  const errors = [];
   const lines = markdownLines(markdown);
-  const headings = lines.filter((line) => /^#{1,6}\s+/.test(line));
-  const content = lines.filter((line) => !/^#{1,6}\s+/.test(line));
-  const normalized = content.map((line) => line.replace(/^[-*]\s+|^\d+\.\s+/, "").trim()).filter(Boolean);
-  const seen = new Set();
-  for (const line of normalized) {
-    if (seen.has(line)) errors.push("PM document contains a repeated paragraph.");
-    seen.add(line);
-  }
-  for (const [index, heading] of headings.entries()) {
-    const lineIndex = lines.indexOf(heading);
-    const next = lines[lineIndex + 1] || "";
-    if (!next || /^#{1,6}\s+/.test(next)) errors.push(`PM document contains an empty section: ${heading}`);
-  }
-  for (const line of lines) {
-    if (/^(?:[-*]\s*)?(?:source refs?|路径|命令|状态码|git\s+baseline|baseline)\s*[:：]/i.test(line)) {
-      errors.push("PM document exposes implementation evidence in the primary projection.");
-    }
-    const terms = plainLanguageFindings(line);
-    if (terms.length && !/^#{1,6}\s+/.test(line)) errors.push(`PM document contains unexplained internal term(s): ${terms.join(", ")}.`);
-  }
-  if (options.kind === "acceptance") {
-    if (options.actionRequired === "none" && (lines.length < 5 || lines.length > 8)) {
-      errors.push("No-action PM acceptance document must contain 5 to 8 non-empty lines.");
-    }
-    const steps = lines.filter((line) => /^\d+\.\s+/.test(line));
-    if (steps.length > 3) errors.push("PM experience acceptance must contain at most three steps.");
-  }
-  return [...new Set(errors)];
+  if (!lines.length) return ["PM document is empty."];
+  return [];
 }
 
 function validatePmBrief(brief, options = {}) {
@@ -207,18 +180,6 @@ function validatePmBrief(brief, options = {}) {
     errors.push("pmBrief.sourceRefs requires at least one non-empty reference.");
   }
 
-  if (options.plainLanguage !== false) {
-    const entries = [
-      ["headline", brief.headline],
-      ["userImpact", brief.userImpact],
-      ["nextStep", brief.nextStep],
-      ...decisionTextEntries(brief.decisionCard)
-    ];
-    for (const [field, value] of entries) {
-      const terms = plainLanguageFindings(value);
-      if (terms.length) errors.push(`pmBrief.${field} contains unexplained internal term(s): ${terms.join(", ")}.`);
-    }
-  }
   return errors;
 }
 

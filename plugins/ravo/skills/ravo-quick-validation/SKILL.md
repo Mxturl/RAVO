@@ -29,13 +29,15 @@ Check the latest retained smoke manifest:
 node "$RAVO_PLUGIN_ROOT/modules/ravo-quick-validation/scripts/check-smoke-artifact.js"
 ```
 
+When smoke or deterministic validation establishes a stable reusable fact beyond the current task, run one Knowledge candidate check. Transient test output and a simple passing check do not become Knowledge.
+
 Set `RAVO_PLUGIN_ROOT` to the directory two levels above this `SKILL.md`.
 
 ## Product Manager Communication
 
 - Summarize what the validation proves, what it does not prove, its effect on actual usability, and what Codex will do next.
 - For `lightweight` work, one short sentence naming the actual check is enough; do not create process language to explain why no artifact exists.
-- Legacy configuration never changes this fixed PM projection or the complete validation artifact.
+- Legacy configuration never changes the underlying facts or complete validation artifact; the visible PM response may be organized naturally for the current question.
 - A script or smoke pass is `validated`, not `locally_available`. Only real evidence from the actual local environment may claim local availability.
 - Validation failures remain Codex work unless they expose a genuine product tradeoff. Do not delegate test repair to the PM.
 

@@ -8,7 +8,7 @@ const { resolvePluginScript } = require("./ravo-plugin-resolver");
 
 const CONTRACT_PATH = path.join(__dirname, "..", "config", "ravo-config-contract.json");
 const CONTRACT = JSON.parse(fs.readFileSync(CONTRACT_PATH, "utf8"));
-const PRODUCT_VERSION = "0.6.2";
+const PRODUCT_VERSION = "0.6.3";
 const SECRET_MODE = 0o600;
 const PRIVATE_DIR_MODE = 0o700;
 const DEPRECATED_CORE_FIELDS = new Set(["technicalDetailLevel", "audience"]);

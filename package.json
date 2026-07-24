@@ -1,6 +1,6 @@
 {
   "name": "ravo-codex-plugin",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "private": true,
   "description": "A lightweight collaboration framework for product work with Codex.",
   "license": "MIT",

@@ -23,7 +23,7 @@ function loadPmBriefModule() {
 const { buildPmBrief } = loadPmBriefModule();
 
 const SCHEMA_VERSION = "0.5.1";
-const PRODUCT_VERSION = "0.6.2";
+const PRODUCT_VERSION = "0.6.3";
 const REVIEW_DIR = path.join("knowledge", ".ravo", "review");
 const VALUE_OPTIONS = new Set([
   "--workspace", "--config", "--domain", "--subject", "--file", "--model", "--rounds", "--discussion-file",

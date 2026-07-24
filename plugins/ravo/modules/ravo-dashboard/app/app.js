@@ -491,7 +491,7 @@
           </nav>
           <div class="sidebar-foot sidebar-footer">
             <div class="runtime-mini"><span class="runtime-dot ${statusClass(runtimeHealth)}"></span><div><small>本机环境</small><strong>${escapeHtml(statusLabel(runtimeHealth))}</strong></div></div>
-            <span>v0.6.2</span>
+            <span>v0.6.3</span>
           </div>
         </aside>
         <button class="sidebar-scrim ${state.sidebarOpen ? "is-open" : ""}" type="button" data-action="toggle-sidebar" aria-label="关闭导航"></button>

@@ -19,7 +19,7 @@ function loadPmBriefModule() {
 const { buildPmBrief } = loadPmBriefModule();
 
 const SCHEMA_VERSION = "0.5.0";
-const PRODUCT_VERSION = "0.6.2";
+const PRODUCT_VERSION = "0.6.3";
 const COVERAGE = new Set(["none", "partial", "full"]);
 const PARSER_STATUS = new Set(["not_run", "pass", "partial", "error", "legacy_unclassified"]);
 const VALUE_OPTIONS = new Set([

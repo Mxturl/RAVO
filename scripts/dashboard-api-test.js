@@ -379,7 +379,7 @@ async function main() {
     assert.equal(health.value.csrfToken, csrf);
     assert.ok(health.value.instanceId);
     assert.equal(health.value.pid, process.pid);
-    assert.equal(health.value.serviceVersion, "0.6.2");
+    assert.equal(health.value.serviceVersion, "0.6.3");
     assert.equal(health.value.startupMode, "on_demand");
     assert.equal(health.value.mutation.busy, false);
     assert.equal(health.headers["access-control-allow-origin"], undefined);
@@ -402,7 +402,7 @@ async function main() {
     const serviceStatus = await request(port, "GET", "/api/service/status");
     assert.equal(serviceStatus.status, 200);
     assert.equal(serviceStatus.value.instanceId, state.instanceId);
-    assert.equal(serviceStatus.value.serviceVersion, "0.6.2");
+    assert.equal(serviceStatus.value.serviceVersion, "0.6.3");
     assert.equal(serviceStatus.value.pluginFingerprint, state.pluginFingerprint);
     assert.equal(serviceStatus.value.mutation.busy, false);
     assert.equal(serviceStatus.value.csrfToken, undefined);

@@ -27,7 +27,7 @@ function createFixture(name, options = {}) {
   const installed = [{
     pluginId: "ravo@ravo",
     name: "ravo",
-    version: "0.6.2",
+    version: "0.6.3",
     installed: true,
     enabled: true,
     source: { path: pluginRoot },

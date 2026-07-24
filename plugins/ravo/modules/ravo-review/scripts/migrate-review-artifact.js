@@ -7,7 +7,7 @@ const { evaluateDataBoundary } = require("./review-boundary");
 const { buildIssueLedger, parseReviewResponse } = require("./review-response");
 
 const SCHEMA_VERSION = "0.5.0";
-const PRODUCT_VERSION = "0.6.2";
+const PRODUCT_VERSION = "0.6.3";
 const REVIEW_DIR = path.join("knowledge", ".ravo", "review");
 const MAX_LEGACY_RAW_BYTES = 10 * 1024 * 1024;
 const VALUE_OPTIONS = new Set(["--workspace", "--source", "--subject-ref", "--data-boundary", "--authorization-source"]);

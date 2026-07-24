@@ -52,7 +52,7 @@ assert.equal(marketplace.plugins[0].source.path, "./plugins/ravo");
 
 const manifest = readJson(path.join(pluginRoot, ".codex-plugin", "plugin.json"));
 assert.equal(manifest.name, "ravo");
-assert.equal(manifest.version, "0.6.2");
+assert.equal(manifest.version, "0.6.3");
 assert.equal(manifest.skills, "./skills/");
 assert.equal(manifest.hooks, "./hooks/hooks.json");
 
@@ -81,7 +81,7 @@ const modules = fs.readdirSync(modulesRoot, { withFileTypes: true })
 assert.deepEqual(modules, expectedModules);
 for (const moduleName of modules) {
   const moduleManifest = readJson(path.join(modulesRoot, moduleName, ".codex-plugin", "plugin.json"));
-  assert.equal(moduleManifest.version, "0.6.2", `${moduleName} product version`);
+  assert.equal(moduleManifest.version, "0.6.3", `${moduleName} product version`);
   assert.equal(moduleManifest.skills, undefined, `${moduleName} must not expose nested Skills`);
   assert.equal(moduleManifest.hooks, undefined, `${moduleName} must not register nested Hooks`);
 }

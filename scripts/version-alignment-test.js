@@ -6,7 +6,7 @@ const path = require("node:path");
 const { execFileSync } = require("node:child_process");
 
 const repo = path.resolve(__dirname, "..");
-const productVersion = "0.6.2";
+const productVersion = "0.6.3";
 const modules = [
   "ravo-core",
   "ravo-analysis",
@@ -66,25 +66,26 @@ for (const script of productCliScripts) {
 }
 
 const reviewConfigTemplate = readJson("templates/ravo-review-config.example.json");
-assert.equal(reviewConfigTemplate.schemaVersion, "0.5.0", "unchanged config schema compatibility must not be relabeled as product version 0.6.2");
+assert.equal(reviewConfigTemplate.schemaVersion, "0.5.0", "unchanged config schema compatibility must not be relabeled as product version 0.6.3");
 
 const history = readJson("scripts/fixtures/ravo-v0.5.0-lineage-history.json");
 assert.equal(history.targetSpecRef, "docs/ravo-v0.5.0-decision-complete-spec-zh.md", "the frozen v0.5.0 lineage fixture must remain historical");
 
 const analysisWriter = fs.readFileSync(path.join(repo, "plugins/ravo/modules/ravo-analysis/scripts/write-analysis-artifact.js"), "utf8");
 assert.match(analysisWriter, /const SCHEMA_VERSION = "0\.5\.0";/, "analysis artifact schema compatibility must remain explicit");
-assert.match(analysisWriter, /const PRODUCT_VERSION = "0\.6\.2";/, "analysis CLI product version must be separate from artifact schema version");
+assert.match(analysisWriter, /const PRODUCT_VERSION = "0\.6\.3";/, "analysis CLI product version must be separate from artifact schema version");
 
 const upgradeRunner = fs.readFileSync(path.join(repo, "plugins/ravo/modules/ravo-dashboard/scripts/ravo-upgrade.js"), "utf8");
-assert.match(upgradeRunner, /const PRODUCT_VERSION = "0\.6\.2";/, "upgrade CLI must expose the current product version");
+assert.match(upgradeRunner, /const PRODUCT_VERSION = "0\.6\.3";/, "upgrade CLI must expose the current product version");
 assert.match(upgradeRunner, /schemaVersion: "0\.5\.0"/, "upgrade journal schema compatibility must remain unchanged until its contract changes");
 
 const dashboardApp = fs.readFileSync(path.join(repo, "plugins/ravo/modules/ravo-dashboard/app/app.js"), "utf8");
-assert.match(dashboardApp, />v0\.6\.2</, "SoloDesk must display the current product version");
+assert.match(dashboardApp, />v0\.6\.3</, "SoloDesk must display the current product version");
 assert.doesNotMatch(dashboardApp, />v0\.5\.5</, "SoloDesk must not display the legacy product version");
 
 const acceptanceBaseline = fs.readFileSync(path.join(repo, "plugins/ravo/modules/ravo-acceptance/scripts/prepare-acceptance-baseline.js"), "utf8");
-assert.match(acceptanceBaseline, /R602-001\.\.006/, "the current acceptance wrapper must default to the v0.6.2 requirement range");
+assert.match(acceptanceBaseline, /R603-001\.\.005/, "the current acceptance wrapper must default to the v0.6.3 requirement range");
+assert.match(acceptanceBaseline, /ravo-v0\.6\.3-reliable-closeout/, "the current acceptance wrapper must default to the v0.6.3 Release Slice");
 
 console.log(JSON.stringify({
   status: "pass",

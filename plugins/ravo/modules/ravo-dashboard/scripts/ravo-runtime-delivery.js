@@ -16,7 +16,7 @@ const {
 } = require("./ravo-upgrade");
 const { restart: restartSoloDesk, status: statusSoloDesk } = require("./ravo-solodesk");
 
-const PRODUCT_VERSION = "0.6.2";
+const PRODUCT_VERSION = "0.6.3";
 const RUNTIME_PATH_PREFIXES = ["plugins/", ".agents/plugins/marketplace.json"];
 const RUNTIME_PATH_MARKERS = ["hook", "manifest", "install", "upgrade", "runtime", "cli"];
 
@@ -101,7 +101,7 @@ function sourceBaseline(workspace, options = {}) {
   const baselineId = `ravo-v${productVersion}-${sourceFingerprint.slice(7, 19)}`;
   return {
     baselineId,
-    releaseSlice: options.releaseSlice || "ravo-v0.6.2-context-driven-execution-and-evidence",
+    releaseSlice: options.releaseSlice || "ravo-v0.6.3-reliable-closeout",
     productVersion,
     gitCommit: gitCommit || null,
     gitTree: gitTree || null,

@@ -14,7 +14,7 @@ const {
   withMutationLock
 } = require("./ravo-config");
 
-const PRODUCT_VERSION = "0.6.2";
+const PRODUCT_VERSION = "0.6.3";
 
 const REQUIRED_PLUGINS = Object.freeze(["ravo"]);
 const JOURNAL_STATUSES = new Set(["planned", "backed_up", "installing", "verifying", "succeeded", "partial", "failed", "recovered", "indeterminate"]);

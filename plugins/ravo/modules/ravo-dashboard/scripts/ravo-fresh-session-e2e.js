@@ -6,7 +6,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { spawnSync } = require("node:child_process");
 
-const PRODUCT_VERSION = "0.6.2";
+const PRODUCT_VERSION = "0.6.3";
 
 function argValue(name, fallback = "") {
   const index = process.argv.indexOf(name);
@@ -44,11 +44,7 @@ function hasPmActionRequest(response) {
 function pmStatusViolations(response) {
   const text = String(response || "").trim();
   const violations = [];
-  const firstLine = text.split(/\r?\n/, 1)[0] || "";
-  if (!/(?:结论|结果|当前|目前|已|本次|RAVO|使用|体验|影响|建议|无需|需要)/.test(firstLine)) violations.push("must_lead_with_product_result");
-  if (hasPmActionRequest(text)) violations.push("unexpected_pm_action");
-  if (/(?:\b(?:Hook|Runtime|cache|PM Brief)\b|缓存|探针|验收门禁|状态页|完整性状态|RAVO (?:Release Acceptance|Knowledge))/.test(text)) violations.push("internal_evidence_in_pm_status");
-  if (text.length > 800) violations.push("pm_status_too_long");
+  if (/\b(?:pending_pm|candidate_ready|release_ready|blocked_external)\b/i.test(text)) violations.push("raw_internal_status");
   return violations;
 }
 

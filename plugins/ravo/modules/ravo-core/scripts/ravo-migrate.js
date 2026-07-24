@@ -11,7 +11,7 @@ const { parseTomlDocument } = require("./ravo-config-integrity");
 const { inspectPluginRoot } = require("./ravo-preflight");
 const { restoreLegacy } = require("./ravo-legacy-restore");
 
-const PRODUCT_VERSION = "0.6.2";
+const PRODUCT_VERSION = "0.6.3";
 const LEGACY_VERSION = "0.5.5";
 const LEGACY_PLUGIN_NAMES = [
   "ravo-core",
@@ -216,7 +216,7 @@ function runMigration(input = {}) {
     return { status: "inspection_failed", reason: error.message, recoveryEntry: "Re-run preview after Codex plugin status is readable." };
   }
   const assessment = sourceAssessment(installed, options.home);
-  if (assessment.status === "already_migrated") return { status: "already_migrated", target: "ravo@ravo 0.6.2", freshSessionRequired: true };
+  if (assessment.status === "already_migrated") return { status: "already_migrated", target: "ravo@ravo 0.6.3", freshSessionRequired: true };
   if (assessment.status !== "supported") {
     return { status: assessment.status, expectedSourceVersion: LEGACY_VERSION, observed: assessment.legacy.map((entry) => ({ pluginId: entry.pluginId, version: entry.version, enabled: entry.enabled !== false })) };
   }

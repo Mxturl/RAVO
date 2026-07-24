@@ -5,7 +5,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 
-const PRODUCT_VERSION = "0.6.2";
+const PRODUCT_VERSION = "0.6.3";
 const SKILLS = [
   "ravo-core",
   "ravo-dashboard",
@@ -82,7 +82,7 @@ function inspectPluginRoot(root) {
     const moduleRoot = path.join(pluginRoot, "modules", name);
     const moduleManifest = readJson(path.join(moduleRoot, ".codex-plugin", "plugin.json"));
     const missing = entries.filter((entry) => !fs.existsSync(path.join(moduleRoot, entry)));
-    if (!moduleManifest.value || moduleManifest.value.version !== PRODUCT_VERSION) missing.unshift(".codex-plugin/plugin.json@0.6.2");
+    if (!moduleManifest.value || moduleManifest.value.version !== PRODUCT_VERSION) missing.unshift(".codex-plugin/plugin.json@0.6.3");
     return { name, status: missing.length ? "degraded" : "healthy", missing };
   });
 

@@ -93,6 +93,10 @@ try {
   assert.equal(planningGate(inventory, "v0.5.10").status, "version_exists", "V2 blocks duplicate planning");
   assert.equal(planningGate(inventory, "v0.5.11").status, "available", "V2 permits an unused version");
 
+  write(path.join(detached, "knowledge", ".ravo", "pool", "items", "v010-second-requirement.json"), JSON.stringify(pool("v0.5.10", slice, "R510-002", "2026-01-03T00:00:00.000Z")));
+  const multiRequirement = scanVersionInventory(root).versions.find((item) => item.version === "v0.5.10");
+  assert.equal(multiRequirement.productState, "accepted", "same-slice accepted requirements are compatible");
+
   const candidates = releaseCandidates(inventory);
   assert.equal(candidates.find((item) => item.version === "v0.5.10").releaseDestination, "blocked", "V10 does not call a dirty source release-ready");
   assert.equal(candidates.some((item) => item.releaseState === "release_ready"), false, "V10 never infers release-ready from local evidence");

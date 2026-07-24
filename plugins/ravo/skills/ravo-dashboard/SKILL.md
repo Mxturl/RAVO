@@ -40,8 +40,8 @@ Set `RAVO_PLUGIN_ROOT` to the directory two levels above this `SKILL.md`.
 
 ## Product Manager Communication
 
-- Show the authoritative `pmBrief` first: current product state, user impact, PM action, next step, and decision card when applicable.
-- PM projection is fixed regardless of legacy configuration; Agent records remain complete and are never used as the default PM view.
+- Use the authoritative `pmBrief` as facts, not as a field-by-field response template. Organize the result around the current PM scenario; a candidate comparison can use a list or table while a single answer can stay as prose.
+- Legacy configuration never changes the underlying facts; Agent records remain complete and are never used as the default PM view.
 - Keep execution lanes, source paths, internal status codes, provider details, and environment fingerprints under evidence or technical detail views.
 - A healthy Dashboard does not mean the current feature is locally available. Prefer a matching Acceptance or Runtime Delivery brief, and use a conservative read-only projection for legacy artifacts.
 - Do not ask the PM to authorize safe local source alignment or local environment refresh that is already inside the confirmed delivery scope.

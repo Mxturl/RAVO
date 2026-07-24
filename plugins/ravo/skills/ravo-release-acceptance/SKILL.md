@@ -11,6 +11,8 @@ A simple, local, reversible, low-risk task may close with its actual direct chec
 
 The Stop hook can request one correction when status language exceeds evidence. It does not replace this agent-initiated delivery gate or prove acceptance.
 
+If a phase or delivery closeout also contains confirmed reusable facts, new issues, or unfinished work, use RAVO Knowledge once to classify those candidates. Acceptance status alone does not complete that classification; in a read-only environment, state the intended destinations without claiming they were saved.
+
 ## Workflow
 
 1. Inspect the change scope and classify whether Acceptance is actually needed. If the task is a lightweight case with no high-order status claim, return to direct completion after naming the actual check.
@@ -28,18 +30,21 @@ node "$RAVO_PLUGIN_ROOT/modules/ravo-dashboard/scripts/ravo-runtime-delivery.js"
 node "$RAVO_PLUGIN_ROOT/modules/ravo-acceptance/scripts/write-acceptance-artifact.js" --status pending_acceptance --evidence-level smoke --summary "<summary>" --subject-ref "<stable subject id>" --baseline-ref "<git-commit-or-tree>" --git-baseline-artifact "<git baseline artifact>" --source-ref "<spec or release ref>" --real-response-ref "<response or path>" --screenshot-ref "<screenshot path>" --data-evidence-ref "<artifact path>" --acceptance-item '<v0.5.1 acceptance item JSON>'
 ```
 
-5. Check the gate:
+5. Check the exact task-bound artifact. Never substitute the workspace latest Acceptance when concurrent tasks may exist:
 
 ```bash
-node "$RAVO_PLUGIN_ROOT/modules/ravo-acceptance/scripts/check-ravo-acceptance.js"
+node "$RAVO_PLUGIN_ROOT/modules/ravo-acceptance/scripts/check-ravo-acceptance.js" --acceptance-artifact <path>
 ```
+
+When Acceptance establishes a stable reusable fact or lesson beyond the current Slice, run one Knowledge candidate check before closeout. Route new requirements and issues to the Pool and unfinished work to the active delivery record; do not create an empty Knowledge artifact.
 
 Set `RAVO_PLUGIN_ROOT` to the directory two levels above this `SKILL.md` file. Do not assume the RAVO source repository exists in the user's workspace after installation.
 
 ## Product Manager Communication
 
-- The PM document starts with the authoritative `pmBrief`: current product state, user impact, whether PM action is needed, and the next step.
-- PM projection is fixed regardless of legacy configuration: keep no-action documents to 5-8 visible lines and PM experience to at most three steps; retain full evidence only in the Agent artifact.
+- Treat `pmBrief`, Acceptance Items, and evidence as authoritative facts, not a response template. Do not enumerate every field merely because it exists.
+- Answer the current PM goal naturally. Choose prose, a list, a table, or steps only when it improves comprehension; translate internal capability names unless they are necessary to the product decision. Keep full evidence, internal IDs, paths, commands, and raw status fields in the Agent artifact unless the PM asks for technical evidence.
+- Before sending, make one lightweight semantic check: can the PM understand the result and their next action without implementation details, and can any default evidence appendix, internal ID, path, command, or raw status field be removed? This is not a Hook, Artifact, fixed section list, or line-count gate.
 - Only product experience or business judgment belongs in the PM decision card. Keep all remaining Codex-verifiable work in the Codex section.
 - Every PM decision card asks one question, recommends an option, explains each option's result, and states the impact of waiting.
 - Never use implementation complete, script pass, or environment aligned as a synonym for PM accepted, release ready, or released.

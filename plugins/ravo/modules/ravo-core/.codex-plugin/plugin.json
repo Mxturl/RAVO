@@ -1,6 +1,6 @@
 {
   "name": "ravo-core",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "description": "Shared schemas, templates, manifest initialization, and opt-in AGENTS.md integration for the RAVO lifecycle governance suite.",
   "author": {
     "name": "RAVO contributors"

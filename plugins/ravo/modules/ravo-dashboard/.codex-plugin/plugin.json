@@ -1,6 +1,6 @@
 {
   "name": "ravo-dashboard",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "description": "Local SoloDesk dashboard, configuration center, runtime visibility, and controlled RAVO upgrades.",
   "author": {
     "name": "RAVO contributors"
